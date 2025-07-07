@@ -5,7 +5,7 @@ export const vendorFormSchema = z.object({
   companyAbbreviation: z.string().min(2, "Abbreviation must be at least 2 characters").max(10, "Abbreviation must be 10 characters or less"),
   phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, "Phone must be in format (555) 123-4567"),
   email: z.string().email("Please enter a valid email address"),
-  website: z.string().url("Please enter a valid website URL"),
+  website: z.string().optional(),
   workTypes: z.array(z.string()).min(1, "Please select at least one work type"),
   platforms: z.array(z.string()).min(1, "Please select at least one platform"),
   otherPlatform: z.string().optional(),

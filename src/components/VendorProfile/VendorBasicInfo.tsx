@@ -84,7 +84,7 @@ export const VendorBasicInfo = ({ form }: VendorBasicInfoProps) => {
           name="website"
           render={({ field }) => (
             <FormItem className="md:col-span-2">
-              <FormLabel>Website URL *</FormLabel>
+              <FormLabel>Website URL</FormLabel>
               <FormControl>
                 <Input placeholder="https://www.abcpropertyservices.com" {...field} />
               </FormControl>
