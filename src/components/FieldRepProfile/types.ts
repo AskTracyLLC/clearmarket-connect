@@ -10,6 +10,7 @@ export const fieldRepSchema = z.object({
   aspenGroveId: z.string().optional(),
   aspenGroveExpiration: z.date().optional(),
   platforms: z.array(z.string()),
+  otherPlatform: z.string().optional(),
   inspectionTypes: z.array(z.string()),
   bio: z.string().min(50, "Bio must be at least 50 characters"),
   hudKeys: z.array(z.string()).optional(),

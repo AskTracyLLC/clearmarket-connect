@@ -1,5 +1,6 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
 
@@ -8,7 +9,9 @@ interface PlatformsUsedProps {
 }
 
 export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
-  const platforms = ["EZ", "IA", "Property Matrix", "CoreLogic", "Other"];
+  const platforms = ["EZinspections", "InspectorADE", "SafeView", "WorldAPP", "Other"];
+  const selectedPlatforms = form.watch("platforms") || [];
+  const isOtherSelected = selectedPlatforms.includes("Other");
 
   return (
     <div className="space-y-4">
@@ -31,16 +34,21 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
                         className="flex flex-row items-start space-x-3 space-y-0"
                       >
                         <FormControl>
-                          <Checkbox
+                           <Checkbox
                             checked={field.value?.includes(platform)}
                             onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...field.value, platform])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== platform
-                                    )
+                              if (checked) {
+                                field.onChange([...field.value, platform])
+                              } else {
+                                field.onChange(
+                                  field.value?.filter(
+                                    (value) => value !== platform
                                   )
+                                )
+                                if (platform === "Other") {
+                                  form.setValue("otherPlatform", "")
+                                }
+                              }
                             }}
                           />
                         </FormControl>
@@ -53,6 +61,26 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
                 />
               ))}
             </div>
+            
+            {isOtherSelected && (
+              <FormField
+                control={form.control}
+                name="otherPlatform"
+                render={({ field }) => (
+                  <FormItem className="mt-4">
+                    <FormLabel>Other Platform Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter platform name..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
             <FormMessage />
           </FormItem>
         )}

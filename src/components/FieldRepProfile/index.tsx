@@ -31,6 +31,7 @@ const FieldRepProfile = () => {
       email: "",
       aspenGroveId: "",
       platforms: [],
+      otherPlatform: "",
       inspectionTypes: [],
       bio: "",
       hudKeys: [],
