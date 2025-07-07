@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle, Pin } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle, Pin, Flame } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost, Reply } from "@/data/mockCommunityPosts";
+import UserBadge from "./UserBadge";
 
 interface PostDetailModalProps {
   post: CommunityPost;
@@ -43,10 +44,16 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onFollow, onSave, 
   return (
     <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
+        <DialogTitle className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className={getPostTypeColor(post.type)}>
             {post.type}
           </Badge>
+          {post.isTrending && (
+            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              <Flame className="h-3 w-3 mr-1" />
+              Trending
+            </Badge>
+          )}
           {post.isFollowed && (
             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
               Following
@@ -79,13 +86,28 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onFollow, onSave, 
               {post.isAnonymous ? "?" : post.authorInitials}
             </span>
           </div>
-          <div>
-            <div className="font-medium">
-              {post.isAnonymous ? "Anonymous" : post.authorInitials}
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <div className="font-medium">
+                {post.isAnonymous ? "Anonymous" : post.authorInitials}
+              </div>
+              {post.communityScore && (
+                <span className="text-sm text-muted-foreground">
+                  • Score: {post.communityScore}
+                </span>
+              )}
             </div>
             <div className="text-sm text-muted-foreground">
               {formatDistanceToNow(post.timePosted, { addSuffix: true })}
             </div>
+            {/* User Badges */}
+            {post.authorBadges && post.authorBadges.length > 0 && !post.isAnonymous && (
+              <div className="flex gap-1 mt-1">
+                {post.authorBadges.map((badge, index) => (
+                  <UserBadge key={index} badge={badge} size="md" />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -217,24 +239,43 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onFollow, onSave, 
                     ? 'bg-emerald-50 border border-emerald-200' 
                     : 'bg-muted/30'
                 }`}>
-                  <div className="flex items-center gap-2 justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="font-semibold text-primary text-xs">
-                          {reply.authorInitials}
-                        </span>
-                      </div>
-                      <span className="font-medium text-sm">{reply.authorInitials}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(reply.timePosted, { addSuffix: true })}
-                      </span>
-                      {post.pinnedReplyId === reply.id && (
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
-                          <Pin className="h-3 w-3 mr-1" />
-                          Answer
-                        </Badge>
-                      )}
-                    </div>
+                   <div className="flex items-center gap-2 justify-between">
+                     <div className="flex items-center gap-2">
+                       <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                         <span className="font-semibold text-primary text-xs">
+                           {reply.authorInitials}
+                         </span>
+                       </div>
+                       <div className="flex flex-col">
+                         <div className="flex items-center gap-2">
+                           <span className="font-medium text-sm">{reply.authorInitials}</span>
+                           {reply.communityScore && (
+                             <span className="text-xs text-muted-foreground">
+                               • Score: {reply.communityScore}
+                             </span>
+                           )}
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <span className="text-xs text-muted-foreground">
+                             {formatDistanceToNow(reply.timePosted, { addSuffix: true })}
+                           </span>
+                           {/* Reply Author Badges */}
+                           {reply.authorBadges && reply.authorBadges.length > 0 && (
+                             <div className="flex gap-1">
+                               {reply.authorBadges.map((badge, index) => (
+                                 <UserBadge key={index} badge={badge} size="sm" />
+                               ))}
+                             </div>
+                           )}
+                           {post.pinnedReplyId === reply.id && (
+                             <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                               <Pin className="h-3 w-3 mr-1" />
+                               Answer
+                             </Badge>
+                           )}
+                         </div>
+                       </div>
+                     </div>
                     
                     {!post.isResolved && post.pinnedReplyId !== reply.id && (
                       <Button

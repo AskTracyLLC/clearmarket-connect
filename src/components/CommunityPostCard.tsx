@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle, Flame } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/data/mockCommunityPosts";
+import UserBadge from "./UserBadge";
 
 interface CommunityPostCardProps {
   post: CommunityPost;
@@ -44,10 +45,16 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
                 </span>
               </div>
               <div className="flex flex-col">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className={getPostTypeColor(post.type)}>
                     {post.type}
                   </Badge>
+                  {post.isTrending && (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                      <Flame className="h-3 w-3 mr-1" />
+                      Trending
+                    </Badge>
+                  )}
                   {post.isFollowed && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                       Following
@@ -70,9 +77,24 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
                     </Badge>
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(post.timePosted, { addSuffix: true })}
-                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(post.timePosted, { addSuffix: true })}
+                  </span>
+                  {post.communityScore && (
+                    <span className="text-xs text-muted-foreground">
+                      • Score: {post.communityScore}
+                    </span>
+                  )}
+                </div>
+                {/* User Badges */}
+                {post.authorBadges && post.authorBadges.length > 0 && !post.isAnonymous && (
+                  <div className="flex gap-1 mt-1">
+                    {post.authorBadges.map((badge, index) => (
+                      <UserBadge key={index} badge={badge} size="sm" />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

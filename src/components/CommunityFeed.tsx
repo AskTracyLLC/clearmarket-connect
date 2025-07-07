@@ -51,6 +51,17 @@ const CommunityFeed = () => {
     }
   });
 
+  // Calculate trending status based on activity
+  const calculateTrending = (post: CommunityPost) => {
+    const hoursOld = (Date.now() - post.timePosted.getTime()) / (1000 * 60 * 60);
+    const totalVotes = post.helpfulVotes + post.notHelpfulVotes;
+    const replyCount = post.replies.length;
+    const activityScore = totalVotes + (replyCount * 2) + (post.isFollowed ? 1 : 0) + (post.isSaved ? 1 : 0);
+    
+    // Trending if high activity within last 24 hours
+    return hoursOld <= 24 && activityScore >= 8;
+  };
+
   const handleVote = (postId: number, type: 'helpful' | 'not-helpful') => {
     setPosts(prevPosts => 
       prevPosts.map(post => {

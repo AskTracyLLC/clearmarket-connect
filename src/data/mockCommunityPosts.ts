@@ -16,6 +16,9 @@ export interface CommunityPost {
   replies: Reply[];
   screenshots?: string[];
   systemTags?: string[];
+  isTrending?: boolean;
+  authorBadges?: UserBadge[];
+  communityScore?: number;
 }
 
 export interface Reply {
@@ -25,6 +28,14 @@ export interface Reply {
   timePosted: Date;
   helpfulVotes: number;
   notHelpfulVotes: number;
+  authorBadges?: UserBadge[];
+  communityScore?: number;
+}
+
+export interface UserBadge {
+  type: "top-contributor" | "helpful-commenter" | "verified" | "moderator";
+  label: string;
+  color: "primary" | "secondary" | "success" | "warning";
 }
 
 export const mockCommunityPosts: CommunityPost[] = [
@@ -43,6 +54,11 @@ export const mockCommunityPosts: CommunityPost[] = [
     isSaved: false,
     isResolved: false,
     systemTags: ["EZinspections", "InspectorADE"],
+    isTrending: true,
+    authorBadges: [
+      { type: "top-contributor", label: "Top Contributor", color: "primary" }
+    ],
+    communityScore: 95,
     replies: [
       {
         id: 101,
@@ -50,7 +66,11 @@ export const mockCommunityPosts: CommunityPost[] = [
         authorInitials: "S.K.",
         timePosted: new Date(Date.now() - 1 * 60 * 60 * 1000),
         helpfulVotes: 3,
-        notHelpfulVotes: 0
+        notHelpfulVotes: 0,
+        authorBadges: [
+          { type: "helpful-commenter", label: "Helpful Commenter", color: "success" }
+        ],
+        communityScore: 78
       }
     ]
   },
@@ -70,6 +90,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     isResolved: true,
     pinnedReplyId: 201,
     systemTags: ["Clear Capital", "SafeView"],
+    isTrending: true,
+    authorBadges: [],
+    communityScore: 42,
     replies: [
       {
         id: 201,
@@ -77,7 +100,12 @@ export const mockCommunityPosts: CommunityPost[] = [
         authorInitials: "T.L.",
         timePosted: new Date(Date.now() - 3 * 60 * 60 * 1000),
         helpfulVotes: 8,
-        notHelpfulVotes: 0
+        notHelpfulVotes: 0,
+        authorBadges: [
+          { type: "helpful-commenter", label: "Helpful Commenter", color: "success" },
+          { type: "verified", label: "Verified", color: "primary" }
+        ],
+        communityScore: 89
       },
       {
         id: 202,
@@ -85,7 +113,9 @@ export const mockCommunityPosts: CommunityPost[] = [
         authorInitials: "K.W.",
         timePosted: new Date(Date.now() - 2.5 * 60 * 60 * 1000),
         helpfulVotes: 5,
-        notHelpfulVotes: 0
+        notHelpfulVotes: 0,
+        authorBadges: [],
+        communityScore: 31
       }
     ]
   },
@@ -104,6 +134,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     isSaved: false,
     isResolved: false,
     systemTags: [],
+    isTrending: false,
+    authorBadges: [],
+    communityScore: 0,
     replies: [
       {
         id: 301,
@@ -111,7 +144,9 @@ export const mockCommunityPosts: CommunityPost[] = [
         authorInitials: "D.P.",
         timePosted: new Date(Date.now() - 5 * 60 * 60 * 1000),
         helpfulVotes: 6,
-        notHelpfulVotes: 0
+        notHelpfulVotes: 0,
+        authorBadges: [],
+        communityScore: 56
       }
     ]
   },
