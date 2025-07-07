@@ -23,6 +23,7 @@ const formSchema = z.object({
   website: z.string().url("Please enter a valid website URL"),
   workTypes: z.array(z.string()).min(1, "Please select at least one work type"),
   platforms: z.array(z.string()).min(1, "Please select at least one platform"),
+  otherPlatform: z.string().optional(),
   companyBio: z.string().min(50, "Company bio must be at least 50 characters"),
   avgJobs: z.string().min(1, "Please select average jobs per month"),
   paymentTerms: z.string().min(1, "Please select payment terms"),
@@ -53,6 +54,7 @@ const VendorProfile = () => {
       website: "",
       workTypes: [],
       platforms: [],
+      otherPlatform: "",
       companyBio: "",
       avgJobs: "",
       paymentTerms: "",
@@ -163,6 +165,9 @@ const VendorProfile = () => {
       form.setValue("platforms", [...currentPlatforms, platform]);
     } else {
       form.setValue("platforms", currentPlatforms.filter(p => p !== platform));
+      if (platform === "Other") {
+        form.setValue("otherPlatform", "");
+      }
     }
   };
 
@@ -191,16 +196,16 @@ const VendorProfile = () => {
     "REO Services",
     "Property Preservation",
     "Damage Assessment",
-    "Compliance Checks"
+    "High Quality Marketing Photos",
+    "Appt-Based Inspections"
   ];
 
   const platforms = [
-    "EZ Inspections",
+    "EZinspections",
     "InspectorADE", 
-    "Safeguard",
+    "SafeView",
     "WorldAPP",
-    "Custom Platform",
-    "Direct Assignment"
+    "Other"
   ];
 
   return (
@@ -452,6 +457,26 @@ const VendorProfile = () => {
                         </div>
                       ))}
                     </div>
+                    
+                    {form.watch("platforms")?.includes("Other") && (
+                      <FormField
+                        control={form.control}
+                        name="otherPlatform"
+                        render={({ field }) => (
+                          <FormItem className="mt-4">
+                            <FormLabel>Other Platform Name</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter platform name..."
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
                     <FormMessage />
                   </FormItem>
                 )}

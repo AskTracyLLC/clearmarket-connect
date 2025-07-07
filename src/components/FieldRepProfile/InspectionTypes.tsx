@@ -9,12 +9,15 @@ interface InspectionTypesProps {
 
 export const InspectionTypes = ({ form }: InspectionTypesProps) => {
   const inspectionTypes = [
-    "Interior/Exterior",
-    "Exterior Only", 
-    "Drive-by",
-    "Occupancy Check",
-    "Appt-Based Inspections",
-    "Property Preservation"
+    "Interior/Exterior Inspections",
+    "Exterior Only Inspections", 
+    "Drive-by Inspections",
+    "Occupancy Verification",
+    "REO Services",
+    "Property Preservation",
+    "Damage Assessment",
+    "High Quality Marketing Photos",
+    "Appt-Based Inspections"
   ];
 
   return (
