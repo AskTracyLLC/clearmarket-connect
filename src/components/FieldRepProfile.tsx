@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Trash2, Shield, Info } from "lucide-react";
+import { Calendar as CalendarIcon, Trash2, Shield, Info, Edit2, Save, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { statesAndCounties, type State, type County } from "@/data/statesAndCounties";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +54,8 @@ const FieldRepProfile = () => {
   const [standardPrice, setStandardPrice] = useState("");
   const [rushPrice, setRushPrice] = useState("");
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{ standardPrice: string; rushPrice: string }>({ standardPrice: "", rushPrice: "" });
 
   const form = useForm<FieldRepFormData>({
     resolver: zodResolver(fieldRepSchema),
@@ -144,10 +146,47 @@ const FieldRepProfile = () => {
 
   const removeCoverageArea = (id: string) => {
     setCoverageAreas(prev => prev.filter(area => area.id !== id));
+    setEditingId(null);
     toast({
       title: "Coverage Removed",
       description: "Coverage area has been removed.",
     });
+  };
+
+  const startEditCoverage = (area: CoverageArea) => {
+    setEditingId(area.id);
+    setEditValues({
+      standardPrice: area.standardPrice,
+      rushPrice: area.rushPrice,
+    });
+  };
+
+  const saveEditCoverage = (id: string) => {
+    if (!editValues.standardPrice || !editValues.rushPrice) {
+      toast({
+        title: "Invalid Pricing",
+        description: "Please enter both standard and rush pricing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCoverageAreas(prev => prev.map(area => 
+      area.id === id 
+        ? { ...area, standardPrice: editValues.standardPrice, rushPrice: editValues.rushPrice }
+        : area
+    ));
+    setEditingId(null);
+    setEditValues({ standardPrice: "", rushPrice: "" });
+    toast({
+      title: "Pricing Updated",
+      description: "Coverage area pricing has been updated.",
+    });
+  };
+
+  const cancelEditCoverage = () => {
+    setEditingId(null);
+    setEditValues({ standardPrice: "", rushPrice: "" });
   };
 
   const onSubmit = (data: FieldRepFormData) => {
@@ -453,6 +492,22 @@ const FieldRepProfile = () => {
                 {coverageAreas.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="font-medium">Your Coverage Areas</h4>
+                    
+                    {/* Pricing Disclaimer */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-amber-800">
+                          <p className="font-medium mb-1">Pricing Disclaimer</p>
+                          <p>
+                            The pricing listed below is for vendor reference only and does not guarantee payment rates. 
+                            All pricing agreements must be finalized directly between you and the vendor you are connecting with. 
+                            These rates assist vendors in finding field representatives in their coverage areas.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <div className="border border-border rounded-lg">
                       <Table>
                         <TableHeader>
@@ -461,7 +516,7 @@ const FieldRepProfile = () => {
                             <TableHead>Counties</TableHead>
                             <TableHead>Standard</TableHead>
                             <TableHead>Rush</TableHead>
-                            <TableHead className="w-16"></TableHead>
+                            <TableHead className="w-20">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -474,18 +529,73 @@ const FieldRepProfile = () => {
                                   : area.counties.join(", ")
                                 }
                               </TableCell>
-                              <TableCell>{area.standardPrice}</TableCell>
-                              <TableCell>{area.rushPrice}</TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeCoverageArea(area.id)}
-                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
+                               <TableCell>
+                                 {editingId === area.id ? (
+                                   <Input
+                                     value={editValues.standardPrice}
+                                     onChange={(e) => setEditValues(prev => ({ ...prev, standardPrice: e.target.value }))}
+                                     placeholder="$35"
+                                     className="w-20"
+                                   />
+                                 ) : (
+                                   area.standardPrice
+                                 )}
+                               </TableCell>
+                               <TableCell>
+                                 {editingId === area.id ? (
+                                   <Input
+                                     value={editValues.rushPrice}
+                                     onChange={(e) => setEditValues(prev => ({ ...prev, rushPrice: e.target.value }))}
+                                     placeholder="$55"
+                                     className="w-20"
+                                   />
+                                 ) : (
+                                   area.rushPrice
+                                 )}
+                               </TableCell>
+                               <TableCell>
+                                 <div className="flex gap-1">
+                                   {editingId === area.id ? (
+                                     <>
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={() => saveEditCoverage(area.id)}
+                                         className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                                       >
+                                         <Save className="h-4 w-4" />
+                                       </Button>
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={cancelEditCoverage}
+                                         className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                       >
+                                         <X className="h-4 w-4" />
+                                       </Button>
+                                     </>
+                                   ) : (
+                                     <>
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={() => startEditCoverage(area)}
+                                         className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                       >
+                                         <Edit2 className="h-4 w-4" />
+                                       </Button>
+                                       <Button
+                                         variant="ghost"
+                                         size="sm"
+                                         onClick={() => removeCoverageArea(area.id)}
+                                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                       >
+                                         <Trash2 className="h-4 w-4" />
+                                       </Button>
+                                     </>
+                                   )}
+                                 </div>
+                               </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
