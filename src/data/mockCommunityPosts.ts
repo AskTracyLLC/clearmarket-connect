@@ -11,6 +11,7 @@ export interface CommunityPost {
   isFlagged: boolean;
   isPinged: boolean;
   replies: Reply[];
+  screenshots?: string[];
 }
 
 export interface Reply {

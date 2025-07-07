@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Camera, X } from "lucide-react";
 
 const postTypes = [
   "Coverage Needed",
@@ -21,6 +22,7 @@ interface PostCreationModalProps {
     title: string;
     content: string;
     isAnonymous: boolean;
+    screenshots?: string[];
   }) => void;
   onClose: () => void;
 }
@@ -30,14 +32,67 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [screenshots, setScreenshots] = useState<string[]>([]);
+  const [linkError, setLinkError] = useState("");
+
+  const detectLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|\b[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|int|co|io|app|dev|ly|me|info|biz|tv|cc|us|uk|ca|au|de|fr|jp|cn|in|br|ru|kr|it|es|mx|nl|se|no|dk|fi|pl|tr|sa|za|ng|eg|il|ar|cl|pe|ve|uy|py|bo|ec|co|gt|cr|pa|ni|hn|sv|cu|jm|ht|do|pr|bb|gd|lc|vc|ag|dm|kn|ms|vg|ai|ky|tc|bm|fk|gs|io|ac|sh|ta|cc|cx|nf|hm|tf|aq|bv|sj|pn|nu|tk|cf|ga|gq|st|td|cv|gw|ne|bf|sn|gm|gn|sl|lr|ci|gh|tg|bj|ng|cm|cg|cf|ao|zm|mw|mz|mg|mu|re|sc|yt|km|dj|so|et|er|sd|ly|tn|dz|ma|eh|mr|ml|mr|ne|td|cf|cm|gq|ga|cg|cd|ao|na|bw|sz|ls|za|mz|mg|mu|re|sc|yt|km|dj|so|et|er|sd|ss|eg|ly|tn|dz|ma|eh)\b)/gi;
+    return urlRegex.test(text);
+  };
+
+  const handleTextChange = (text: string, field: 'title' | 'content') => {
+    if (detectLinks(text)) {
+      setLinkError("External links are not allowed in posts");
+    } else {
+      setLinkError("");
+    }
+    
+    if (field === 'title') {
+      setTitle(text);
+    } else {
+      setContent(text);
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be under 5MB");
+        return;
+      }
+      
+      if (screenshots.length >= 3) {
+        alert("Maximum 3 screenshots allowed");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result && typeof e.target.result === 'string') {
+          setScreenshots(prev => [...prev, e.target.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeScreenshot = (index: number) => {
+    setScreenshots(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = () => {
+    if (linkError) return;
+    
     if (postType && title.trim() && content.trim()) {
       onCreatePost({
         type: postType,
         title: title.trim(),
         content: content.trim(),
-        isAnonymous
+        isAnonymous,
+        screenshots: screenshots.length > 0 ? screenshots : undefined
       });
       
       // Reset form
@@ -45,12 +100,14 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
       setTitle("");
       setContent("");
       setIsAnonymous(false);
+      setScreenshots([]);
+      setLinkError("");
       
       onClose();
     }
   };
 
-  const isValid = postType && title.trim() && content.trim();
+  const isValid = postType && title.trim() && content.trim() && !linkError;
 
   return (
     <DialogContent className="sm:max-w-lg">
@@ -82,7 +139,7 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
           <Input
             id="title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTextChange(e.target.value, 'title')}
             placeholder="Enter post title..."
             maxLength={100}
           />
@@ -97,14 +154,73 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
           <Textarea
             id="content"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => handleTextChange(e.target.value, 'content')}
             placeholder="Share details, ask for help, or provide information..."
             className="min-h-[120px]"
             maxLength={1000}
           />
-          <div className="text-xs text-muted-foreground text-right">
-            {content.length}/1000
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-muted-foreground">Screenshots allowed - External links prohibited</span>
+            <span className="text-muted-foreground">{content.length}/1000</span>
           </div>
+          {linkError && (
+            <p className="text-xs text-destructive">{linkError}</p>
+          )}
+        </div>
+
+        {/* Screenshots */}
+        <div className="space-y-2">
+          <Label htmlFor="screenshots">Screenshots (Optional)</Label>
+          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
+            <div className="flex flex-col items-center gap-2">
+              <Camera className="h-8 w-8 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Upload screenshots to help illustrate your post</p>
+                <p className="text-xs text-muted-foreground">Max 3 images, 5MB each</p>
+              </div>
+              <Input
+                id="screenshots"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('screenshots')?.click()}
+                disabled={screenshots.length >= 3}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Add Screenshots
+              </Button>
+            </div>
+          </div>
+          
+          {screenshots.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {screenshots.map((screenshot, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={screenshot}
+                    alt={`Screenshot ${index + 1}`}
+                    className="w-full h-20 object-cover rounded border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeScreenshot(index)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Anonymous Option */}

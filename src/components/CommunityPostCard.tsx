@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ThumbsUp, ThumbsDown, Flag, Eye } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flag, Eye, Camera } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/data/mockCommunityPosts";
 
@@ -73,6 +73,26 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onPing }: CommunityP
             <p className="text-sm text-muted-foreground line-clamp-3">
               {post.content}
             </p>
+            
+            {/* Screenshots Preview */}
+            {post.screenshots && post.screenshots.length > 0 && (
+              <div className="flex items-center gap-2 pt-1">
+                <Camera className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {post.screenshots.length} screenshot{post.screenshots.length !== 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-1">
+                  {post.screenshots.slice(0, 3).map((screenshot, index) => (
+                    <img
+                      key={index}
+                      src={screenshot}
+                      alt={`Screenshot ${index + 1}`}
+                      className="w-8 h-8 object-cover rounded border"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Interaction buttons */}
