@@ -135,7 +135,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-semibold">Coverage Areas & Pricing</h3>
-        <div className="text-xs bg-destructive/10 px-2 py-1 rounded">Confidential - Credit Required for Vendors</div>
+        <div className="text-xs bg-destructive/10 px-2 py-1 rounded">Confidential - Other Field Reps do NOT have access to these details</div>
       </div>
       
       <div className="border border-border rounded-lg p-4 space-y-4">
