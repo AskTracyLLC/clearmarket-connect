@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { vendorFormSchema, VendorFormData, CoverageArea } from "./types";
 import { VendorBasicInfo } from "./VendorBasicInfo";
@@ -12,6 +13,8 @@ import { VendorWorkTypes } from "./VendorWorkTypes";
 import { VendorPlatforms } from "./VendorPlatforms";
 import { VendorCompanyBio } from "./VendorCompanyBio";
 import { VendorAdditionalInfo } from "./VendorAdditionalInfo";
+import VendorNetworkTab from "./VendorNetworkTab";
+import { mockCurrentVendor } from "@/data/mockVendorData";
 
 const VendorProfile = () => {
   const { toast } = useToast();
@@ -52,37 +55,55 @@ const VendorProfile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
-            Vendor Profile Setup
+            Vendor Dashboard
           </CardTitle>
           <CardDescription>
-            Create your company profile to find reliable field reps in your coverage areas
+            Manage your company profile and network connections
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <VendorBasicInfo form={form} />
-              <VendorCoverageAreas 
-                coverageAreas={coverageAreas} 
-                setCoverageAreas={setCoverageAreas} 
-              />
-              <VendorWorkTypes form={form} />
-              <VendorPlatforms form={form} />
-              <VendorCompanyBio form={form} />
-              <VendorAdditionalInfo form={form} />
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile">Company Profile</TabsTrigger>
+              <TabsTrigger value="network" className="flex items-center gap-2">
+                My Network 
+                <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  {mockCurrentVendor.network.length}
+                </span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="profile" className="mt-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <VendorBasicInfo form={form} />
+                  <VendorCoverageAreas 
+                    coverageAreas={coverageAreas} 
+                    setCoverageAreas={setCoverageAreas} 
+                  />
+                  <VendorWorkTypes form={form} />
+                  <VendorPlatforms form={form} />
+                  <VendorCompanyBio form={form} />
+                  <VendorAdditionalInfo form={form} />
 
-              {/* Submit Button */}
-              <div className="pt-4">
-                <Button type="submit" variant="hero" size="lg" className="w-full">
-                  Create Vendor Profile
-                </Button>
-              </div>
-            </form>
-          </Form>
+                  {/* Submit Button */}
+                  <div className="pt-4">
+                    <Button type="submit" variant="hero" size="lg" className="w-full">
+                      Save Profile Changes
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </TabsContent>
+            
+            <TabsContent value="network" className="mt-6">
+              <VendorNetworkTab />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
