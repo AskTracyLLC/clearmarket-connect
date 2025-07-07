@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
 import { mockCommunityPosts, CommunityPost } from "@/data/mockCommunityPosts";
 import CommunityPostCard from "./CommunityPostCard";
 import PostDetailModal from "./PostDetailModal";
 import PostCreationModal from "./PostCreationModal";
-import CommunityFilters from "./CommunityFilters";
 
 type SortOption = "helpful" | "newest" | "post-type";
 
@@ -17,15 +17,24 @@ const CommunityFeed = () => {
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("helpful");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSystems, setSelectedSystems] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchKeyword, setSearchKeyword] = useState<string>("");
 
-  // Filter posts by categories and systems
+  const categories = [
+    "Coverage Needed",
+    "Platform Help", 
+    "Warnings",
+    "Tips",
+    "Industry News"
+  ];
+
+  // Filter posts by category and search keyword
   const filteredPosts = posts.filter(post => {
-    const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(post.type);
-    const systemMatch = selectedSystems.length === 0 || 
-      (post.systemTags && post.systemTags.some(tag => selectedSystems.includes(tag)));
-    return categoryMatch && systemMatch;
+    const categoryMatch = selectedCategory === "all" || post.type === selectedCategory;
+    const searchMatch = searchKeyword === "" || 
+      post.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchKeyword.toLowerCase());
+    return categoryMatch && searchMatch;
   });
 
   // Sort posts
@@ -188,48 +197,51 @@ const CommunityFeed = () => {
     setPosts(prevPosts => [post, ...prevPosts]);
   };
 
-  const handleClearFilters = () => {
-    setSelectedCategories([]);
-    setSelectedSystems([]);
-  };
-
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="flex gap-6">
-        {/* Filters Sidebar */}
-        <div className="flex-shrink-0">
-          <CommunityFilters
-            selectedCategories={selectedCategories}
-            selectedSystems={selectedSystems}
-            onCategoryChange={setSelectedCategories}
-            onSystemChange={setSelectedSystems}
-            onClearFilters={handleClearFilters}
-          />
-        </div>
+      <div className="space-y-6">
+        {/* Header */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-foreground">
+              Community Board
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Filters and Controls */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Sort by:</label>
+                    <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                      <SelectTrigger className="w-full sm:w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="helpful">Most Helpful</SelectItem>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="post-type">Post Type</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-        {/* Main Content */}
-        <div className="flex-1 space-y-6">
-          {/* Header */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-foreground">
-                Community Board
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Sort by:</label>
-                  <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="helpful">Most Helpful</SelectItem>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="post-type">Post Type</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Category:</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Create Post Button */}
@@ -247,39 +259,50 @@ const CommunityFeed = () => {
                 </Dialog>
               </div>
 
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search posts by keyword..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
               {/* Filter Summary */}
-              {(selectedCategories.length > 0 || selectedSystems.length > 0) && (
+              {(selectedCategory !== "all" || searchKeyword) && (
                 <div className="text-sm text-muted-foreground">
                   Showing {sortedPosts.length} post{sortedPosts.length !== 1 ? 's' : ''} 
-                  {selectedCategories.length > 0 && ` in ${selectedCategories.join(', ')}`}
-                  {selectedSystems.length > 0 && ` for ${selectedSystems.join(', ')}`}
+                  {selectedCategory !== "all" && ` in ${selectedCategory}`}
+                  {searchKeyword && ` matching "${searchKeyword}"`}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Posts Feed */}
-          <div className="space-y-4">
-            {sortedPosts.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">No posts found for the selected filters.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              sortedPosts.map((post) => (
-                <CommunityPostCard
-                  key={post.id}
-                  post={post}
-                  onClick={() => setSelectedPost(post)}
-                  onVote={handleVote}
-                  onFlag={handleFlag}
-                  onFollow={handleFollow}
-                  onSave={handleSave}
-                />
-              ))
-            )}
-          </div>
+        {/* Posts Feed */}
+        <div className="space-y-4">
+          {sortedPosts.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">No posts found for the selected filters.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            sortedPosts.map((post) => (
+              <CommunityPostCard
+                key={post.id}
+                post={post}
+                onClick={() => setSelectedPost(post)}
+                onVote={handleVote}
+                onFlag={handleFlag}
+                onFollow={handleFollow}
+                onSave={handleSave}
+              />
+            ))
+          )}
         </div>
       </div>
 
