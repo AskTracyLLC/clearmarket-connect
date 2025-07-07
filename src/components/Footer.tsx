@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+
 const Footer = () => {
-  return <footer className="bg-secondary border-t border-border">
+  return (
+    <footer className="bg-secondary border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
@@ -10,7 +12,10 @@ const Footer = () => {
               </div>
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
-            <p className="text-muted-foreground text-sm">Connecting property inspection professionals through transparency and trust — paving the way for a better way to do business in inspections.</p>
+            <p className="text-muted-foreground text-sm">
+              Connecting property inspection professionals with transparency and trust.
+              A stepping stone to the future of AI-powered property inspection.
+            </p>
           </div>
 
           <div>
@@ -51,6 +56,8 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
+
 export default Footer;
