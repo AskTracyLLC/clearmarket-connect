@@ -9,10 +9,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MapPin, Calendar, Eye, Unlock, UserPlus, Gift } from "lucide-react";
+import { MapPin, Calendar, Eye, Unlock, UserPlus, Gift, Star } from "lucide-react";
 import { mockCurrentVendor } from "@/data/mockVendorData";
 import { mockResults } from "@/data/mockData";
 import { formatDistanceToNow } from "date-fns";
+
+const getRepName = (initials: string) => {
+  const nameMap: { [key: string]: string } = {
+    "T.M.": "Tom Mitchell",
+    "J.D.": "Jane Davis", 
+    "M.R.": "Mike Rodriguez",
+    "S.L.": "Sarah Lee",
+    "A.S.": "Alex Smith",
+    "M.J.": "Mike Johnson"
+  };
+  return nameMap[initials] || initials;
+};
 
 const VendorNetworkTab = () => {
   const networkReps = mockCurrentVendor.network.map(networkRep => {
@@ -138,8 +150,8 @@ const VendorNetworkTab = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Rep</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>Rep Name</TableHead>
+                  <TableHead>Trust Score</TableHead>
                   <TableHead>Platforms</TableHead>
                   <TableHead>How Added</TableHead>
                   <TableHead>Date Added</TableHead>
@@ -155,7 +167,7 @@ const VendorNetworkTab = () => {
                           <span className="font-semibold text-primary text-sm">{rep.repInitials}</span>
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">{rep.repInitials}</p>
+                          <p className="font-medium text-foreground">{getRepName(rep.repInitials)}</p>
                           <div className="flex items-center gap-1 text-muted-foreground text-xs">
                             <Badge variant="outline" className="flex items-center gap-1">
                               <UserPlus className="h-3 w-3" />
@@ -167,9 +179,13 @@ const VendorNetworkTab = () => {
                     </TableCell>
                     
                     <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        <span>{rep.distance || 'N/A'}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
+                          <span className="text-xs font-semibold text-muted-foreground">-</span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">No scores earned yet</p>
+                        </div>
                       </div>
                     </TableCell>
                     
