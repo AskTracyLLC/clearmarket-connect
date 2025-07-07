@@ -195,10 +195,10 @@ const VendorProfile = () => {
   ];
 
   const platforms = [
-    "EZ Inspector",
-    "Inspection Assistant", 
-    "Property Matrix",
-    "CoreLogic",
+    "EZ Inspections",
+    "InspectorADE", 
+    "Safeguard",
+    "WorldAPP",
     "Custom Platform",
     "Direct Assignment"
   ];
