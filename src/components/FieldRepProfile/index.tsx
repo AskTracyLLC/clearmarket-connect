@@ -74,7 +74,6 @@ const FieldRepProfile = () => {
               <PersonalInfo form={form} />
               <ContactVerification form={form} />
               <DisplayIdentity form={form} />
-              <BackgroundCheck form={form} />
               <CoverageAreas 
                 coverageAreas={coverageAreas}
                 setCoverageAreas={setCoverageAreas}
@@ -82,6 +81,7 @@ const FieldRepProfile = () => {
               <PlatformsUsed form={form} />
               <InspectionTypes form={form} />
               <ProfessionalBio form={form} />
+              <BackgroundCheck form={form} />
               <HudKeys form={form} />
               <ClearVueBeta form={form} />
 
