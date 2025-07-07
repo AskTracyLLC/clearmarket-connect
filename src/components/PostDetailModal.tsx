@@ -1,0 +1,208 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ThumbsUp, ThumbsDown, Flag, Eye } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { CommunityPost, Reply } from "@/data/mockCommunityPosts";
+
+interface PostDetailModalProps {
+  post: CommunityPost;
+  onVote: (postId: number, type: 'helpful' | 'not-helpful') => void;
+  onReplyVote: (replyId: number, type: 'helpful' | 'not-helpful') => void;
+  onFlag: (postId: number) => void;
+  onPing: (postId: number) => void;
+}
+
+const getPostTypeColor = (type: string) => {
+  switch (type) {
+    case "Coverage Needed": return "bg-red-100 text-red-800 border-red-200";
+    case "Platform Help": return "bg-blue-100 text-blue-800 border-blue-200";
+    case "Warnings": return "bg-orange-100 text-orange-800 border-orange-200";
+    case "Tips": return "bg-green-100 text-green-800 border-green-200";
+    case "Industry News": return "bg-purple-100 text-purple-800 border-purple-200";
+    default: return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+};
+
+const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onPing }: PostDetailModalProps) => {
+  const [replyText, setReplyText] = useState("");
+
+  const handleAddReply = () => {
+    if (replyText.trim()) {
+      // In a real app, this would add the reply to the post
+      console.log("Adding reply:", replyText);
+      setReplyText("");
+    }
+  };
+
+  return (
+    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Badge variant="outline" className={getPostTypeColor(post.type)}>
+            {post.type}
+          </Badge>
+          {post.isPinged && (
+            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+              Pinged
+            </Badge>
+          )}
+          {post.isFlagged && (
+            <Badge variant="destructive">
+              Flagged
+            </Badge>
+          )}
+        </DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-4">
+        {/* Post Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+            <span className="font-semibold text-primary">
+              {post.isAnonymous ? "?" : post.authorInitials}
+            </span>
+          </div>
+          <div>
+            <div className="font-medium">
+              {post.isAnonymous ? "Anonymous" : post.authorInitials}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {formatDistanceToNow(post.timePosted, { addSuffix: true })}
+            </div>
+          </div>
+        </div>
+
+        {/* Post Content */}
+        <div className={`space-y-3 ${post.isFlagged ? 'opacity-50' : ''}`}>
+          <h2 className="text-xl font-semibold text-foreground">
+            {post.title}
+          </h2>
+          <p className="text-foreground whitespace-pre-wrap">
+            {post.content}
+          </p>
+        </div>
+
+        {/* Post Actions */}
+        <div className="flex items-center gap-2 pt-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={() => onVote(post.id, 'helpful')}
+          >
+            <ThumbsUp className="h-4 w-4" />
+            Helpful ({post.helpfulVotes})
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={() => onVote(post.id, 'not-helpful')}
+          >
+            <ThumbsDown className="h-4 w-4" />
+            Not Helpful ({post.notHelpfulVotes})
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={() => onFlag(post.id)}
+          >
+            <Flag className="h-4 w-4" />
+            Flag
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={() => onPing(post.id)}
+          >
+            <Eye className="h-4 w-4" />
+            Ping for Update
+          </Button>
+        </div>
+
+        {/* Replies Section */}
+        {post.replies.length > 0 && (
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-foreground">
+              Replies ({post.replies.length})
+            </h3>
+            
+            <div className="space-y-3">
+              {post.replies.map((reply) => (
+                <div key={reply.id} className="bg-muted/30 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                      <span className="font-semibold text-primary text-xs">
+                        {reply.authorInitials}
+                      </span>
+                    </div>
+                    <span className="font-medium text-sm">{reply.authorInitials}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(reply.timePosted, { addSuffix: true })}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-foreground pl-8">
+                    {reply.content}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 pl-8">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1"
+                      onClick={() => onReplyVote(reply.id, 'helpful')}
+                    >
+                      <ThumbsUp className="h-3 w-3" />
+                      <span className="text-xs">{reply.helpfulVotes}</span>
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1"
+                      onClick={() => onReplyVote(reply.id, 'not-helpful')}
+                    >
+                      <ThumbsDown className="h-3 w-3" />
+                      <span className="text-xs">{reply.notHelpfulVotes}</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Add Reply */}
+        <div className="space-y-3 pt-4 border-t">
+          <h4 className="font-medium text-foreground">Add a Reply</h4>
+          <Textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Share your thoughts or help..."
+            className="min-h-[80px]"
+          />
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleAddReply}
+              disabled={!replyText.trim()}
+              variant="hero"
+            >
+              Post Reply
+            </Button>
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  );
+};
+
+export default PostDetailModal;
