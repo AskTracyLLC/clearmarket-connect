@@ -75,7 +75,7 @@ const HeroSection = () => {
 
         {/* Trust Indicators */}
         <div className="text-center mt-16 pt-8 border-t border-border">
-          <p className="text-muted-foreground mb-4">Funding the future of property inspection with ClearVue AI</p>
+          <p className="text-muted-foreground mb-4">Paving the Way to a Better Way to Work Together</p>
           <div className="flex items-center justify-center space-x-8 text-sm text-muted-foreground">
             <span>🔒 Secure Platform</span>
             <span>📊 Transparent Pricing</span>

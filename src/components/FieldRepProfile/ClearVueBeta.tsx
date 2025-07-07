@@ -17,10 +17,10 @@ export const ClearVueBeta = ({ form }: ClearVueBetaProps) => {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <FormLabel className="text-base">
-                Interested in ClearVue Beta?
+                Join Our Beta Program?
               </FormLabel>
               <FormDescription>
-                Get early access to our AI-powered inspection tools
+                Paving the Way to a Better Way to Work Together
               </FormDescription>
             </div>
             <FormControl>

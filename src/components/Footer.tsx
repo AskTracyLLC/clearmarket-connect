@@ -36,7 +36,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">About ClearVue</Link></li>
+              <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">About Us</Link></li>
               <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">Contact</Link></li>
               <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
               <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
@@ -47,7 +47,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-muted-foreground text-sm">
-            © 2024 ClearMarket. All rights reserved. | Building the future with ClearVue AI
+            © 2024 ClearMarket. All rights reserved. | Paving the Way to a Better Way to Work Together
           </p>
         </div>
       </div>
