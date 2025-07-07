@@ -72,8 +72,8 @@ const FieldRepProfile = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               
               <PersonalInfo form={form} />
-              <DisplayIdentity form={form} />
               <ContactVerification form={form} />
+              <DisplayIdentity form={form} />
               <BackgroundCheck form={form} />
               <CoverageAreas 
                 coverageAreas={coverageAreas}
