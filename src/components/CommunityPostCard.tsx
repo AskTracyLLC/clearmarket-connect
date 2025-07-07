@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ThumbsUp, ThumbsDown, Flag, Eye, Camera } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/data/mockCommunityPosts";
 
@@ -10,7 +10,8 @@ interface CommunityPostCardProps {
   onClick: () => void;
   onVote: (postId: number, type: 'helpful' | 'not-helpful') => void;
   onFlag: (postId: number) => void;
-  onPing: (postId: number) => void;
+  onFollow: (postId: number) => void;
+  onSave: (postId: number) => void;
 }
 
 const getPostTypeColor = (type: string) => {
@@ -24,7 +25,7 @@ const getPostTypeColor = (type: string) => {
   }
 };
 
-const CommunityPostCard = ({ post, onClick, onVote, onFlag, onPing }: CommunityPostCardProps) => {
+const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: CommunityPostCardProps) => {
   return (
     <Card 
       className={`hover:shadow-elevated transition-all duration-300 cursor-pointer ${
@@ -47,9 +48,20 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onPing }: CommunityP
                   <Badge variant="outline" className={getPostTypeColor(post.type)}>
                     {post.type}
                   </Badge>
-                  {post.isPinged && (
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      Pinged
+                  {post.isFollowed && (
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      Following
+                    </Badge>
+                  )}
+                  {post.isSaved && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      Saved
+                    </Badge>
+                  )}
+                  {post.isResolved && (
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Resolved
                     </Badge>
                   )}
                   {post.isFlagged && (
@@ -143,11 +155,24 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onPing }: CommunityP
                 className="h-8 gap-1"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onPing(post.id);
+                  onFollow(post.id);
                 }}
               >
-                <Eye className="h-3 w-3" />
-                <span className="text-xs">Ping</span>
+                <Star className={`h-3 w-3 ${post.isFollowed ? 'fill-current' : ''}`} />
+                <span className="text-xs">Follow</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSave(post.id);
+                }}
+              >
+                <Bookmark className={`h-3 w-3 ${post.isSaved ? 'fill-current' : ''}`} />
+                <span className="text-xs">Save</span>
               </Button>
             </div>
 

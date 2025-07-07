@@ -9,7 +9,10 @@ export interface CommunityPost {
   helpfulVotes: number;
   notHelpfulVotes: number;
   isFlagged: boolean;
-  isPinged: boolean;
+  isFollowed: boolean;
+  isSaved: boolean;
+  isResolved: boolean;
+  pinnedReplyId?: number;
   replies: Reply[];
   screenshots?: string[];
 }
@@ -35,7 +38,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     helpfulVotes: 8,
     notHelpfulVotes: 1,
     isFlagged: false,
-    isPinged: true,
+    isFollowed: true,
+    isSaved: false,
+    isResolved: false,
     replies: [
       {
         id: 101,
@@ -58,7 +63,10 @@ export const mockCommunityPosts: CommunityPost[] = [
     helpfulVotes: 12,
     notHelpfulVotes: 0,
     isFlagged: false,
-    isPinged: false,
+    isFollowed: false,
+    isSaved: true,
+    isResolved: true,
+    pinnedReplyId: 201,
     replies: [
       {
         id: 201,
@@ -89,7 +97,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     helpfulVotes: 24,
     notHelpfulVotes: 2,
     isFlagged: false,
-    isPinged: false,
+    isFollowed: true,
+    isSaved: false,
+    isResolved: false,
     replies: [
       {
         id: 301,
@@ -112,7 +122,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     helpfulVotes: 18,
     notHelpfulVotes: 3,
     isFlagged: false,
-    isPinged: false,
+    isFollowed: false,
+    isSaved: true,
+    isResolved: false,
     replies: [
       {
         id: 401,
@@ -135,7 +147,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     helpfulVotes: 15,
     notHelpfulVotes: 1,
     isFlagged: false,
-    isPinged: false,
+    isFollowed: false,
+    isSaved: false,
+    isResolved: false,
     replies: []
   },
   {
@@ -149,7 +163,9 @@ export const mockCommunityPosts: CommunityPost[] = [
     helpfulVotes: 7,
     notHelpfulVotes: 12,
     isFlagged: true,
-    isPinged: false,
+    isFollowed: false,
+    isSaved: false,
+    isResolved: false,
     replies: []
   }
 ];

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ThumbsUp, ThumbsDown, Flag, Eye, Camera } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle, Pin } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost, Reply } from "@/data/mockCommunityPosts";
 
@@ -12,7 +12,10 @@ interface PostDetailModalProps {
   onVote: (postId: number, type: 'helpful' | 'not-helpful') => void;
   onReplyVote: (replyId: number, type: 'helpful' | 'not-helpful') => void;
   onFlag: (postId: number) => void;
-  onPing: (postId: number) => void;
+  onFollow: (postId: number) => void;
+  onSave: (postId: number) => void;
+  onResolve: (postId: number) => void;
+  onPinReply: (postId: number, replyId: number) => void;
 }
 
 const getPostTypeColor = (type: string) => {
@@ -26,7 +29,7 @@ const getPostTypeColor = (type: string) => {
   }
 };
 
-const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onPing }: PostDetailModalProps) => {
+const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onFollow, onSave, onResolve, onPinReply }: PostDetailModalProps) => {
   const [replyText, setReplyText] = useState("");
 
   const handleAddReply = () => {
@@ -44,9 +47,20 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onPing }: PostDeta
           <Badge variant="outline" className={getPostTypeColor(post.type)}>
             {post.type}
           </Badge>
-          {post.isPinged && (
-            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-              Pinged
+          {post.isFollowed && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              Following
+            </Badge>
+          )}
+          {post.isSaved && (
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Saved
+            </Badge>
+          )}
+          {post.isResolved && (
+            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Resolved
             </Badge>
           )}
           {post.isFlagged && (
@@ -144,11 +158,33 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onPing }: PostDeta
             variant="ghost"
             size="sm"
             className="gap-1"
-            onClick={() => onPing(post.id)}
+            onClick={() => onFollow(post.id)}
           >
-            <Eye className="h-4 w-4" />
-            Ping for Update
+            <Star className={`h-4 w-4 ${post.isFollowed ? 'fill-current' : ''}`} />
+            {post.isFollowed ? 'Unfollow' : 'Follow'}
           </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+            onClick={() => onSave(post.id)}
+          >
+            <Bookmark className={`h-4 w-4 ${post.isSaved ? 'fill-current' : ''}`} />
+            {post.isSaved ? 'Unsave' : 'Save'}
+          </Button>
+
+          {!post.isResolved && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1"
+              onClick={() => onResolve(post.id)}
+            >
+              <CheckCircle className="h-4 w-4" />
+              Mark Resolved
+            </Button>
+          )}
         </div>
 
         {/* Replies Section */}
@@ -160,17 +196,41 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onPing }: PostDeta
             
             <div className="space-y-3">
               {post.replies.map((reply) => (
-                <div key={reply.id} className="bg-muted/30 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="font-semibold text-primary text-xs">
-                        {reply.authorInitials}
+                <div key={reply.id} className={`rounded-lg p-3 space-y-2 ${
+                  post.pinnedReplyId === reply.id 
+                    ? 'bg-emerald-50 border border-emerald-200' 
+                    : 'bg-muted/30'
+                }`}>
+                  <div className="flex items-center gap-2 justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span className="font-semibold text-primary text-xs">
+                          {reply.authorInitials}
+                        </span>
+                      </div>
+                      <span className="font-medium text-sm">{reply.authorInitials}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(reply.timePosted, { addSuffix: true })}
                       </span>
+                      {post.pinnedReplyId === reply.id && (
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                          <Pin className="h-3 w-3 mr-1" />
+                          Answer
+                        </Badge>
+                      )}
                     </div>
-                    <span className="font-medium text-sm">{reply.authorInitials}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(reply.timePosted, { addSuffix: true })}
-                    </span>
+                    
+                    {!post.isResolved && post.pinnedReplyId !== reply.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 gap-1"
+                        onClick={() => onPinReply(post.id, reply.id)}
+                      >
+                        <Pin className="h-3 w-3" />
+                        <span className="text-xs">Pin as Answer</span>
+                      </Button>
+                    )}
                   </div>
                   
                   <p className="text-sm text-foreground pl-8">

@@ -109,15 +109,51 @@ const CommunityFeed = () => {
     }
   };
 
-  const handlePing = (postId: number) => {
+  const handleFollow = (postId: number) => {
     setPosts(prevPosts =>
       prevPosts.map(post =>
-        post.id === postId ? { ...post, isPinged: true } : post
+        post.id === postId ? { ...post, isFollowed: !post.isFollowed } : post
       )
     );
 
     if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, isPinged: true });
+      setSelectedPost({ ...selectedPost, isFollowed: !selectedPost.isFollowed });
+    }
+  };
+
+  const handleSave = (postId: number) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId ? { ...post, isSaved: !post.isSaved } : post
+      )
+    );
+
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({ ...selectedPost, isSaved: !selectedPost.isSaved });
+    }
+  };
+
+  const handleResolve = (postId: number) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId ? { ...post, isResolved: true } : post
+      )
+    );
+
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({ ...selectedPost, isResolved: true });
+    }
+  };
+
+  const handlePinReply = (postId: number, replyId: number) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId ? { ...post, pinnedReplyId: replyId } : post
+      )
+    );
+
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({ ...selectedPost, pinnedReplyId: replyId });
     }
   };
 
@@ -138,7 +174,9 @@ const CommunityFeed = () => {
       helpfulVotes: 0,
       notHelpfulVotes: 0,
       isFlagged: false,
-      isPinged: false,
+      isFollowed: false,
+      isSaved: false,
+      isResolved: false,
       replies: []
     };
 
@@ -223,7 +261,8 @@ const CommunityFeed = () => {
               onClick={() => setSelectedPost(post)}
               onVote={handleVote}
               onFlag={handleFlag}
-              onPing={handlePing}
+              onFollow={handleFollow}
+              onSave={handleSave}
             />
           ))
         )}
@@ -237,7 +276,10 @@ const CommunityFeed = () => {
             onVote={handleVote}
             onReplyVote={handleReplyVote}
             onFlag={handleFlag}
-            onPing={handlePing}
+            onFollow={handleFollow}
+            onSave={handleSave}
+            onResolve={handleResolve}
+            onPinReply={handlePinReply}
           />
         )}
       </Dialog>
