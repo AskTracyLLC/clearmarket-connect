@@ -7,6 +7,7 @@ import { MapPin, Lock, Unlock, Shield, Key, Users } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { isRepInNetwork, hasCreditsToUnlock, unlockRepContact, mockCurrentVendor } from "@/data/mockVendorData";
+import AddToNetworkModal from "./AddToNetworkModal";
 import UnlockContactModal from "./UnlockContactModal";
 
 interface VendorResultCardProps {
@@ -26,9 +27,14 @@ interface VendorResultCardProps {
 const VendorResultCard = ({ rep }: VendorResultCardProps) => {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const inNetwork = isRepInNetwork(rep.id);
   const canUnlock = hasCreditsToUnlock();
+  
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
   
   const handleUnlock = async () => {
     if (!canUnlock) {
@@ -52,6 +58,7 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
         title: "Contact Unlocked!",
         description: `${rep.initials} has been added to your network. Contact info is now visible.`,
       });
+      handleRefresh(); // Trigger UI refresh
     } else {
       toast({
         title: "Unlock Failed",

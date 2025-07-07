@@ -44,6 +44,9 @@ export const hasCreditsToUnlock = (): boolean => {
 export const unlockRepContact = (repId: number, repInitials: string): boolean => {
   if (!hasCreditsToUnlock()) return false;
   
+  // Don't add if already in network
+  if (isRepInNetwork(repId)) return false;
+  
   // Consume credit
   mockCurrentVendor.credits -= 1;
   
@@ -57,4 +60,27 @@ export const unlockRepContact = (repId: number, repInitials: string): boolean =>
   });
   
   return true;
+};
+
+export const addRepToNetwork = (repId: number, repInitials: string): boolean => {
+  // Don't add if already in network
+  if (isRepInNetwork(repId)) return false;
+  
+  // Add to network as manually confirmed
+  mockCurrentVendor.network.push({
+    repId,
+    repInitials,
+    addedMethod: 'confirmed',
+    addedDate: new Date(),
+    confirmed: true
+  });
+  
+  return true;
+};
+
+export const isRepUnlockedButNotInNetwork = (repId: number): boolean => {
+  // Check if rep was unlocked but not officially added to network yet
+  // For now, if they're unlocked, they're automatically in network
+  // This could be expanded later for two-step process
+  return false;
 };
