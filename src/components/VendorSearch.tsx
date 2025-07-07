@@ -6,7 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Lock, ArrowLeft, Copy, Star, Users } from "lucide-react";
+import { Search, MapPin, Lock, ArrowLeft, Copy, Star, Users, Clock } from "lucide-react";
+import { differenceInDays, addDays, format } from "date-fns";
 
 // Mock search results data
 const mockResults = [
@@ -36,23 +37,46 @@ const mockResults = [
   }
 ];
 
-// Mock connections for review
+// Mock connections for review with 30-day restriction logic
 const mockConnections = [
   {
     id: 1,
     initials: "T.M.",
     name: "Tom Martinez",
     lastWorked: "2 weeks ago",
-    projects: 3
+    projects: 3,
+    lastReviewDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
   },
   {
     id: 2,
     initials: "S.K.",
     name: "Sarah Kim", 
     lastWorked: "1 month ago",
-    projects: 5
+    projects: 5,
+    lastReviewDate: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000) // 35 days ago
+  },
+  {
+    id: 3,
+    initials: "M.J.",
+    name: "Mike Johnson",
+    lastWorked: "3 weeks ago", 
+    projects: 7,
+    lastReviewDate: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000) // 29 days ago
   }
-];
+].map(connection => {
+  const daysSinceReview = differenceInDays(new Date(), connection.lastReviewDate);
+  const canReview = daysSinceReview >= 30;
+  const nextReviewDate = addDays(connection.lastReviewDate, 30);
+  const daysUntilNextReview = canReview ? 0 : 30 - daysSinceReview;
+  
+  return {
+    ...connection,
+    canReview,
+    daysSinceReview,
+    nextReviewDate,
+    daysUntilNextReview
+  };
+});
 
 const VendorSearch = () => {
   const [zipCode, setZipCode] = useState("");
@@ -289,26 +313,45 @@ const VendorSearch = () => {
                               </DialogHeader>
                               
                               <div className="space-y-4">
-                                {mockConnections.map((connection) => (
-                                  <div key={connection.id} className="p-3 border border-border rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                                          <span className="font-semibold text-primary text-sm">{connection.initials}</span>
-                                        </div>
-                                        <div>
-                                          <div className="font-medium text-sm">{connection.name}</div>
-                                          <div className="text-xs text-muted-foreground">
-                                            {connection.projects} projects • {connection.lastWorked}
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <Button size="sm" variant="outline">
-                                        Rate & Earn
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ))}
+                                 {mockConnections.map((connection) => (
+                                   <div key={connection.id} className={`p-3 border rounded-lg ${
+                                     connection.canReview ? 'border-border' : 'border-muted bg-muted/30'
+                                   }`}>
+                                     <div className="flex items-center justify-between">
+                                       <div className="flex items-center gap-3">
+                                         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                           <span className="font-semibold text-primary text-sm">{connection.initials}</span>
+                                         </div>
+                                         <div className="flex-1">
+                                           <div className="font-medium text-sm">{connection.name}</div>
+                                           <div className="text-xs text-muted-foreground">
+                                             {connection.projects} projects • {connection.lastWorked}
+                                           </div>
+                                           {!connection.canReview && (
+                                             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                               <Clock className="h-3 w-3" />
+                                               <span>Available in {connection.daysUntilNextReview} day{connection.daysUntilNextReview !== 1 ? 's' : ''}</span>
+                                             </div>
+                                           )}
+                                         </div>
+                                       </div>
+                                       <div className="flex flex-col items-end gap-1">
+                                         <Button 
+                                           size="sm" 
+                                           variant={connection.canReview ? "outline" : "outline"}
+                                           disabled={!connection.canReview}
+                                         >
+                                           {connection.canReview ? "Rate & Earn" : "Reviewed Recently"}
+                                         </Button>
+                                         {!connection.canReview && (
+                                           <div className="text-xs text-muted-foreground">
+                                             {format(connection.nextReviewDate, 'MMM d')}
+                                           </div>
+                                         )}
+                                       </div>
+                                     </div>
+                                   </div>
+                                 ))}
                                 
                                 {mockConnections.length === 0 && (
                                   <div className="text-center py-6 text-muted-foreground">
