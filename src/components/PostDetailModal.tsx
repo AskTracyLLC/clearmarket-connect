@@ -98,6 +98,22 @@ const PostDetailModal = ({ post, onVote, onReplyVote, onFlag, onFollow, onSave, 
             {post.content}
           </p>
           
+          {/* System Tags */}
+          {post.systemTags && post.systemTags.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-sm font-medium text-muted-foreground">
+                System Familiarity:
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {post.systemTags.map((tag) => (
+                  <Badge key={tag} variant="outline">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* Screenshots */}
           {post.screenshots && post.screenshots.length > 0 && (
             <div className="space-y-3">

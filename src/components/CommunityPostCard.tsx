@@ -86,6 +86,17 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
               {post.content}
             </p>
             
+            {/* System Tags */}
+            {post.systemTags && post.systemTags.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {post.systemTags.map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            
             {/* Screenshots Preview */}
             {post.screenshots && post.screenshots.length > 0 && (
               <div className="flex items-center gap-2 pt-1">

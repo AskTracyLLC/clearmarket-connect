@@ -8,6 +8,7 @@ import { mockCommunityPosts, CommunityPost } from "@/data/mockCommunityPosts";
 import CommunityPostCard from "./CommunityPostCard";
 import PostDetailModal from "./PostDetailModal";
 import PostCreationModal from "./PostCreationModal";
+import CommunityFilters from "./CommunityFilters";
 
 type SortOption = "helpful" | "newest" | "post-type";
 
@@ -16,14 +17,16 @@ const CommunityFeed = () => {
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("helpful");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedPostType, setSelectedPostType] = useState<string>("all");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSystems, setSelectedSystems] = useState<string[]>([]);
 
-  const postTypes = ["all", "Coverage Needed", "Platform Help", "Warnings", "Tips", "Industry News"];
-
-  // Filter posts by type
-  const filteredPosts = selectedPostType === "all" 
-    ? posts 
-    : posts.filter(post => post.type === selectedPostType);
+  // Filter posts by categories and systems
+  const filteredPosts = posts.filter(post => {
+    const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(post.type);
+    const systemMatch = selectedSystems.length === 0 || 
+      (post.systemTags && post.systemTags.some(tag => selectedSystems.includes(tag)));
+    return categoryMatch && systemMatch;
+  });
 
   // Sort posts
   const sortedPosts = [...filteredPosts].sort((a, b) => {
@@ -162,6 +165,7 @@ const CommunityFeed = () => {
     title: string;
     content: string;
     isAnonymous: boolean;
+    systemTags: string[];
   }) => {
     const post: CommunityPost = {
       id: Math.max(...posts.map(p => p.id)) + 1,
@@ -177,95 +181,106 @@ const CommunityFeed = () => {
       isFollowed: false,
       isSaved: false,
       isResolved: false,
+      systemTags: newPost.systemTags,
       replies: []
     };
 
     setPosts(prevPosts => [post, ...prevPosts]);
   };
 
+  const handleClearFilters = () => {
+    setSelectedCategories([]);
+    setSelectedSystems([]);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-foreground">
-            Community Board
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              {/* Sort by */}
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Sort by:</label>
-                <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="helpful">Most Helpful</SelectItem>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="post-type">Post Type</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="flex gap-6">
+        {/* Filters Sidebar */}
+        <div className="flex-shrink-0">
+          <CommunityFilters
+            selectedCategories={selectedCategories}
+            selectedSystems={selectedSystems}
+            onCategoryChange={setSelectedCategories}
+            onSystemChange={setSelectedSystems}
+            onClearFilters={handleClearFilters}
+          />
+        </div>
 
-              {/* Filter by post type */}
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Filter by:</label>
-                <Select value={selectedPostType} onValueChange={setSelectedPostType}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {postTypes.map(type => (
-                      <SelectItem key={type} value={type}>
-                        {type === "all" ? "All Types" : type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Create Post Button */}
-            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-              <DialogTrigger asChild>
-                <Button variant="hero" className="gap-2 w-full sm:w-auto">
-                  <Plus className="h-4 w-4" />
-                  Create New Post
-                </Button>
-              </DialogTrigger>
-              <PostCreationModal 
-                onCreatePost={handleCreatePost}
-                onClose={() => setShowCreateModal(false)}
-              />
-            </Dialog>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Posts Feed */}
-      <div className="space-y-4">
-        {sortedPosts.length === 0 ? (
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          {/* Header */}
           <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">No posts found for the selected filters.</p>
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold text-foreground">
+                Community Board
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Sort by:</label>
+                  <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                    <SelectTrigger className="w-full sm:w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="helpful">Most Helpful</SelectItem>
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="post-type">Post Type</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Create Post Button */}
+                <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+                  <DialogTrigger asChild>
+                    <Button variant="hero" className="gap-2 w-full sm:w-auto">
+                      <Plus className="h-4 w-4" />
+                      Create New Post
+                    </Button>
+                  </DialogTrigger>
+                  <PostCreationModal 
+                    onCreatePost={handleCreatePost}
+                    onClose={() => setShowCreateModal(false)}
+                  />
+                </Dialog>
+              </div>
+
+              {/* Filter Summary */}
+              {(selectedCategories.length > 0 || selectedSystems.length > 0) && (
+                <div className="text-sm text-muted-foreground">
+                  Showing {sortedPosts.length} post{sortedPosts.length !== 1 ? 's' : ''} 
+                  {selectedCategories.length > 0 && ` in ${selectedCategories.join(', ')}`}
+                  {selectedSystems.length > 0 && ` for ${selectedSystems.join(', ')}`}
+                </div>
+              )}
             </CardContent>
           </Card>
-        ) : (
-          sortedPosts.map((post) => (
-            <CommunityPostCard
-              key={post.id}
-              post={post}
-              onClick={() => setSelectedPost(post)}
-              onVote={handleVote}
-              onFlag={handleFlag}
-              onFollow={handleFollow}
-              onSave={handleSave}
-            />
-          ))
-        )}
+
+          {/* Posts Feed */}
+          <div className="space-y-4">
+            {sortedPosts.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">No posts found for the selected filters.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              sortedPosts.map((post) => (
+                <CommunityPostCard
+                  key={post.id}
+                  post={post}
+                  onClick={() => setSelectedPost(post)}
+                  onVote={handleVote}
+                  onFlag={handleFlag}
+                  onFollow={handleFollow}
+                  onSave={handleSave}
+                />
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Post Detail Modal */}

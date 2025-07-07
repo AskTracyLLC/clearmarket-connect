@@ -15,6 +15,7 @@ export interface CommunityPost {
   pinnedReplyId?: number;
   replies: Reply[];
   screenshots?: string[];
+  systemTags?: string[];
 }
 
 export interface Reply {
@@ -41,6 +42,7 @@ export const mockCommunityPosts: CommunityPost[] = [
     isFollowed: true,
     isSaved: false,
     isResolved: false,
+    systemTags: ["EZinspections", "InspectorADE"],
     replies: [
       {
         id: 101,
@@ -67,6 +69,7 @@ export const mockCommunityPosts: CommunityPost[] = [
     isSaved: true,
     isResolved: true,
     pinnedReplyId: 201,
+    systemTags: ["Clear Capital", "SafeView"],
     replies: [
       {
         id: 201,
@@ -100,6 +103,7 @@ export const mockCommunityPosts: CommunityPost[] = [
     isFollowed: true,
     isSaved: false,
     isResolved: false,
+    systemTags: [],
     replies: [
       {
         id: 301,
@@ -125,6 +129,7 @@ export const mockCommunityPosts: CommunityPost[] = [
     isFollowed: false,
     isSaved: true,
     isResolved: false,
+    systemTags: ["EZinspections", "InspectorADE", "SafeView"],
     replies: [
       {
         id: 401,
@@ -150,6 +155,7 @@ export const mockCommunityPosts: CommunityPost[] = [
     isFollowed: false,
     isSaved: false,
     isResolved: false,
+    systemTags: [],
     replies: []
   },
   {
@@ -166,6 +172,7 @@ export const mockCommunityPosts: CommunityPost[] = [
     isFollowed: false,
     isSaved: false,
     isResolved: false,
+    systemTags: ["ServiceLink"],
     replies: []
   }
 ];

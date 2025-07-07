@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Camera, X } from "lucide-react";
 
 const postTypes = [
@@ -22,6 +23,7 @@ interface PostCreationModalProps {
     title: string;
     content: string;
     isAnonymous: boolean;
+    systemTags: string[];
     screenshots?: string[];
   }) => void;
   onClose: () => void;
@@ -32,8 +34,18 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [systemTags, setSystemTags] = useState<string[]>([]);
   const [screenshots, setScreenshots] = useState<string[]>([]);
   const [linkError, setLinkError] = useState("");
+
+  const availableSystems = [
+    "EZinspections",
+    "InspectorADE", 
+    "SafeView",
+    "Clear Capital",
+    "ServiceLink",
+    "WorldAPP"
+  ];
 
   const detectLinks = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|\b[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|int|co|io|app|dev|ly|me|info|biz|tv|cc|us|uk|ca|au|de|fr|jp|cn|in|br|ru|kr|it|es|mx|nl|se|no|dk|fi|pl|tr|sa|za|ng|eg|il|ar|cl|pe|ve|uy|py|bo|ec|co|gt|cr|pa|ni|hn|sv|cu|jm|ht|do|pr|bb|gd|lc|vc|ag|dm|kn|ms|vg|ai|ky|tc|bm|fk|gs|io|ac|sh|ta|cc|cx|nf|hm|tf|aq|bv|sj|pn|nu|tk|cf|ga|gq|st|td|cv|gw|ne|bf|sn|gm|gn|sl|lr|ci|gh|tg|bj|ng|cm|cg|cf|ao|zm|mw|mz|mg|mu|re|sc|yt|km|dj|so|et|er|sd|ly|tn|dz|ma|eh|mr|ml|mr|ne|td|cf|cm|gq|ga|cg|cd|ao|na|bw|sz|ls|za|mz|mg|mu|re|sc|yt|km|dj|so|et|er|sd|ss|eg|ly|tn|dz|ma|eh)\b)/gi;
@@ -92,6 +104,7 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
         title: title.trim(),
         content: content.trim(),
         isAnonymous,
+        systemTags,
         screenshots: screenshots.length > 0 ? screenshots : undefined
       });
       
@@ -100,11 +113,24 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
       setTitle("");
       setContent("");
       setIsAnonymous(false);
+      setSystemTags([]);
       setScreenshots([]);
       setLinkError("");
       
       onClose();
     }
+  };
+
+  const handleSystemToggle = (system: string) => {
+    setSystemTags(prev => 
+      prev.includes(system) 
+        ? prev.filter(s => s !== system)
+        : [...prev, system]
+    );
+  };
+
+  const removeSystemTag = (system: string) => {
+    setSystemTags(prev => prev.filter(s => s !== system));
   };
 
   const isValid = postType && title.trim() && content.trim() && !linkError;
@@ -223,20 +249,66 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
           )}
         </div>
 
-        {/* Anonymous Option */}
-        <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
-          <Checkbox
-            id="anonymous"
-            checked={isAnonymous}
-            onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
-          />
-          <div className="space-y-1">
-            <Label htmlFor="anonymous" className="text-sm font-medium cursor-pointer">
-              Post anonymously
-            </Label>
-            <p className="text-xs text-muted-foreground">
-              Hide your identity (costs 1 credit)
-            </p>
+        {/* System Tags */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">
+            System Familiarity (optional)
+          </Label>
+          <div className="space-y-2">
+            <Select onValueChange={(value) => value && handleSystemToggle(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Add systems you're familiar with..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSystems
+                  .filter(system => !systemTags.includes(system))
+                  .map((system) => (
+                  <SelectItem key={system} value={system}>
+                    {system}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {/* Selected System Tags */}
+            {systemTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {systemTags.map((system) => (
+                  <Badge
+                    key={system}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => removeSystemTag(system)}
+                  >
+                    {system}
+                    <X className="h-3 w-3 ml-1" />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Visibility Options */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Post Visibility</Label>
+          <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+            <Checkbox
+              id="anonymous"
+              checked={isAnonymous}
+              onCheckedChange={(checked) => setIsAnonymous(checked as boolean)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="anonymous" className="text-sm font-medium cursor-pointer">
+                Post anonymously
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {isAnonymous 
+                  ? "Your identity will be hidden (costs 1 credit)"
+                  : "Your initials will be shown (default, free)"
+                }
+              </p>
+            </div>
           </div>
         </div>
 
@@ -250,7 +322,7 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
             disabled={!isValid}
             variant="hero"
           >
-            Create Post
+            {isAnonymous ? "Post Anonymously" : "Create Post"}
             {isAnonymous && (
               <span className="ml-2 text-xs opacity-80">(-1 credit)</span>
             )}
