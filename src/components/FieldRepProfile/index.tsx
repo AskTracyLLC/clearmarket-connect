@@ -14,6 +14,7 @@ import { CoverageAreas } from "./CoverageAreas";
 import { PlatformsUsed } from "./PlatformsUsed";
 import { InspectionTypes } from "./InspectionTypes";
 import { ProfessionalBio } from "./ProfessionalBio";
+import { HudKeys } from "./HudKeys";
 import { ClearVueBeta } from "./ClearVueBeta";
 
 const FieldRepProfile = () => {
@@ -32,6 +33,8 @@ const FieldRepProfile = () => {
       platforms: [],
       inspectionTypes: [],
       bio: "",
+      hudKeys: [],
+      otherHudKey: "",
       clearVueBeta: false,
     },
   });
@@ -79,6 +82,7 @@ const FieldRepProfile = () => {
               <PlatformsUsed form={form} />
               <InspectionTypes form={form} />
               <ProfessionalBio form={form} />
+              <HudKeys form={form} />
               <ClearVueBeta form={form} />
 
               {/* Submit Button */}

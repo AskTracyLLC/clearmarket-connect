@@ -12,6 +12,8 @@ export const fieldRepSchema = z.object({
   platforms: z.array(z.string()),
   inspectionTypes: z.array(z.string()),
   bio: z.string().min(50, "Bio must be at least 50 characters"),
+  hudKeys: z.array(z.string()).optional(),
+  otherHudKey: z.string().optional(),
   clearVueBeta: z.boolean().default(false),
 });
 
