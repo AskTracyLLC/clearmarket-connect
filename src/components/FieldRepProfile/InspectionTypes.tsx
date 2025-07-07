@@ -13,7 +13,7 @@ export const InspectionTypes = ({ form }: InspectionTypesProps) => {
     "Exterior Only", 
     "Drive-by",
     "Occupancy Check",
-    "REO Trash Out",
+    "Appt-Based Inspections",
     "Property Preservation"
   ];
 
