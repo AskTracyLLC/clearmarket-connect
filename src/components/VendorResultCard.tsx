@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Lock } from "lucide-react";
+import { MapPin, Lock, Shield, Key } from "lucide-react";
 import UnlockContactModal from "./UnlockContactModal";
 
 interface VendorResultCardProps {
@@ -11,9 +11,12 @@ interface VendorResultCardProps {
     id: number;
     initials: string;
     distance: string;
-    systems: string[];
+    platforms: string[];
     inspectionTypes: string[];
     pricing: string;
+    abcRequired: boolean;
+    hudKeyRequired: boolean;
+    hudKeyCode?: string;
   };
 }
 
@@ -39,15 +42,34 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
               </div>
             </div>
 
-            {/* Systems */}
+            {/* Platforms */}
             <div className="space-y-1">
-              <Label className="text-sm text-muted-foreground">Systems:</Label>
-              <div className="flex gap-2">
-                {rep.systems.map((system) => (
-                  <Badge key={system} variant="secondary">
-                    {system}
+              <Label className="text-sm text-muted-foreground">Platforms:</Label>
+              <div className="flex flex-wrap gap-2">
+                {rep.platforms.map((platform) => (
+                  <Badge key={platform} variant="secondary">
+                    {platform}
                   </Badge>
                 ))}
+              </div>
+            </div>
+
+            {/* Certifications & Keys */}
+            <div className="space-y-1">
+              <Label className="text-sm text-muted-foreground">Certifications & Keys:</Label>
+              <div className="flex flex-wrap gap-2">
+                {rep.abcRequired && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    ABC# Certified
+                  </Badge>
+                )}
+                {rep.hudKeyRequired && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Key className="h-3 w-3" />
+                    HUD Key {rep.hudKeyCode && `(${rep.hudKeyCode})`}
+                  </Badge>
+                )}
               </div>
             </div>
 

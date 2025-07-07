@@ -5,25 +5,33 @@ export const mockResults = [
     id: 1,
     initials: "T.M.",
     distance: "4.2 mi away",
-    systems: ["EZ", "IA"],
-    inspectionTypes: ["Interior/Exterior", "Drive-by"],
-    pricing: "$25-35"
+    platforms: ["EZinspections", "InspectorADE"],
+    inspectionTypes: ["Interior/Exterior Inspections", "Drive-by Inspections"],
+    pricing: "$25-35",
+    abcRequired: true,
+    hudKeyRequired: true,
+    hudKeyCode: "HUD123"
   },
   {
     id: 2,
     initials: "J.D.",
     distance: "7.8 mi away",
-    systems: ["IA", "SG"],
-    inspectionTypes: ["Exterior Only", "Occupancy Check"],
-    pricing: "$30-40"
+    platforms: ["InspectorADE", "SafeView"],
+    inspectionTypes: ["Exterior Only Inspections", "Occupancy Verification"],
+    pricing: "$30-40",
+    abcRequired: false,
+    hudKeyRequired: false
   },
   {
     id: 3,
     initials: "M.R.",
     distance: "12.1 mi away",
-    systems: ["EZ", "IA", "SG"],
-    inspectionTypes: ["Interior/Exterior", "REO Trash Out"],
-    pricing: "$45-55"
+    platforms: ["EZinspections", "InspectorADE", "SafeView"],
+    inspectionTypes: ["Interior/Exterior Inspections", "REO Services"],
+    pricing: "$45-55",
+    abcRequired: true,
+    hudKeyRequired: true,
+    hudKeyCode: "HUD456"
   }
 ];
 
