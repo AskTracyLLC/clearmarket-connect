@@ -1,320 +1,65 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
-import { mockCommunityPosts, CommunityPost } from "@/data/mockCommunityPosts";
-import CommunityPostCard from "./CommunityPostCard";
+import { Dialog } from "@/components/ui/dialog";
+import { usePostManagement } from "@/hooks/usePostManagement";
+import { useCommunityFilters } from "@/hooks/useCommunityFilters";
+import { filterPosts, sortPosts } from "@/utils/postUtils";
+import CommunityFeedHeader from "./CommunityFeedHeader";
+import CommunityPostsList from "./CommunityPostsList";
 import PostDetailModal from "./PostDetailModal";
-import PostCreationModal from "./PostCreationModal";
-
-type SortOption = "helpful" | "newest" | "post-type";
 
 const CommunityFeed = () => {
-  const [posts, setPosts] = useState<CommunityPost[]>(mockCommunityPosts);
-  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>("helpful");
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchKeyword, setSearchKeyword] = useState<string>("");
+  const {
+    posts,
+    selectedPost,
+    setSelectedPost,
+    handleVote,
+    handleReplyVote,
+    handleFlag,
+    handleFollow,
+    handleSave,
+    handleResolve,
+    handlePinReply,
+    handleCreatePost,
+  } = usePostManagement();
 
-  const categories = [
-    "Coverage Needed",
-    "Platform Help", 
-    "Warnings",
-    "Tips",
-    "Industry News"
-  ];
+  const {
+    sortBy,
+    setSortBy,
+    selectedCategory,
+    setSelectedCategory,
+    searchKeyword,
+    setSearchKeyword,
+    showCreateModal,
+    setShowCreateModal,
+  } = useCommunityFilters();
 
-  // Filter posts by category and search keyword
-  const filteredPosts = posts.filter(post => {
-    const categoryMatch = selectedCategory === "all" || post.type === selectedCategory;
-    const searchMatch = searchKeyword === "" || 
-      post.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchKeyword.toLowerCase());
-    return categoryMatch && searchMatch;
-  });
-
-  // Sort posts
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    switch (sortBy) {
-      case "helpful":
-        return (b.helpfulVotes - b.notHelpfulVotes) - (a.helpfulVotes - a.notHelpfulVotes);
-      case "newest":
-        return b.timePosted.getTime() - a.timePosted.getTime();
-      case "post-type":
-        return a.type.localeCompare(b.type);
-      default:
-        return 0;
-    }
-  });
-
-  // Calculate trending status based on activity
-  const calculateTrending = (post: CommunityPost) => {
-    const hoursOld = (Date.now() - post.timePosted.getTime()) / (1000 * 60 * 60);
-    const totalVotes = post.helpfulVotes + post.notHelpfulVotes;
-    const replyCount = post.replies.length;
-    const activityScore = totalVotes + (replyCount * 2) + (post.isFollowed ? 1 : 0) + (post.isSaved ? 1 : 0);
-    
-    // Trending if high activity within last 24 hours
-    return hoursOld <= 24 && activityScore >= 8;
-  };
-
-  const handleVote = (postId: number, type: 'helpful' | 'not-helpful') => {
-    setPosts(prevPosts => 
-      prevPosts.map(post => {
-        if (post.id === postId) {
-          if (type === 'helpful') {
-            return { ...post, helpfulVotes: post.helpfulVotes + 1 };
-          } else {
-            return { ...post, notHelpfulVotes: post.notHelpfulVotes + 1 };
-          }
-        }
-        return post;
-      })
-    );
-
-    // Update selected post if it's open
-    if (selectedPost && selectedPost.id === postId) {
-      if (type === 'helpful') {
-        setSelectedPost({ ...selectedPost, helpfulVotes: selectedPost.helpfulVotes + 1 });
-      } else {
-        setSelectedPost({ ...selectedPost, notHelpfulVotes: selectedPost.notHelpfulVotes + 1 });
-      }
-    }
-  };
-
-  const handleReplyVote = (replyId: number, type: 'helpful' | 'not-helpful') => {
-    // Update reply votes in posts
-    setPosts(prevPosts =>
-      prevPosts.map(post => ({
-        ...post,
-        replies: post.replies.map(reply => {
-          if (reply.id === replyId) {
-            if (type === 'helpful') {
-              return { ...reply, helpfulVotes: reply.helpfulVotes + 1 };
-            } else {
-              return { ...reply, notHelpfulVotes: reply.notHelpfulVotes + 1 };
-            }
-          }
-          return reply;
-        })
-      }))
-    );
-
-    // Update selected post if it contains the reply
-    if (selectedPost) {
-      const updatedReplies = selectedPost.replies.map(reply => {
-        if (reply.id === replyId) {
-          if (type === 'helpful') {
-            return { ...reply, helpfulVotes: reply.helpfulVotes + 1 };
-          } else {
-            return { ...reply, notHelpfulVotes: reply.notHelpfulVotes + 1 };
-          }
-        }
-        return reply;
-      });
-      setSelectedPost({ ...selectedPost, replies: updatedReplies });
-    }
-  };
-
-  const handleFlag = (postId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, isFlagged: true } : post
-      )
-    );
-
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, isFlagged: true });
-    }
-  };
-
-  const handleFollow = (postId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, isFollowed: !post.isFollowed } : post
-      )
-    );
-
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, isFollowed: !selectedPost.isFollowed });
-    }
-  };
-
-  const handleSave = (postId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, isSaved: !post.isSaved } : post
-      )
-    );
-
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, isSaved: !selectedPost.isSaved });
-    }
-  };
-
-  const handleResolve = (postId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, isResolved: true } : post
-      )
-    );
-
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, isResolved: true });
-    }
-  };
-
-  const handlePinReply = (postId: number, replyId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, pinnedReplyId: replyId } : post
-      )
-    );
-
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost({ ...selectedPost, pinnedReplyId: replyId });
-    }
-  };
-
-  const handleCreatePost = (newPost: {
-    type: string;
-    title: string;
-    content: string;
-    isAnonymous: boolean;
-    systemTags: string[];
-  }) => {
-    const post: CommunityPost = {
-      id: Math.max(...posts.map(p => p.id)) + 1,
-      type: newPost.type as any,
-      title: newPost.title,
-      content: newPost.content,
-      authorInitials: newPost.isAnonymous ? "Anonymous" : "Y.U.", // Mock current user initials
-      isAnonymous: newPost.isAnonymous,
-      timePosted: new Date(),
-      helpfulVotes: 0,
-      notHelpfulVotes: 0,
-      isFlagged: false,
-      isFollowed: false,
-      isSaved: false,
-      isResolved: false,
-      systemTags: newPost.systemTags,
-      replies: []
-    };
-
-    setPosts(prevPosts => [post, ...prevPosts]);
-  };
+  // Filter and sort posts
+  const filteredPosts = filterPosts(posts, selectedCategory, searchKeyword);
+  const sortedPosts = sortPosts(filteredPosts, sortBy);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="space-y-6">
-        {/* Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-foreground">
-              Community Board
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Filters and Controls */}
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Sort by:</label>
-                    <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-                      <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="helpful">Most Helpful</SelectItem>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="post-type">Post Type</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+        <CommunityFeedHeader
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          searchKeyword={searchKeyword}
+          setSearchKeyword={setSearchKeyword}
+          showCreateModal={showCreateModal}
+          setShowCreateModal={setShowCreateModal}
+          handleCreatePost={handleCreatePost}
+          resultsCount={sortedPosts.length}
+        />
 
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Category:</label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="w-full sm:w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Create Post Button */}
-                <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-                  <DialogTrigger asChild>
-                    <Button variant="hero" className="gap-2 w-full sm:w-auto">
-                      <Plus className="h-4 w-4" />
-                      Create New Post
-                    </Button>
-                  </DialogTrigger>
-                  <PostCreationModal 
-                    onCreatePost={handleCreatePost}
-                    onClose={() => setShowCreateModal(false)}
-                  />
-                </Dialog>
-              </div>
-
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search posts by keyword..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Filter Summary */}
-              {(selectedCategory !== "all" || searchKeyword) && (
-                <div className="text-sm text-muted-foreground">
-                  Showing {sortedPosts.length} post{sortedPosts.length !== 1 ? 's' : ''} 
-                  {selectedCategory !== "all" && ` in ${selectedCategory}`}
-                  {searchKeyword && ` matching "${searchKeyword}"`}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Posts Feed */}
-        <div className="space-y-4">
-          {sortedPosts.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">No posts found for the selected filters.</p>
-              </CardContent>
-            </Card>
-          ) : (
-            sortedPosts.map((post) => (
-              <CommunityPostCard
-                key={post.id}
-                post={post}
-                onClick={() => setSelectedPost(post)}
-                onVote={handleVote}
-                onFlag={handleFlag}
-                onFollow={handleFollow}
-                onSave={handleSave}
-              />
-            ))
-          )}
-        </div>
+        <CommunityPostsList
+          posts={sortedPosts}
+          onPostClick={setSelectedPost}
+          onVote={handleVote}
+          onFlag={handleFlag}
+          onFollow={handleFollow}
+          onSave={handleSave}
+        />
       </div>
 
       {/* Post Detail Modal */}
