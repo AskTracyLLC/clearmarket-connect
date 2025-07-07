@@ -19,7 +19,7 @@ export const BackgroundCheck = ({ form }: BackgroundCheckProps) => {
       <div className="flex items-center gap-2">
         <Shield className="h-5 w-5 text-primary" />
         <h3 className="text-lg font-semibold">AspenGrove Background Check</h3>
-        <div className="text-xs bg-primary/10 px-2 py-1 rounded">Optional - Unlocks Premium Jobs</div>
+        <div className="text-xs bg-primary/10 px-2 py-1 rounded">Optional - Unlocks More Work (if available)</div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
