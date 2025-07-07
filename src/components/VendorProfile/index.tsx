@@ -14,6 +14,7 @@ import { VendorPlatforms } from "./VendorPlatforms";
 import { VendorCompanyBio } from "./VendorCompanyBio";
 import { VendorAdditionalInfo } from "./VendorAdditionalInfo";
 import VendorNetworkTab from "./VendorNetworkTab";
+import VendorReferralTab from "./VendorReferralTab";
 import { mockCurrentVendor } from "@/data/mockVendorData";
 
 const VendorProfile = () => {
@@ -67,12 +68,18 @@ const VendorProfile = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="profile">Company Profile</TabsTrigger>
               <TabsTrigger value="network" className="flex items-center gap-2">
                 My Network 
                 <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
                   {mockCurrentVendor.network.length}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="referrals" className="flex items-center gap-2">
+                Referrals 
+                <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {mockCurrentVendor.referrals.filter(ref => ref.creditEarned).length}
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -102,6 +109,10 @@ const VendorProfile = () => {
             
             <TabsContent value="network" className="mt-6">
               <VendorNetworkTab />
+            </TabsContent>
+            
+            <TabsContent value="referrals" className="mt-6">
+              <VendorReferralTab />
             </TabsContent>
           </Tabs>
         </CardContent>
