@@ -182,8 +182,8 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
                   </Label>
                 </div>
                 
-                {/* Individual Counties - Alphabetically Sorted */}
-                <div className="space-y-2">
+                {/* Individual Counties - Two Column Grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   {selectedState.counties
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((county) => (
