@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar as CalendarIcon, Users, DollarSign, X, Send } from "lucide-react";
-import { format, isSameDay, parseISO } from "date-fns";
+import { Plus, Calendar as CalendarIcon, Send } from "lucide-react";
+import { parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import CreateEventModal from "./CreateEventModal";
 import BulkMessageModal from "./BulkMessageModal";
+import CalendarEventsList from "./components/CalendarEventsList";
+import CalendarLegend from "./components/CalendarLegend";
 
 interface CalendarEvent {
   id: string;
@@ -85,32 +85,6 @@ const CalendarView = ({ userRole, showNetworkEvents = false }: CalendarViewProps
     });
   };
 
-  const getEventTypeIcon = (type: string) => {
-    switch (type) {
-      case "unavailable":
-        return <X className="h-3 w-3" />;
-      case "office_closure":
-        return <CalendarIcon className="h-3 w-3" />;
-      case "pay_date":
-        return <DollarSign className="h-3 w-3" />;
-      default:
-        return <CalendarIcon className="h-3 w-3" />;
-    }
-  };
-
-  const getEventTypeColor = (type: string) => {
-    switch (type) {
-      case "unavailable":
-        return "destructive";
-      case "office_closure":
-        return "secondary";
-      case "pay_date":
-        return "default";
-      default:
-        return "outline";
-    }
-  };
-
   const selectedDateEvents = selectedDate ? getEventsByDate(selectedDate) : [];
 
   return (
@@ -172,71 +146,15 @@ const CalendarView = ({ userRole, showNetworkEvents = false }: CalendarViewProps
 
           {/* Events for selected date */}
           <div>
-            <h3 className="font-semibold mb-4">
-              {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a date"}
-            </h3>
-            
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2].map(i => (
-                  <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-                ))}
-              </div>
-            ) : selectedDateEvents.length > 0 ? (
-              <div className="space-y-3">
-                {selectedDateEvents.map((event) => (
-                  <Card key={event.id} className="p-3">
-                    <div className="flex items-start gap-2">
-                      {getEventTypeIcon(event.event_type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{event.title}</p>
-                        {event.description && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {event.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={getEventTypeColor(event.event_type)} className="text-xs">
-                            {event.event_type.replace("_", " ")}
-                          </Badge>
-                          {event.notify_network && (
-                            <Badge variant="outline" className="text-xs">
-                              <Users className="h-3 w-3 mr-1" />
-                              Network
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No events scheduled for this date.
-              </p>
-            )}
+            <CalendarEventsList 
+              selectedDate={selectedDate}
+              events={selectedDateEvents}
+              loading={loading}
+            />
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="mt-6 pt-4 border-t">
-          <p className="text-sm font-medium mb-2">Legend:</p>
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-destructive rounded" />
-              <span>Unavailable</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-secondary rounded" />
-              <span>Office Closure</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-primary rounded" />
-              <span>Pay Date</span>
-            </div>
-          </div>
-        </div>
+        <CalendarLegend />
       </CardContent>
     </Card>
   );

@@ -9,18 +9,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { generateDefaultTitle } from "./utils/eventTypeUtils";
+import EventTypeSelector from "./components/EventTypeSelector";
+import DateRangeSelector from "./components/DateRangeSelector";
+import EventFormFields from "./components/EventFormFields";
 
 interface CreateEventModalProps {
   trigger?: React.ReactNode;
@@ -41,31 +36,6 @@ const CreateEventModal = ({ trigger, userRole, onEventCreated }: CreateEventModa
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const getEventTypeOptions = () => {
-    if (userRole === "field_rep") {
-      return [
-        { value: "unavailable", label: "Unavailable/Time Off", description: "Mark dates when you're not available for work" }
-      ];
-    } else {
-      return [
-        { value: "office_closure", label: "Office Closure", description: "Days when your office is closed" },
-        { value: "pay_date", label: "Pay Date", description: "Payment processing days or pay periods" }
-      ];
-    }
-  };
-
-  const generateDefaultTitle = () => {
-    switch (eventType) {
-      case "unavailable":
-        return "Unavailable";
-      case "office_closure":
-        return "Office Closed";
-      case "pay_date":
-        return "Pay Day";
-      default:
-        return "";
-    }
-  };
 
   const handleCreateEvent = async () => {
     if (!startDate || !endDate) {
@@ -86,7 +56,7 @@ const CreateEventModal = ({ trigger, userRole, onEventCreated }: CreateEventModa
       return;
     }
 
-    const eventTitle = title.trim() || generateDefaultTitle();
+    const eventTitle = title.trim() || generateDefaultTitle(eventType);
 
     try {
       setLoading(true);
@@ -135,8 +105,6 @@ const CreateEventModal = ({ trigger, userRole, onEventCreated }: CreateEventModa
     }
   };
 
-  const eventTypeOptions = getEventTypeOptions();
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -157,105 +125,28 @@ const CreateEventModal = ({ trigger, userRole, onEventCreated }: CreateEventModa
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Event Type */}
-          {eventTypeOptions.length > 1 && (
-            <div>
-              <Label className="text-base font-medium">Event Type</Label>
-              <RadioGroup value={eventType} onValueChange={(value: any) => setEventType(value)} className="mt-2">
-                {eventTypeOptions.map((option) => (
-                  <div key={option.value} className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.value} id={option.value} />
-                      <Label htmlFor={option.value}>{option.label}</Label>
-                    </div>
-                    <p className="text-xs text-muted-foreground ml-6">{option.description}</p>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-          )}
+          <EventTypeSelector
+            userRole={userRole}
+            value={eventType}
+            onChange={(value: any) => setEventType(value)}
+          />
 
-          {/* Title */}
-          <div>
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={generateDefaultTitle()}
-            />
-          </div>
+          <DateRangeSelector
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+          />
 
-          {/* Date Range */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Select start date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div>
-              <Label>End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "Select end date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    disabled={(date) => startDate ? date < startDate : false}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add any additional details..."
-              rows={3}
-            />
-          </div>
-
-          {/* Notify Network */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="notify-network">Notify Network</Label>
-              <p className="text-xs text-muted-foreground">
-                Make this event visible to your connected network
-              </p>
-            </div>
-            <Switch
-              id="notify-network"
-              checked={notifyNetwork}
-              onCheckedChange={setNotifyNetwork}
-            />
-          </div>
+          <EventFormFields
+            title={title}
+            description={description}
+            notifyNetwork={notifyNetwork}
+            eventType={eventType}
+            onTitleChange={setTitle}
+            onDescriptionChange={setDescription}
+            onNotifyNetworkChange={setNotifyNetwork}
+          />
         </div>
 
         <DialogFooter>
