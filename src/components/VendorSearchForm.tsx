@@ -54,8 +54,8 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
           Find Field Reps in Your Area
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-4 items-end">
+      <CardContent className="space-y-4 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
           <div className="flex-1 space-y-2">
             <Label htmlFor="zipCode">Search by Zip Code</Label>
             <div className="relative">
@@ -65,11 +65,11 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
                 value={zipCode}
                 onChange={(e) => setZipCode(e.target.value)}
                 placeholder="Enter zip code (e.g., 90210)"
-                className="pl-10"
+                className="pl-10 min-h-[44px]"
               />
             </div>
           </div>
-          <Button onClick={handleSearch} variant="hero" className="px-8">
+          <Button onClick={handleSearch} variant="hero" className="px-6 sm:px-8 min-h-[44px] w-full sm:w-auto">
             Search
           </Button>
         </div>
@@ -86,9 +86,9 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
             type="button"
             variant="ghost"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 mb-4"
+            className="flex items-center gap-2 mb-4 min-h-[44px]"
           >
-            Advanced Filters
+            <span className="text-sm sm:text-base">Advanced Filters</span>
             {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
 

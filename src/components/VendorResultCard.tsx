@@ -84,9 +84,9 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
 
   return (
     <Card className="hover:shadow-elevated transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-3">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="space-y-3 flex-1">
             {/* Rep Info Header */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -179,19 +179,19 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
           </div>
 
           {/* Action Button - Conditional */}
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col lg:items-end gap-2">
             {inNetwork ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-green-600 mb-2">
                   <Unlock className="h-4 w-4" />
                   <span className="text-sm font-medium">Contact Unlocked</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={() => setShowMessageModal(true)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 min-h-[44px] justify-center"
                   >
                     <MessageCircle className="h-4 w-4" />
                     Message
@@ -200,7 +200,7 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
                     variant="outline" 
                     size="sm" 
                     onClick={() => setShowQuoteModal(true)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 min-h-[44px] justify-center"
                   >
                     <FileText className="h-4 w-4" />
                     Quote
@@ -209,12 +209,12 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     onClick={handleUnlock}
                     disabled={!canUnlock || isUpdating}
                     variant={canUnlock ? "outline-primary" : "outline"}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 min-h-[44px] justify-center"
                   >
                     <Lock className="h-4 w-4" />
                     {isUpdating ? "Unlocking..." : "Unlock Contact"}
@@ -223,9 +223,10 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowReportModal(true)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 min-h-[44px] sm:w-auto"
                   >
                     <Flag className="h-3 w-3" />
+                    <span className="sm:hidden">Report</span>
                   </Button>
                 </div>
                 
