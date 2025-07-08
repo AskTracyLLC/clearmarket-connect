@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ChevronDown, UserPlus, Building } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -31,6 +32,7 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-3">
+            <ThemeToggle />
             <Button variant="ghost" size="sm">
               Sign In
             </Button>
