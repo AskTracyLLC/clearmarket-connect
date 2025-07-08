@@ -9,6 +9,11 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
+  // Skip auth in development mode
+  if (import.meta.env.DEV) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">

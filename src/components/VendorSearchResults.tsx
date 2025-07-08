@@ -86,8 +86,8 @@ const VendorSearchResults = ({ filters, isLoading = false }: VendorSearchResults
     );
   }
 
-  // Show limited info for non-authenticated users
-  if (!user) {
+  // Show limited info for non-authenticated users (skip in development)
+  if (!user && !import.meta.env.DEV) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
