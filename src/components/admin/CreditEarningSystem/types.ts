@@ -18,8 +18,8 @@ export interface CreditAuditEntry {
   rule_id: string;
   admin_id: string;
   action_type: string;
-  before_values: Record<string, any> | null;
-  after_values: Record<string, any> | null;
+  before_values: any;
+  after_values: any;
   notes: string | null;
   created_at: string;
 }

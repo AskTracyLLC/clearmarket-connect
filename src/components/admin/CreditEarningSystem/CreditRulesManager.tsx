@@ -91,15 +91,15 @@ export const CreditRulesManager = () => {
           rule_id: ruleId,
           admin_id: user.id,
           action_type: "update",
-          before_values: {
+          before_values: JSON.parse(JSON.stringify({
             credit_amount: rule.credit_amount,
             daily_limit: rule.daily_limit,
             cooldown_hours: rule.cooldown_hours,
             max_per_target: rule.max_per_target,
             is_enabled: rule.is_enabled,
             internal_notes: rule.internal_notes
-          },
-          after_values: editForm,
+          })),
+          after_values: JSON.parse(JSON.stringify(editForm)),
           notes: `Updated rule: ${rule.rule_name}`
         });
 
@@ -145,8 +145,8 @@ export const CreditRulesManager = () => {
           rule_id: ruleId,
           admin_id: user.id,
           action_type: enabled ? "enable" : "disable",
-          before_values: { is_enabled: rule.is_enabled },
-          after_values: { is_enabled: enabled },
+          before_values: JSON.parse(JSON.stringify({ is_enabled: rule.is_enabled })),
+          after_values: JSON.parse(JSON.stringify({ is_enabled: enabled })),
           notes: `${enabled ? "Enabled" : "Disabled"} rule: ${rule.rule_name}`
         });
 

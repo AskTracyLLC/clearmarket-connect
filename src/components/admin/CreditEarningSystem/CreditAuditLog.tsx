@@ -56,7 +56,11 @@ export const CreditAuditLog = () => {
       const entriesWithDetails = data?.map(entry => ({
         ...entry,
         rule_name: entry.credit_earning_rules?.rule_name,
-        admin_name: entry.users?.display_name || "Unknown Admin"
+        admin_name: entry.users?.display_name || "Unknown Admin",
+        before_values: entry.before_values ? 
+          (typeof entry.before_values === 'string' ? JSON.parse(entry.before_values) : entry.before_values) : null,
+        after_values: entry.after_values ? 
+          (typeof entry.after_values === 'string' ? JSON.parse(entry.after_values) : entry.after_values) : null
       })) || [];
 
       setAuditEntries(entriesWithDetails);
