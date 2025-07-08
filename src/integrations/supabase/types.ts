@@ -176,6 +176,7 @@ export type Database = {
           description: string | null
           end_date: string
           event_type: string
+          event_visibility: string
           id: string
           notify_network: boolean | null
           start_date: string
@@ -188,6 +189,7 @@ export type Database = {
           description?: string | null
           end_date: string
           event_type: string
+          event_visibility?: string
           id?: string
           notify_network?: boolean | null
           start_date: string
@@ -200,6 +202,7 @@ export type Database = {
           description?: string | null
           end_date?: string
           event_type?: string
+          event_visibility?: string
           id?: string
           notify_network?: boolean | null
           start_date?: string
