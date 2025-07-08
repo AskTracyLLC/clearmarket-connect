@@ -40,7 +40,7 @@ const stateCodeMap: Record<string, string> = {
 
 const USMap: React.FC<USMapProps> = ({ statesWithCoverage, onStateClick, selectedState }) => {
   const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState<[number, number]>([-96, 39]);
+  const [position, setPosition] = useState({ coordinates: [-96, 39], zoom: 1 });
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
 
   const getStateColor = (stateCode: string) => {
@@ -95,7 +95,7 @@ const USMap: React.FC<USMapProps> = ({ statesWithCoverage, onStateClick, selecte
 
   const handleReset = () => {
     setZoom(1);
-    setCenter([-96, 39]);
+    setPosition({ coordinates: [-96, 39], zoom: 1 });
   };
 
   return (
@@ -160,15 +160,7 @@ const USMap: React.FC<USMapProps> = ({ statesWithCoverage, onStateClick, selecte
           height={500}
           className="w-full h-full"
         >
-          <ZoomableGroup
-            zoom={zoom}
-            center={center}
-            onMoveEnd={setCenter}
-            translateExtent={[
-              [-200, -100],
-              [1200, 600],
-            ]}
-          >
+          <ZoomableGroup zoom={zoom}>
             <Geographies geography={geoUrl}>
               {({ geographies }) =>
                 geographies.map((geo) => {
