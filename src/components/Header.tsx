@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MobileNav from "@/components/ui/mobile-nav";
-import { ChevronDown, UserPlus, Building, MessageSquare, Settings } from "lucide-react";
+import { ChevronDown, UserPlus, Building, MessageSquare, Settings, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -36,6 +36,10 @@ const Header = () => {
               <MessageSquare className="h-4 w-4" />
               Messages
               <Badge variant="destructive" className="text-xs">2</Badge>
+            </Link>
+            <Link to="/calendar" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              Calendar
             </Link>
             <Link to="/settings" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
               <Settings className="h-4 w-4" />

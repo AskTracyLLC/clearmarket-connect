@@ -52,6 +52,171 @@ export type Database = {
           },
         ]
       }
+      auto_reply_settings: {
+        Row: {
+          active_from: string | null
+          active_until: string | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          message_template: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active_from?: string | null
+          active_until?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          message_template?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active_from?: string | null
+          active_until?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          message_template?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_reply_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bulk_message_recipients: {
+        Row: {
+          bulk_message_id: string
+          id: string
+          recipient_id: string
+          sent_at: string | null
+        }
+        Insert: {
+          bulk_message_id: string
+          id?: string
+          recipient_id: string
+          sent_at?: string | null
+        }
+        Update: {
+          bulk_message_id?: string
+          id?: string
+          recipient_id?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_message_recipients_bulk_message_id_fkey"
+            columns: ["bulk_message_id"]
+            isOneToOne: false
+            referencedRelation: "bulk_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bulk_message_recipients_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bulk_messages: {
+        Row: {
+          area: string | null
+          content: string
+          created_at: string | null
+          dates_mentioned: string[] | null
+          id: string
+          message_template: string
+          sender_id: string
+          subject: string
+        }
+        Insert: {
+          area?: string | null
+          content: string
+          created_at?: string | null
+          dates_mentioned?: string[] | null
+          id?: string
+          message_template: string
+          sender_id: string
+          subject: string
+        }
+        Update: {
+          area?: string | null
+          content?: string
+          created_at?: string | null
+          dates_mentioned?: string[] | null
+          id?: string
+          message_template?: string
+          sender_id?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string
+          event_type: string
+          id: string
+          notify_network: boolean | null
+          start_date: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date: string
+          event_type: string
+          id?: string
+          notify_network?: boolean | null
+          start_date: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string
+          event_type?: string
+          id?: string
+          notify_network?: boolean | null
+          start_date?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_comments: {
         Row: {
           content: string
