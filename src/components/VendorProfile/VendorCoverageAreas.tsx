@@ -38,7 +38,12 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
 
   const handleCountyChange = (countyId: string, checked: boolean) => {
     if (checked) {
-      setSelectedCounties(prev => [...prev, countyId]);
+      const newSelectedCounties = [...selectedCounties, countyId];
+      setSelectedCounties(newSelectedCounties);
+      // Check if all counties are now selected
+      if (selectedState && newSelectedCounties.length === selectedState.counties.length) {
+        setIsAllCounties(true);
+      }
     } else {
       setSelectedCounties(prev => prev.filter(id => id !== countyId));
       setIsAllCounties(false);
@@ -119,30 +124,36 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
         {selectedState && (
           <div className="space-y-2">
             <Label>County Selection</Label>
-            <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-3">
-              <div className="flex items-center space-x-2">
+            <div className="border border-border rounded-lg p-3 max-h-60 overflow-y-auto">
+              {/* Select All Counties - Always First */}
+              <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-border">
                 <Checkbox
                   id="all-counties"
                   checked={isAllCounties}
                   onCheckedChange={handleAllCountiesChange}
                 />
-                <Label htmlFor="all-counties" className="font-medium">
-                  ALL COUNTIES
+                <Label htmlFor="all-counties" className="font-medium text-primary">
+                  Select All Counties
                 </Label>
               </div>
               
-              {!isAllCounties && selectedState.counties.map((county) => (
-                <div key={county.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={county.id}
-                    checked={selectedCounties.includes(county.id)}
-                    onCheckedChange={(checked) => handleCountyChange(county.id, checked as boolean)}
-                  />
-                  <Label htmlFor={county.id} className="text-sm">
-                    {county.name}
-                  </Label>
-                </div>
-              ))}
+              {/* Individual Counties - Alphabetically Sorted */}
+              <div className="space-y-2">
+                {selectedState.counties
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((county) => (
+                    <div key={county.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={county.id}
+                        checked={selectedCounties.includes(county.id)}
+                        onCheckedChange={(checked) => handleCountyChange(county.id, checked as boolean)}
+                      />
+                      <Label htmlFor={county.id} className="text-sm">
+                        {county.name}
+                      </Label>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         )}

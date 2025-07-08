@@ -43,7 +43,12 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
 
   const handleCountyToggle = (countyId: string, checked: boolean) => {
     if (checked) {
-      setSelectedCounties(prev => [...prev, countyId]);
+      const newSelectedCounties = [...selectedCounties, countyId];
+      setSelectedCounties(newSelectedCounties);
+      // Check if all counties are now selected
+      if (selectedState && newSelectedCounties.length === selectedState.counties.length) {
+        setSelectAllCounties(true);
+      }
     } else {
       setSelectedCounties(prev => prev.filter(id => id !== countyId));
       setSelectAllCounties(false);
@@ -163,35 +168,40 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
           <div className="space-y-4">
             <div className="space-y-3">
               <Label>Select Counties</Label>
-              <div className="flex items-center space-x-2 mb-3">
-                <Checkbox 
-                  id="all-counties"
-                  checked={selectAllCounties}
-                  onCheckedChange={handleSelectAllCounties}
-                />
-                <Label htmlFor="all-counties" className="font-medium">
-                  All Counties
-                </Label>
-              </div>
               
-              {!selectAllCounties && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                  {selectedState.counties.map((county) => (
-                    <div key={county.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={county.id}
-                        checked={selectedCounties.includes(county.id)}
-                        onCheckedChange={(checked) => 
-                          handleCountyToggle(county.id, checked as boolean)
-                        }
-                      />
-                      <Label htmlFor={county.id} className="text-sm">
-                        {county.name}
-                      </Label>
-                    </div>
-                  ))}
+              <div className="border border-border rounded-lg p-3 max-h-60 overflow-y-auto">
+                {/* Select All Counties - Always First */}
+                <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-border">
+                  <Checkbox 
+                    id="all-counties"
+                    checked={selectAllCounties}
+                    onCheckedChange={handleSelectAllCounties}
+                  />
+                  <Label htmlFor="all-counties" className="font-medium text-primary">
+                    Select All Counties
+                  </Label>
                 </div>
-              )}
+                
+                {/* Individual Counties - Alphabetically Sorted */}
+                <div className="space-y-2">
+                  {selectedState.counties
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((county) => (
+                      <div key={county.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={county.id}
+                          checked={selectedCounties.includes(county.id)}
+                          onCheckedChange={(checked) => 
+                            handleCountyToggle(county.id, checked as boolean)
+                          }
+                        />
+                        <Label htmlFor={county.id} className="text-sm">
+                          {county.name}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
