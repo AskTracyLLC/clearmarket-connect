@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, MessageCircle, Settings, Users, Home, HelpCircle } from "lucide-react";
+import { Menu, X, MessageCircle, Settings, Users, Home, HelpCircle, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileNavProps {
   className?: string;
@@ -11,14 +12,26 @@ interface MobileNavProps {
 
 const MobileNav = ({ className }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
 
-  const navItems = [
+  const publicNavItems = [
+    { href: "/", icon: Home, label: "Home" },
+    { href: "/#how-it-works", icon: HelpCircle, label: "How It Works" },
+    { href: "/vendor/search", icon: Users, label: "Find Coverage" },
+    { href: "/#pricing", icon: Settings, label: "Pricing" },
+    { href: "/faq", icon: HelpCircle, label: "FAQ" },
+  ];
+
+  const privateNavItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/community", icon: Users, label: "Community" },
     { href: "/messages", icon: MessageCircle, label: "Messages" },
-    { href: "/faq", icon: HelpCircle, label: "FAQ" },
+    { href: "/calendar", icon: Calendar, label: "Calendar" },
     { href: "/settings", icon: Settings, label: "Settings" },
+    { href: "/faq", icon: HelpCircle, label: "FAQ" },
   ];
+
+  const navItems = user ? privateNavItems : publicNavItems;
 
   return (
     <div className={cn("md:hidden", className)}>
@@ -67,9 +80,19 @@ const MobileNav = ({ className }: MobileNavProps) => {
               </div>
             </nav>
             <div className="border-t p-6">
-              <Button className="w-full" variant="hero">
-                Join ClearMarket
-              </Button>
+              {user ? (
+                <Button className="w-full" variant="outline" onClick={() => setIsOpen(false)}>
+                  <Link to="/settings" className="w-full">
+                    Account Settings
+                  </Link>
+                </Button>
+              ) : (
+                <Button className="w-full" variant="hero" asChild>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    Join ClearMarket
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </SheetContent>
