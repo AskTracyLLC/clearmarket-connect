@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
+import SuccessStoriesSection from "@/components/SuccessStoriesSection";
+import RecentlyJoinedCarousel from "@/components/RecentlyJoinedCarousel";
+import FAQSection from "@/components/FAQSection";
 import HowItWorks from "@/components/HowItWorks";
 import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
@@ -44,6 +48,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <HeroSection />
+      <TestimonialsSection />
+      <SuccessStoriesSection />
+      <RecentlyJoinedCarousel />
+      <FAQSection />
       <HowItWorks />
       <PricingSection />
       <Footer />
