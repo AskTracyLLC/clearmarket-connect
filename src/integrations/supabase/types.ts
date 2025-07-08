@@ -14,16 +14,305 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      community_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          flagged: boolean | null
+          helpful_votes: number | null
+          id: string
+          post_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          flagged?: boolean | null
+          helpful_votes?: number | null
+          id?: string
+          post_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          flagged?: boolean | null
+          helpful_votes?: number | null
+          id?: string
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          flagged: boolean | null
+          helpful_votes: number | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          flagged?: boolean | null
+          helpful_votes?: number | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          flagged?: boolean | null
+          helpful_votes?: number | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_unlocks: {
+        Row: {
+          created_at: string | null
+          id: string
+          method: Database["public"]["Enums"]["unlock_method"]
+          unlocked_user_id: string
+          unlocker_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          method: Database["public"]["Enums"]["unlock_method"]
+          unlocked_user_id: string
+          unlocker_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["unlock_method"]
+          unlocked_user_id?: string
+          unlocker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_unlocks_unlocked_user_id_fkey"
+            columns: ["unlocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_unlocks_unlocker_id_fkey"
+            columns: ["unlocker_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credits: {
+        Row: {
+          current_balance: number | null
+          earned_credits: number | null
+          paid_credits: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_balance?: number | null
+          earned_credits?: number | null
+          paid_credits?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_balance?: number | null
+          earned_credits?: number | null
+          paid_credits?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flags: {
+        Row: {
+          created_at: string | null
+          flagged_by: string
+          id: string
+          reason: string | null
+          status: Database["public"]["Enums"]["flag_status"] | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["flag_target_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          flagged_by: string
+          id?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["flag_status"] | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["flag_target_type"]
+        }
+        Update: {
+          created_at?: string | null
+          flagged_by?: string
+          id?: string
+          reason?: string | null
+          status?: Database["public"]["Enums"]["flag_status"] | null
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["flag_target_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flags_flagged_by_fkey"
+            columns: ["flagged_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          joined_user_id: string | null
+          referee_email: string
+          referrer_id: string
+          reward_claimed: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          joined_user_id?: string | null
+          referee_email: string
+          referrer_id: string
+          reward_claimed?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          joined_user_id?: string | null
+          referee_email?: string
+          referrer_id?: string
+          reward_claimed?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_joined_user_id_fkey"
+            columns: ["joined_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          community_score: number | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          last_active: string | null
+          profile_complete: number | null
+          referred_by: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          trust_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          community_score?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+          last_active?: string | null
+          profile_complete?: number | null
+          referred_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          trust_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          community_score?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          last_active?: string | null
+          profile_complete?: number | null
+          referred_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          trust_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      flag_status: "pending" | "reviewed" | "dismissed"
+      flag_target_type: "profile" | "post" | "comment"
+      unlock_method: "credit" | "referral" | "purchase"
+      user_role: "field_rep" | "vendor" | "moderator" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +439,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      flag_status: ["pending", "reviewed", "dismissed"],
+      flag_target_type: ["profile", "post", "comment"],
+      unlock_method: ["credit", "referral", "purchase"],
+      user_role: ["field_rep", "vendor", "moderator", "admin"],
+    },
   },
 } as const
