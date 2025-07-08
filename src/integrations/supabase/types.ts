@@ -557,6 +557,36 @@ export type Database = {
           },
         ]
       }
+      zip_county_classifications: {
+        Row: {
+          county_name: string
+          created_at: string
+          id: string
+          rural_urban_designation: string
+          state: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          county_name: string
+          created_at?: string
+          id?: string
+          rural_urban_designation: string
+          state: string
+          updated_at?: string
+          zip_code: string
+        }
+        Update: {
+          county_name?: string
+          created_at?: string
+          id?: string
+          rural_urban_designation?: string
+          state?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
