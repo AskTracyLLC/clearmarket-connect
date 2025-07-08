@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PlatformGrowthStats } from "@/components/ui/stats-bar";
 import { Users, Search, Shield, TrendingUp } from "lucide-react";
 
 const HeroSection = () => {
@@ -74,14 +75,8 @@ const HeroSection = () => {
         </div>
 
         {/* Trust Indicators */}
-        <div className="text-center mt-16 pt-8 border-t border-border">
-          <p className="text-muted-foreground mb-4">Paving the Way to a Better Way to Work Together</p>
-          <div className="flex items-center justify-center space-x-8 text-sm text-muted-foreground">
-            <span>🔒 Secure Platform</span>
-            <span>📊 Transparent Pricing</span>
-            <span>⭐ Verified Reviews</span>
-            <span>🚀 Future-Ready</span>
-          </div>
+        <div className="mt-16 pt-8 border-t border-border">
+          <PlatformGrowthStats />
         </div>
       </div>
     </section>

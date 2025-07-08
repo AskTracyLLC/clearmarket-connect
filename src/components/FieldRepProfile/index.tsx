@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
 import { fieldRepSchema, type FieldRepFormData, type CoverageArea } from "./types";
 import { PersonalInfo } from "./PersonalInfo";
 import { DisplayIdentity } from "./DisplayIdentity";
@@ -57,8 +58,22 @@ const FieldRepProfile = () => {
     });
   };
 
+  const profileSteps = getFieldRepProfileSteps({
+    coverageAreas: coverageAreas,
+    platforms: form.watch("platforms"),
+    inspectionTypes: form.watch("inspectionTypes"),
+    backgroundCheckComplete: false,
+    networkSize: 0
+  });
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <ProfileProgress 
+        steps={profileSteps} 
+        userType="fieldrep" 
+        className="max-w-md mx-auto"
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">

@@ -1,6 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import { mockResults } from "@/data/mockData";
 import VendorResultCard from "./VendorResultCard";
+import { VendorResultSkeleton } from "@/components/ui/skeleton-loader";
+import { SearchEmptyState } from "@/components/ui/empty-states";
 
 interface SearchFilters {
   zipCode: string;
@@ -13,9 +16,10 @@ interface SearchFilters {
 
 interface VendorSearchResultsProps {
   filters: SearchFilters;
+  isLoading?: boolean;
 }
 
-const VendorSearchResults = ({ filters }: VendorSearchResultsProps) => {
+const VendorSearchResults = ({ filters, isLoading = false }: VendorSearchResultsProps) => {
   // Filter results based on search criteria
   const filteredResults = mockResults.filter(rep => {
     // Platform filter
@@ -53,6 +57,25 @@ const VendorSearchResults = ({ filters }: VendorSearchResultsProps) => {
 
     return true;
   });
+
+  // Show loading skeletons
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">
+            Searching {filters.zipCode}...
+          </h2>
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <VendorResultSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -71,14 +94,7 @@ const VendorSearchResults = ({ filters }: VendorSearchResultsProps) => {
       </div>
 
       {filteredResults.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">No field reps found matching your criteria.</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Try adjusting your filters or expanding your search area.
-            </p>
-          </CardContent>
-        </Card>
+        <SearchEmptyState zipCode={filters.zipCode} />
       )}
     </div>
   );

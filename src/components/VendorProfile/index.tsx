@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { ProfileProgress, getVendorProfileSteps } from "@/components/ui/progress-indicator";
 import { vendorFormSchema, VendorFormData, CoverageArea } from "./types";
 import { VendorBasicInfo } from "./VendorBasicInfo";
 import { VendorCoverageAreas } from "./VendorCoverageAreas";
@@ -55,8 +56,21 @@ const VendorProfile = () => {
     });
   };
 
+  const profileSteps = getVendorProfileSteps({
+    serviceAreas: coverageAreas,
+    platforms: form.watch("platforms"),
+    workTypes: form.watch("workTypes"),
+    networkSize: mockCurrentVendor.network.length
+  });
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <ProfileProgress 
+        steps={profileSteps} 
+        userType="vendor" 
+        className="max-w-md mx-auto"
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">

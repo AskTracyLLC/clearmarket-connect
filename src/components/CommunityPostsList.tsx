@@ -1,5 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CommunityPost } from "@/data/mockCommunityPosts";
+import { CommunityPostSkeleton } from "@/components/ui/skeleton-loader";
+import { CommunityEmptyState } from "@/components/ui/empty-states";
 import CommunityPostCard from "./CommunityPostCard";
 
 interface CommunityPostsListProps {
@@ -9,6 +11,8 @@ interface CommunityPostsListProps {
   onFlag: (postId: number) => void;
   onFollow: (postId: number) => void;
   onSave: (postId: number) => void;
+  isLoading?: boolean;
+  onCreatePost?: () => void;
 }
 
 const CommunityPostsList = ({ 
@@ -17,16 +21,24 @@ const CommunityPostsList = ({
   onVote, 
   onFlag, 
   onFollow, 
-  onSave 
+  onSave,
+  isLoading = false,
+  onCreatePost
 }: CommunityPostsListProps) => {
-  if (posts.length === 0) {
+  
+  // Show loading skeletons
+  if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <p className="text-muted-foreground">No posts found for the selected filters.</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <CommunityPostSkeleton key={i} />
+        ))}
+      </div>
     );
+  }
+
+  if (posts.length === 0) {
+    return <CommunityEmptyState onCreatePost={onCreatePost} />;
   }
 
   return (

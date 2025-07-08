@@ -7,6 +7,7 @@ import { MapPin, Lock, Unlock, Shield, Key, Users } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { isRepInNetwork, hasCreditsToUnlock, unlockRepContact, mockCurrentVendor } from "@/data/mockVendorData";
+import { TrustBadge, LastActive } from "@/components/ui/trust-badges";
 import AddToNetworkModal from "./AddToNetworkModal";
 import UnlockContactModal from "./UnlockContactModal";
 
@@ -21,6 +22,11 @@ interface VendorResultCardProps {
     abcRequired: boolean;
     hudKeyRequired: boolean;
     hudKeyCode?: string;
+    // Add mock data for trust indicators
+    lastActive?: number; // days ago
+    verified?: boolean;
+    topRated?: boolean;
+    backgroundCheck?: boolean;
   };
 }
 
@@ -82,17 +88,24 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
                   <span className="font-semibold text-primary">{rep.initials}</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">{rep.initials}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">{rep.initials}</h3>
+                    {rep.verified && <TrustBadge type="verified" />}
+                    {rep.topRated && <TrustBadge type="top-rated" />}
+                  </div>
                   <div className="flex items-center gap-1 text-muted-foreground text-sm">
                     <MapPin className="h-3 w-3" />
                     <span>{rep.distance}</span>
                   </div>
-                  {inNetwork && (
-                    <Badge variant="outline" className="flex items-center gap-1 mt-1">
-                      <Users className="h-3 w-3" />
-                      In Your Network
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    {inNetwork && (
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        In Your Network
+                      </Badge>
+                    )}
+                    <LastActive daysAgo={rep.lastActive || Math.floor(Math.random() * 14)} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -136,6 +149,7 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
                     HUD Key {rep.hudKeyCode && `(${rep.hudKeyCode})`}
                   </Badge>
                 )}
+                {rep.backgroundCheck && <TrustBadge type="background-check" />}
               </div>
             </div>
 
