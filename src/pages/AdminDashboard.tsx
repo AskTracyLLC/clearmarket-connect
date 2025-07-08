@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ZipCountyImportTool } from "@/components/admin/ZipCountyImportTool";
+import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
+import { AdminQuickActions } from "@/components/admin/AdminQuickActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -77,16 +79,29 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           </div>
           <p className="text-muted-foreground">
-            Manage system data, user roles, and platform configurations
+            Monitor platform activity, manage users, and configure system settings
           </p>
         </div>
 
-        <Alert className="mb-6">
-          <Shield className="h-4 w-4" />
-          <AlertDescription>
-            You have administrator privileges. Use these tools carefully as changes affect the entire platform.
-          </AlertDescription>
-        </Alert>
+        {/* Dashboard Overview */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">Platform Overview</h2>
+          <AdminStatsCards />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          <div className="lg:col-span-3">
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                You have administrator privileges. Use these tools carefully as changes affect the entire platform.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <div className="lg:col-span-1">
+            <AdminQuickActions />
+          </div>
+        </div>
 
         <Tabs defaultValue="zip-county" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
