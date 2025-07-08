@@ -9,6 +9,11 @@ interface SearchFilters {
   abcRequired: boolean | null;
   hudKeyRequired: boolean | null;
   hudKeyCode: string;
+  yearsExperience: string;
+  availabilityStatus: string;
+  certifications: string[];
+  onlyActiveUsers: boolean;
+  sortBy: string;
 }
 
 const VendorSearch = () => {

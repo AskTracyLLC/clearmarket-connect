@@ -15,6 +15,11 @@ interface SearchFilters {
   abcRequired: boolean | null;
   hudKeyRequired: boolean | null;
   hudKeyCode: string;
+  yearsExperience: string;
+  availabilityStatus: string;
+  certifications: string[];
+  onlyActiveUsers: boolean;
+  sortBy: string;
 }
 
 interface VendorSearchFormProps {
@@ -29,6 +34,11 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
   const [abcRequired, setAbcRequired] = useState<boolean | null>(null);
   const [hudKeyRequired, setHudKeyRequired] = useState<boolean | null>(null);
   const [hudKeyCode, setHudKeyCode] = useState("");
+  const [yearsExperience, setYearsExperience] = useState("");
+  const [availabilityStatus, setAvailabilityStatus] = useState("");
+  const [selectedCertifications, setSelectedCertifications] = useState<string[]>([]);
+  const [onlyActiveUsers, setOnlyActiveUsers] = useState(false);
+  const [sortBy, setSortBy] = useState("");
 
   const platforms = ["EZinspections", "InspectorADE", "SafeView", "WorldAPP", "Other"];
   const inspectionTypes = [
@@ -43,15 +53,49 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
     "Appt-Based Inspections"
   ];
 
+  const experienceOptions = [
+    "Less than 1 year",
+    "1-2 years", 
+    "3-5 years",
+    "5+ years"
+  ];
+
+  const availabilityOptions = [
+    "Available",
+    "Busy", 
+    "Not Taking Work"
+  ];
+
+  const certificationOptions = [
+    "HUD Key Access",
+    "ABC Certification",
+    "Insurance License",
+    "Real Estate License",
+    "Drone Pilot License"
+  ];
+
+  const sortOptions = [
+    "Distance",
+    "Trust Score",
+    "Community Score", 
+    "Last Active",
+    "Years Experience"
+  ];
+
   const handleSearch = () => {
     if (zipCode.trim()) {
-      onSearch({
+        onSearch({
         zipCode,
         platforms: selectedPlatforms,
         inspectionTypes: selectedInspectionTypes,
         abcRequired,
         hudKeyRequired,
-        hudKeyCode
+        hudKeyCode,
+        yearsExperience,
+        availabilityStatus,
+        certifications: selectedCertifications,
+        onlyActiveUsers,
+        sortBy
       });
     }
   };
@@ -69,6 +113,14 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
       prev.includes(type) 
         ? prev.filter(t => t !== type)
         : [...prev, type]
+    );
+  };
+
+  const toggleCertification = (cert: string) => {
+    setSelectedCertifications(prev => 
+      prev.includes(cert) 
+        ? prev.filter(c => c !== cert)
+        : [...prev, cert]
     );
   };
 
@@ -99,6 +151,31 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
           </Button>
         </div>
 
+        {/* Quick Filters */}
+        <div className="flex flex-wrap gap-2">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="activeOnly"
+              checked={onlyActiveUsers}
+              onCheckedChange={setOnlyActiveUsers}
+            />
+            <Label htmlFor="activeOnly" className="text-sm">Show only active users</Label>
+          </div>
+          {sortBy && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs">
+              Sorted by: {sortBy}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-auto p-0 hover:bg-transparent"
+                onClick={() => setSortBy("")}
+              >
+                ×
+              </Button>
+            </div>
+          )}
+        </div>
+
         <div className="border-t border-border pt-4">
           <Button
             type="button"
@@ -112,6 +189,76 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
 
           {showAdvanced && (
             <div className="space-y-6">
+              {/* Sort Options */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Sort By</Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose sort order..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Years of Experience */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Years of Experience</Label>
+                <Select value={yearsExperience} onValueChange={setYearsExperience}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any experience level..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {experienceOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Availability Status */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Availability Status</Label>
+                <Select value={availabilityStatus} onValueChange={setAvailabilityStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any availability..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availabilityOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Certifications */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Certifications & Special Access</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {certificationOptions.map((cert) => (
+                    <div key={cert} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={cert}
+                        checked={selectedCertifications.includes(cert)}
+                        onCheckedChange={() => toggleCertification(cert)}
+                      />
+                      <Label htmlFor={cert} className="text-sm font-normal cursor-pointer">
+                        {cert}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Inspection Platforms */}
               <div className="space-y-3">
                 <Label className="text-base font-medium">Inspection Platform(s)</Label>

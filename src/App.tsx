@@ -11,6 +11,8 @@ import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
 import FeedbackPage from "./pages/FeedbackPage";
 import FAQPage from "./pages/FAQPage";
+import MessagesPage from "./pages/MessagesPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
             <Route path="/community" element={<CommunityBoard />} />
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/faq" element={<FAQPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

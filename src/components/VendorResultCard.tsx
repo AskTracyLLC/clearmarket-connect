@@ -3,13 +3,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Lock, Unlock, Shield, Key, Users } from "lucide-react";
+import { MapPin, Lock, Unlock, Shield, Key, Users, MessageCircle, FileText, Flag } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { isRepInNetwork, hasCreditsToUnlock, unlockRepContact, mockCurrentVendor } from "@/data/mockVendorData";
 import { TrustBadge, LastActive } from "@/components/ui/trust-badges";
 import AddToNetworkModal from "./AddToNetworkModal";
 import UnlockContactModal from "./UnlockContactModal";
+import NewMessageModal from "./messaging/NewMessageModal";
+import QuoteRequestForm from "./messaging/QuoteRequestForm";
+import ReportUserModal from "./privacy/ReportUserModal";
 
 interface VendorResultCardProps {
   rep: {
@@ -34,6 +37,9 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   
   const inNetwork = isRepInNetwork(rep.id);
   const canUnlock = hasCreditsToUnlock();
@@ -175,36 +181,92 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
           {/* Action Button - Conditional */}
           <div className="flex flex-col items-end gap-2">
             {inNetwork ? (
-              <div className="text-center">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2 text-green-600 mb-2">
                   <Unlock className="h-4 w-4" />
                   <span className="text-sm font-medium">Contact Unlocked</span>
                 </div>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  In Network
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowMessageModal(true)}
+                    className="flex items-center gap-1"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Message
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowQuoteModal(true)}
+                    className="flex items-center gap-1"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Quote
+                  </Button>
+                </div>
               </div>
             ) : (
-              <>
-                <Button 
-                  onClick={handleUnlock}
-                  disabled={!canUnlock || isUpdating}
-                  variant={canUnlock ? "outline-primary" : "outline"}
-                  className="flex items-center gap-2"
-                >
-                  <Lock className="h-4 w-4" />
-                  {isUpdating ? "Unlocking..." : "Unlock Contact"}
-                </Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleUnlock}
+                    disabled={!canUnlock || isUpdating}
+                    variant={canUnlock ? "outline-primary" : "outline"}
+                    className="flex items-center gap-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    {isUpdating ? "Unlocking..." : "Unlock Contact"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowReportModal(true)}
+                    className="flex items-center gap-1"
+                  >
+                    <Flag className="h-3 w-3" />
+                  </Button>
+                </div>
                 
                 <div className="text-xs text-muted-foreground text-center">
                   {canUnlock ? `1 credit required (${mockCurrentVendor.credits} available)` : "No credits available"}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
       </CardContent>
+
+      {/* Modals */}
+      <NewMessageModal
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+        recipientName={`${rep.initials} (Field Rep)`}
+        recipientInitials={rep.initials}
+        recipientId={rep.id.toString()}
+      />
+
+      {showQuoteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <QuoteRequestForm
+              recipientName={`${rep.initials} (Field Rep)`}
+              recipientInitials={rep.initials}
+              onCancel={() => setShowQuoteModal(false)}
+              onSubmit={() => setShowQuoteModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <ReportUserModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        reportedUserName={`${rep.initials} (Field Rep)`}
+        reportedUserInitials={rep.initials}
+        reportedUserId={rep.id.toString()}
+      />
     </Card>
   );
 };
