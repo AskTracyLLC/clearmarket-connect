@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
+import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
+import CreditExplainerModal from "@/components/CreditExplainerModal";
 import { fieldRepSchema, type FieldRepFormData, type CoverageArea } from "./types";
 import { PersonalInfo } from "./PersonalInfo";
 import { DisplayIdentity } from "./DisplayIdentity";
@@ -21,6 +23,14 @@ import { ClearVueBeta } from "./ClearVueBeta";
 const FieldRepProfile = () => {
   const { toast } = useToast();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
+  const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
+  
+  // Mock data for demonstration - in real app this would come from database
+  const mockUserData = {
+    trustScore: 85,
+    communityScore: 60,
+    creditBalance: 12
+  };
 
   const form = useForm<FieldRepFormData>({
     resolver: zodResolver(fieldRepSchema),
@@ -74,6 +84,33 @@ const FieldRepProfile = () => {
         className="max-w-md mx-auto"
       />
       
+      {/* Credit and Boost Information */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Credit Balance: {mockUserData.creditBalance}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCreditExplainerOpen(true)}
+              >
+                How to earn?
+              </Button>
+            </CardTitle>
+            <CardDescription>
+              Use credits to unlock vendor contact information and boost your profile visibility
+            </CardDescription>
+          </CardHeader>
+        </Card>
+        
+        <BoostEligibilityBadge 
+          isEligible={mockUserData.trustScore >= 75 && mockUserData.communityScore >= 50}
+          trustScore={mockUserData.trustScore}
+          communityScore={mockUserData.communityScore}
+        />
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
@@ -111,6 +148,11 @@ const FieldRepProfile = () => {
           </Form>
         </CardContent>
       </Card>
+      
+      <CreditExplainerModal 
+        open={creditExplainerOpen} 
+        onOpenChange={setCreditExplainerOpen} 
+      />
     </div>
   );
 };

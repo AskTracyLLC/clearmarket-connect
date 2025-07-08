@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import CreditExplainerModal from '@/components/CreditExplainerModal';
 import { 
   MapPin, 
   Users, 
@@ -27,6 +28,7 @@ import AccountBilling from '@/components/VendorDashboard/AccountBilling';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('coverage');
+  const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
 
   const dashboardStats = {
     connectedReps: 12,
@@ -95,11 +97,14 @@ const VendorDashboard = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setCreditExplainerOpen(true)}>
               <CardContent className="p-4 text-center">
                 <CreditCard className="h-6 w-6 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold">{dashboardStats.creditBalance}</div>
                 <div className="text-xs text-muted-foreground">Credits</div>
+                <Button variant="ghost" size="sm" className="text-xs mt-1 h-auto p-1">
+                  How to earn?
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -159,6 +164,11 @@ const VendorDashboard = () => {
           </Tabs>
         </div>
       </main>
+      
+      <CreditExplainerModal 
+        open={creditExplainerOpen} 
+        onOpenChange={setCreditExplainerOpen} 
+      />
       
       <Footer />
     </div>
