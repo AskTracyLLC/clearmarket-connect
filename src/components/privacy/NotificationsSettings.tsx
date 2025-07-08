@@ -3,18 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Shield, Mail, Eye, Bell, HelpCircle } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface PrivacySettingsProps {
-  onSave?: (settings: PrivacySettings) => void;
-}
-
-interface PrivacySettings {
-  profileVisibility: string;
+interface NotificationSettings {
   emailNotifications: {
     newMessages: boolean;
     newConnections: boolean;
@@ -22,14 +15,20 @@ interface PrivacySettings {
     weeklyDigest: boolean;
     communityActivity: boolean;
   };
-  searchVisibility: boolean;
-  directInviteOnly: boolean;
+  pushNotifications: {
+    enabled: boolean;
+    newMessages: boolean;
+    networkUpdates: boolean;
+  };
 }
 
-const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
+interface NotificationsSettingsProps {
+  onSave?: (settings: NotificationSettings) => void;
+}
+
+const NotificationsSettings = ({ onSave }: NotificationsSettingsProps) => {
   const { toast } = useToast();
-  const [settings, setSettings] = useState<PrivacySettings>({
-    profileVisibility: "public",
+  const [settings, setSettings] = useState<NotificationSettings>({
     emailNotifications: {
       newMessages: true,
       newConnections: true,
@@ -37,15 +36,18 @@ const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
       weeklyDigest: false,
       communityActivity: false
     },
-    searchVisibility: true,
-    directInviteOnly: false
+    pushNotifications: {
+      enabled: false,
+      newMessages: false,
+      networkUpdates: false
+    }
   });
 
   const handleSave = () => {
     onSave?.(settings);
     toast({
       title: "Settings Saved",
-      description: "Your privacy settings have been updated successfully.",
+      description: "Your notification settings have been updated successfully.",
     });
   };
 
@@ -59,72 +61,18 @@ const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
     }));
   };
 
+  const updatePushNotification = (key: keyof typeof settings.pushNotifications, value: boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      pushNotifications: {
+        ...prev.pushNotifications,
+        [key]: value
+      }
+    }));
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Profile Privacy */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Profile Privacy
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <Label>Profile Visibility</Label>
-            <Select 
-              value={settings.profileVisibility} 
-              onValueChange={(value) => setSettings(prev => ({ ...prev, profileVisibility: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="public">Public - Anyone can find and view</SelectItem>
-                <SelectItem value="network">Network Only - Only my connections can view</SelectItem>
-                <SelectItem value="private">Private - Hidden from search</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label>Show in Search Results</Label>
-              <p className="text-sm text-muted-foreground">
-                Allow your profile to appear in vendor searches
-              </p>
-            </div>
-            <Switch
-              checked={settings.searchVisibility}
-              onCheckedChange={(checked) => setSettings(prev => ({ ...prev, searchVisibility: checked }))}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-1 flex-1">
-              <div className="flex items-center gap-2">
-                <Label>Private Connection Mode</Label>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>When enabled, your profile will not appear in general searches. You can only be added to a network if someone sends you a direct invitation link or code.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Hide from public searches, require direct invitations
-              </p>
-            </div>
-            <Switch
-              checked={settings.directInviteOnly}
-              onCheckedChange={(checked) => setSettings(prev => ({ ...prev, directInviteOnly: checked }))}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Email Notifications */}
       <Card>
         <CardHeader>
@@ -202,6 +150,56 @@ const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
         </CardContent>
       </Card>
 
+      {/* Push Notifications */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Push Notifications</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Receive instant notifications in your browser
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label>Enable Push Notifications</Label>
+              <p className="text-sm text-muted-foreground">Allow browser notifications</p>
+            </div>
+            <Switch
+              checked={settings.pushNotifications.enabled}
+              onCheckedChange={(checked) => updatePushNotification('enabled', checked)}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label>New Messages</Label>
+              <p className="text-sm text-muted-foreground">Instant alerts for direct messages</p>
+            </div>
+            <Switch
+              checked={settings.pushNotifications.newMessages}
+              onCheckedChange={(checked) => updatePushNotification('newMessages', checked)}
+              disabled={!settings.pushNotifications.enabled}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label>Network Updates</Label>
+              <p className="text-sm text-muted-foreground">Calendar events and availability alerts</p>
+            </div>
+            <Switch
+              checked={settings.pushNotifications.networkUpdates}
+              onCheckedChange={(checked) => updatePushNotification('networkUpdates', checked)}
+              disabled={!settings.pushNotifications.enabled}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Save Button */}
       <div className="flex justify-end">
         <Button onClick={handleSave} size="lg">
@@ -212,4 +210,4 @@ const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
   );
 };
 
-export default PrivacySettings;
+export default NotificationsSettings;

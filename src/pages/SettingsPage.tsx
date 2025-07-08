@@ -1,10 +1,15 @@
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PrivacySettings from "@/components/privacy/PrivacySettings";
+import NotificationsSettings from "@/components/privacy/NotificationsSettings";
+import AccountSettings from "@/components/privacy/AccountSettings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Bell, User } from "lucide-react";
 
 const SettingsPage = () => {
+  const [activeTab, setActiveTab] = useState("privacy");
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -17,7 +22,7 @@ const SettingsPage = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="privacy" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="privacy" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
@@ -38,13 +43,11 @@ const SettingsPage = () => {
             </TabsContent>
 
             <TabsContent value="notifications">
-              <PrivacySettings />
+              <NotificationsSettings />
             </TabsContent>
 
             <TabsContent value="account">
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Account settings coming soon...</p>
-              </div>
+              <AccountSettings />
             </TabsContent>
           </Tabs>
         </div>
