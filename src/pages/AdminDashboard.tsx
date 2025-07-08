@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ZipCountyImportTool } from "@/components/admin/ZipCountyImportTool";
+import { CreditEarningSystem } from "@/components/admin/CreditEarningSystem";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { AdminQuickActions } from "@/components/admin/AdminQuickActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, Database, Settings } from "lucide-react";
+import { Shield, Users, Database, Settings, Coins } from "lucide-react";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -104,10 +105,14 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="zip-county" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="zip-county" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               ZIP/County Data
+            </TabsTrigger>
+            <TabsTrigger value="credits" className="flex items-center gap-2">
+              <Coins className="h-4 w-4" />
+              Credit System
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -125,6 +130,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="zip-county" className="mt-6">
             <ZipCountyImportTool />
+          </TabsContent>
+
+          <TabsContent value="credits" className="mt-6">
+            <CreditEarningSystem />
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
