@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Plus, Search } from 'lucide-react';
 import { statesAndCounties } from '@/data/statesAndCounties';
+import USMap from './USMap';
 
 const VendorCoverageMap = () => {
   const [selectedState, setSelectedState] = useState<string>('');
@@ -50,17 +51,35 @@ const VendorCoverageMap = () => {
             </div>
           </div>
 
-          {/* US Map Placeholder */}
-          <div className="bg-muted/10 border-2 border-dashed border-muted rounded-lg p-8 text-center mb-6">
-            <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Interactive US Map</h3>
-            <p className="text-muted-foreground mb-4">
-              Map visualization showing states with Field Rep coverage would appear here
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Badge variant="default">States with Coverage</Badge>
-              <Badge variant="secondary">No Coverage</Badge>
-              <Badge variant="outline">Seeking Coverage</Badge>
+          {/* Interactive US Map */}
+          <div className="bg-muted/10 border border-muted rounded-lg p-4 mb-6">
+            <div className="mb-4 text-center">
+              <h3 className="text-lg font-semibold mb-2">Interactive US Coverage Map</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Map shows active Field Rep coverage based on your connected reps. Hover over states for details.
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-primary rounded"></div>
+                  <span className="text-xs">States with Coverage</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-muted rounded"></div>
+                  <span className="text-xs">No Coverage</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                  <span className="text-xs">Coverage Requested</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative flex justify-center">
+              <USMap 
+                statesWithCoverage={statesWithCoverage}
+                onStateClick={setSelectedState}
+                selectedState={selectedState}
+              />
             </div>
           </div>
 
