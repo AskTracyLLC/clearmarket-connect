@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_table: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_table?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_table?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_comments: {
         Row: {
           content: string
@@ -251,6 +289,59 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          credits_awarded: number | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          payment_provider: string | null
+          provider_transaction_id: string | null
+          status: string | null
+          transaction_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          credits_awarded?: number | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_provider?: string | null
+          provider_transaction_id?: string | null
+          status?: string | null
+          transaction_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          credits_awarded?: number | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_provider?: string | null
+          provider_transaction_id?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           community_score: number | null
@@ -303,6 +394,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_create_flag: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      ensure_admin_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
