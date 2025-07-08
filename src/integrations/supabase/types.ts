@@ -345,6 +345,99 @@ export type Database = {
           },
         ]
       }
+      credit_earning_audit_log: {
+        Row: {
+          action_type: string
+          admin_id: string
+          after_values: Json | null
+          before_values: Json | null
+          created_at: string
+          id: string
+          notes: string | null
+          rule_id: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          after_values?: Json | null
+          before_values?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rule_id: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          after_values?: Json | null
+          before_values?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          rule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_earning_audit_log_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_earning_audit_log_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "credit_earning_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_earning_rules: {
+        Row: {
+          cooldown_hours: number | null
+          created_at: string
+          credit_amount: number
+          daily_limit: number | null
+          id: string
+          internal_notes: string | null
+          is_enabled: boolean
+          max_per_target: number | null
+          requires_verification: boolean
+          rule_description: string
+          rule_name: string
+          updated_at: string
+        }
+        Insert: {
+          cooldown_hours?: number | null
+          created_at?: string
+          credit_amount?: number
+          daily_limit?: number | null
+          id?: string
+          internal_notes?: string | null
+          is_enabled?: boolean
+          max_per_target?: number | null
+          requires_verification?: boolean
+          rule_description: string
+          rule_name: string
+          updated_at?: string
+        }
+        Update: {
+          cooldown_hours?: number | null
+          created_at?: string
+          credit_amount?: number
+          daily_limit?: number | null
+          id?: string
+          internal_notes?: string | null
+          is_enabled?: boolean
+          max_per_target?: number | null
+          requires_verification?: boolean
+          rule_description?: string
+          rule_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credits: {
         Row: {
           current_balance: number | null
