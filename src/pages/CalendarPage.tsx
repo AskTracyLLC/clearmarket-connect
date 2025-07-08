@@ -1,15 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CalendarView from "@/components/calendar/CalendarView";
+import EnhancedCalendarView from "@/components/calendar/EnhancedCalendarView";
 import AutoReplySettings from "@/components/calendar/AutoReplySettings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MessageSquare, Network, History } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const CalendarPage = () => {
-  // For demo purposes, assume field_rep role. In real app, get from auth/context
-  const userRole: "field_rep" | "vendor" = "field_rep";
+  const [userRole, setUserRole] = useState<"field_rep" | "vendor">("field_rep");
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: userData, error } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+          
+          if (error) throw error;
+          setUserRole(userData.role as "field_rep" | "vendor");
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error loading user data",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserRole();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 pb-8">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,11 +91,11 @@ const CalendarPage = () => {
             </TabsList>
 
             <TabsContent value="calendar">
-              <CalendarView userRole={userRole} />
+              <EnhancedCalendarView userRole={userRole} />
             </TabsContent>
 
             <TabsContent value="network">
-              <CalendarView userRole={userRole} showNetworkEvents={true} />
+              <EnhancedCalendarView userRole={userRole} />
             </TabsContent>
 
             <TabsContent value="auto-reply">
