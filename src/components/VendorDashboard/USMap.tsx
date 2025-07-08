@@ -22,7 +22,7 @@ interface USMapProps {
 }
 
 // US Topology URL - using a reliable CDN source
-const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-110m.json";
+const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
 // State code mapping for geography properties
 const stateCodeMap: Record<string, string> = {
