@@ -7,6 +7,9 @@ import { CreditEarningSystem } from "@/components/admin/CreditEarningSystem";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { AdminQuickActions } from "@/components/admin/AdminQuickActions";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { SystemSettings } from "@/components/admin/SystemSettings";
+import { ContentModeration } from "@/components/admin/ContentModeration";
+import { CreditOverrides } from "@/components/admin/CreditOverrides";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -117,23 +120,27 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="zip-county" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="zip-county" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              ZIP/County Data
+        <Tabs defaultValue="moderation" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="moderation" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Moderation
             </TabsTrigger>
-            <TabsTrigger value="credits" className="flex items-center gap-2">
-              <Coins className="h-4 w-4" />
-              Credit System
+            <TabsTrigger value="system" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              System Settings
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               User Management
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              System Settings
+            <TabsTrigger value="credits" className="flex items-center gap-2">
+              <Coins className="h-4 w-4" />
+              Credit System
+            </TabsTrigger>
+            <TabsTrigger value="zip-county" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              ZIP/County Data
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -141,29 +148,27 @@ const AdminDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="zip-county" className="mt-6">
-            <ZipCountyImportTool />
+          <TabsContent value="moderation" className="mt-6">
+            <ContentModeration />
           </TabsContent>
 
-          <TabsContent value="credits" className="mt-6">
-            <CreditEarningSystem />
+          <TabsContent value="system" className="mt-6">
+            <SystemSettings />
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
             <UserManagement />
           </TabsContent>
 
-          <TabsContent value="system" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  System configuration options will be available here in future updates.
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="credits" className="mt-6">
+            <div className="space-y-6">
+              <CreditOverrides />
+              <CreditEarningSystem />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="zip-county" className="mt-6">
+            <ZipCountyImportTool />
           </TabsContent>
 
           <TabsContent value="reports" className="mt-6">

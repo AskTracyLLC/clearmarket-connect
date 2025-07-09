@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateUserForm } from "./CreateUserForm";
 import { InvitationStatus } from "./InvitationStatus";
 import { UserDirectory } from "./UserDirectory";
-import { UserPlus, Mail, Users } from "lucide-react";
+import { RoleAssignment } from "./RoleAssignment";
+import { UserPlus, Mail, Users, UserCog } from "lucide-react";
 
 export const UserManagement = () => {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -15,8 +16,12 @@ export const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="create" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="roles" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="roles" className="flex items-center gap-2">
+            <UserCog className="h-4 w-4" />
+            Roles & Access
+          </TabsTrigger>
           <TabsTrigger value="create" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
             Create User
@@ -30,6 +35,10 @@ export const UserManagement = () => {
             Directory
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="roles" className="mt-6">
+          <RoleAssignment />
+        </TabsContent>
 
         <TabsContent value="create" className="mt-6">
           <CreateUserForm onUserInvited={handleUserInvited} />
