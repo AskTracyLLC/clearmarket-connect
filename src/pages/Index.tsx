@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
@@ -9,11 +10,25 @@ import HowItWorks from "@/components/HowItWorks";
 import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
 import { usePublicSettings } from "@/hooks/usePublicSettings";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const Index = () => {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const { settings } = usePublicSettings();
+  const { user } = useAuth();
+  const { accountData } = useUserProfile();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to their dashboard
+  useEffect(() => {
+    if (user && accountData) {
+      const role = accountData.role || "field_rep";
+      const dashboardPath = role === "vendor" ? "/vendor/dashboard" : "/fieldrep/dashboard";
+      navigate(dashboardPath);
+    }
+  }, [user, accountData, navigate]);
 
   useEffect(() => {
     const checkHash = () => {

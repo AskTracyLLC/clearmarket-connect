@@ -3,12 +3,19 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MobileNav from "@/components/ui/mobile-nav";
-import { ChevronDown, UserPlus, Building, MessageSquare, Settings, Calendar, LogOut, User } from "lucide-react";
+import { ChevronDown, UserPlus, Building, MessageSquare, Settings, Calendar, LogOut, User, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const Header = () => {
   const { user, signOut } = useAuth();
+  const { accountData } = useUserProfile();
+
+  const getDashboardPath = () => {
+    const role = accountData?.role || "field_rep";
+    return role === "vendor" ? "/vendor/dashboard" : "/fieldrep/dashboard";
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -27,17 +34,15 @@ const Header = () => {
           </div>
           
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-              How It Works
-            </Link>
-            <Link to="/vendor/search" className="text-muted-foreground hover:text-foreground transition-colors">
-              Find Coverage
-            </Link>
-            <Link to="/#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
-            </Link>
-            {user && (
+            {user ? (
               <>
+                <Link to={getDashboardPath()} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link to="/vendor/search" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Find Coverage
+                </Link>
                 <Link to="/community" className="text-muted-foreground hover:text-foreground transition-colors">
                   Community
                 </Link>
@@ -53,6 +58,18 @@ const Header = () => {
                 <Link to="/settings" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
                   <Settings className="h-4 w-4" />
                   Settings
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                  How It Works
+                </Link>
+                <Link to="/vendor/search" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Find Coverage
+                </Link>
+                <Link to="/#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Pricing
                 </Link>
               </>
             )}
