@@ -77,6 +77,7 @@ const ContactPage = () => {
                         <SelectItem value="billing">Billing</SelectItem>
                         <SelectItem value="support">Support</SelectItem>
                         <SelectItem value="sales">Sales</SelectItem>
+                        <SelectItem value="success-story">Success Story</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
