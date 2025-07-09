@@ -12,7 +12,7 @@ interface SearchFilters {
   coverageAreas: string[];
   workTypes: string[];
   platforms: string[];
-  paymentRanges: string[];
+  minimumPayment: string;
   monthlyVolume: string;
   sortBy: string;
 }
@@ -25,7 +25,7 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
   const [zipCode, setZipCode] = useState("");
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedPaymentRanges, setSelectedPaymentRanges] = useState<string[]>([]);
+  const [minimumPayment, setMinimumPayment] = useState("");
   const [monthlyVolume, setMonthlyVolume] = useState("");
   const [sortBy, setSortBy] = useState("");
 
@@ -50,14 +50,6 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
     "Regional Banks"
   ];
 
-  const paymentRanges = [
-    "$25-50",
-    "$50-75", 
-    "$75-100",
-    "$100-150",
-    "$150+"
-  ];
-
   const handleWorkTypeChange = (workType: string, checked: boolean) => {
     if (checked) {
       setSelectedWorkTypes([...selectedWorkTypes, workType]);
@@ -74,14 +66,6 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
     }
   };
 
-  const handlePaymentRangeChange = (range: string, checked: boolean) => {
-    if (checked) {
-      setSelectedPaymentRanges([...selectedPaymentRanges, range]);
-    } else {
-      setSelectedPaymentRanges(selectedPaymentRanges.filter(r => r !== range));
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch({
@@ -89,7 +73,7 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
       coverageAreas: [zipCode], // Simplified for now
       workTypes: selectedWorkTypes,
       platforms: selectedPlatforms,
-      paymentRanges: selectedPaymentRanges,
+      minimumPayment,
       monthlyVolume,
       sortBy
     });
@@ -164,23 +148,18 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
             </div>
           </div>
 
-          {/* Payment Ranges */}
-          <div className="space-y-3">
-            <Label>Payment Range</Label>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-              {paymentRanges.map((range) => (
-                <div key={range} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={range}
-                    checked={selectedPaymentRanges.includes(range)}
-                    onCheckedChange={(checked) => handlePaymentRangeChange(range, checked as boolean)}
-                  />
-                  <Label htmlFor={range} className="text-sm">
-                    {range}
-                  </Label>
-                </div>
-              ))}
-            </div>
+          {/* Minimum Payment per Order */}
+          <div className="space-y-2">
+            <Label htmlFor="minimumPayment">Minimum $ Amount per Order</Label>
+            <Input
+              id="minimumPayment"
+              type="number"
+              placeholder="Enter minimum payment amount"
+              value={minimumPayment}
+              onChange={(e) => setMinimumPayment(e.target.value)}
+              min="0"
+              step="1"
+            />
           </div>
 
           {/* Monthly Volume */}

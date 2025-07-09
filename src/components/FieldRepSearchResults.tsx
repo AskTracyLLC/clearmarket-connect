@@ -12,7 +12,7 @@ interface SearchFilters {
   coverageAreas: string[];
   workTypes: string[];
   platforms: string[];
-  paymentRanges: string[];
+  minimumPayment: string;
   monthlyVolume: string;
   sortBy: string;
 }
