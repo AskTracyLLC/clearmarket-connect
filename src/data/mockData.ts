@@ -3,6 +3,7 @@ import { differenceInDays, addDays } from "date-fns";
 export const mockResults = [
   {
     id: 1,
+    userId: "mock-user-1", // Mock user ID for network connections
     initials: "T.M.",
     distance: "4.2 mi away",
     platforms: ["EZinspections", "InspectorADE"],
@@ -14,6 +15,7 @@ export const mockResults = [
   },
   {
     id: 2,
+    userId: "mock-user-2", // Mock user ID for network connections
     initials: "J.D.",
     distance: "7.8 mi away",
     platforms: ["InspectorADE", "SafeView"],
@@ -24,6 +26,7 @@ export const mockResults = [
   },
   {
     id: 3,
+    userId: "mock-user-3", // Mock user ID for network connections
     initials: "M.R.",
     distance: "12.1 mi away",
     platforms: ["EZinspections", "InspectorADE", "SafeView"],

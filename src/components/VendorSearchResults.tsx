@@ -78,7 +78,7 @@ const VendorSearchResults = ({ filters, paidFilters, isLoading = false, onRefund
 
     // Out-of-network filter
     if (filters.onlyOutOfNetwork && user) {
-      if (isInNetwork(rep.id.toString())) {
+      if (isInNetwork(rep.userId)) {
         return false;
       }
     }
@@ -87,8 +87,8 @@ const VendorSearchResults = ({ filters, paidFilters, isLoading = false, onRefund
   });
 
   // Separate results into in-network and out-of-network
-  const inNetworkResults = user ? filteredResults.filter(rep => isInNetwork(rep.id.toString())) : [];
-  const outOfNetworkResults = user ? filteredResults.filter(rep => !isInNetwork(rep.id.toString())) : filteredResults;
+  const inNetworkResults = user ? filteredResults.filter(rep => isInNetwork(rep.userId)) : [];
+  const outOfNetworkResults = user ? filteredResults.filter(rep => !isInNetwork(rep.userId)) : filteredResults;
   
   // Check if refund is needed (no out-of-network results or only in-network results)
   const shouldRefund = user && (outOfNetworkResults.length === 0 || (filteredResults.length > 0 && outOfNetworkResults.length === 0));
