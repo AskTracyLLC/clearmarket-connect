@@ -1304,6 +1304,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          direct_invite_only: boolean
+          email_community_activity: boolean
+          email_feedback_received: boolean
+          email_new_connections: boolean
+          email_new_messages: boolean
+          email_weekly_digest: boolean
+          id: string
+          profile_visibility: string
+          push_enabled: boolean
+          push_network_updates: boolean
+          push_new_messages: boolean
+          search_visibility: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direct_invite_only?: boolean
+          email_community_activity?: boolean
+          email_feedback_received?: boolean
+          email_new_connections?: boolean
+          email_new_messages?: boolean
+          email_weekly_digest?: boolean
+          id?: string
+          profile_visibility?: string
+          push_enabled?: boolean
+          push_network_updates?: boolean
+          push_new_messages?: boolean
+          search_visibility?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direct_invite_only?: boolean
+          email_community_activity?: boolean
+          email_feedback_received?: boolean
+          email_new_connections?: boolean
+          email_new_messages?: boolean
+          email_weekly_digest?: boolean
+          id?: string
+          profile_visibility?: string
+          push_enabled?: boolean
+          push_network_updates?: boolean
+          push_new_messages?: boolean
+          search_visibility?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -1591,6 +1645,26 @@ export type Database = {
       ensure_admin_exists: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      get_or_create_user_preferences: {
+        Args: { target_user_id: string }
+        Returns: {
+          created_at: string
+          direct_invite_only: boolean
+          email_community_activity: boolean
+          email_feedback_received: boolean
+          email_new_connections: boolean
+          email_new_messages: boolean
+          email_weekly_digest: boolean
+          id: string
+          profile_visibility: string
+          push_enabled: boolean
+          push_network_updates: boolean
+          push_new_messages: boolean
+          search_visibility: boolean
+          updated_at: string
+          user_id: string
+        }
       }
       get_user_role: {
         Args: { user_id: string }

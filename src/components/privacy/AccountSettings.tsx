@@ -1,72 +1,100 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Mail, Key, Trash2, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-interface AccountData {
-  displayName: string;
-  email: string;
-  joinDate: string;
-  lastActive: string;
-}
+import { Badge } from "@/components/ui/badge";
+import { User, Mail, Key, Trash2, AlertTriangle, Shield, Star } from "lucide-react";
+import { useUserProfile, type UserAccountData } from "@/hooks/useUserProfile";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AccountSettingsProps {
-  onSave?: (data: AccountData) => void;
+  onSave?: (data: UserAccountData) => void;
 }
 
 const AccountSettings = ({ onSave }: AccountSettingsProps) => {
-  const { toast } = useToast();
-  const [accountData, setAccountData] = useState<AccountData>({
-    displayName: "John Doe",
-    email: "john.doe@example.com",
-    joinDate: "January 15, 2024",
-    lastActive: "5 minutes ago"
-  });
+  const { accountData: userData, loading, updateProfile, changePassword, updateEmail } = useUserProfile();
+  const [accountData, setAccountData] = useState<UserAccountData | null>(null);
+
+  // Update local state when user data is loaded
+  useEffect(() => {
+    if (userData) {
+      setAccountData(userData);
+    }
+  }, [userData]);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
 
-  const handleSave = () => {
-    onSave?.(accountData);
-    toast({
-      title: "Account Updated",
-      description: "Your account information has been saved successfully.",
+  const handleSave = async () => {
+    if (!accountData) return;
+    
+    const success = await updateProfile({
+      displayName: accountData.displayName,
     });
+    
+    if (success) {
+      onSave?.(accountData);
+    }
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "New password and confirmation do not match.",
-        variant: "destructive"
-      });
       return;
     }
 
-    toast({
-      title: "Password Updated",
-      description: "Your password has been changed successfully.",
-    });
+    if (newPassword.length < 6) {
+      return;
+    }
 
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    const success = await changePassword(currentPassword, newPassword);
+    if (success) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
   };
 
-  const handleDeleteAccount = () => {
-    toast({
-      title: "Delete Account",
-      description: "Account deletion functionality coming soon. Please contact support for assistance.",
-      variant: "destructive"
-    });
+  const handleEmailChange = async () => {
+    if (!newEmail || newEmail === accountData?.email) return;
+    
+    const success = await updateEmail(newEmail);
+    if (success) {
+      setNewEmail("");
+    }
   };
+
+  const handleDeleteAccount = async () => {
+    // For now, just show a warning - actual deletion would need admin approval
+    return;
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
+
+  if (loading || !accountData) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -84,20 +112,20 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
             <Input
               id="displayName"
               value={accountData.displayName}
-              onChange={(e) => setAccountData(prev => ({ ...prev, displayName: e.target.value }))}
+              onChange={(e) => setAccountData(prev => prev ? { ...prev, displayName: e.target.value } : null)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="currentEmail">Current Email Address</Label>
             <Input
-              id="email"
+              id="currentEmail"
               type="email"
               value={accountData.email}
-              onChange={(e) => setAccountData(prev => ({ ...prev, email: e.target.value }))}
+              disabled
             />
             <p className="text-sm text-muted-foreground">
-              Used for login and important notifications
+              Your current email address used for login
             </p>
           </div>
 
@@ -113,6 +141,58 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
               <p>{accountData.lastActive}</p>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <Label className="text-muted-foreground">Role</Label>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {accountData.role === 'admin' && <Shield className="h-3 w-3" />}
+                  {accountData.role === 'moderator' && <Star className="h-3 w-3" />}
+                  {accountData.role.replace('_', ' ')}
+                </Badge>
+              </div>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">Trust Score</Label>
+              <p>{accountData.trustScore}/100</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Email Change */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Change Email Address
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Update your email address for login and notifications
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="newEmail">New Email Address</Label>
+            <Input
+              id="newEmail"
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="Enter new email address"
+            />
+            <p className="text-sm text-muted-foreground">
+              You'll need to confirm the change via email
+            </p>
+          </div>
+
+          <Button 
+            onClick={handleEmailChange} 
+            disabled={!newEmail || newEmail === accountData?.email}
+          >
+            Update Email
+          </Button>
         </CardContent>
       </Card>
 
@@ -129,22 +209,13 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
-            <Input
-              id="currentPassword"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
             <Input
               id="newPassword"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Minimum 6 characters"
             />
           </div>
 
@@ -158,11 +229,41 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
             />
           </div>
 
+          {newPassword && newPassword.length < 6 && (
+            <p className="text-sm text-destructive">Password must be at least 6 characters</p>
+          )}
+          
+          {newPassword && confirmPassword && newPassword !== confirmPassword && (
+            <p className="text-sm text-destructive">Passwords do not match</p>
+          )}
+
           <Button 
             onClick={handlePasswordChange} 
-            disabled={!currentPassword || !newPassword || !confirmPassword}
+            disabled={!newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 6}
           >
             Update Password
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Sign Out */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Session Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Sign out of your account on this device.
+          </p>
+          <Button 
+            variant="outline" 
+            onClick={handleSignOut}
+            className="w-full"
+          >
+            Sign Out
           </Button>
         </CardContent>
       </Card>
@@ -179,7 +280,7 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Deleting your account is permanent and cannot be undone. All your data, connections, and history will be lost.
+              Account deletion requires admin approval. Contact support for assistance with permanently deleting your account.
             </AlertDescription>
           </Alert>
 
@@ -187,8 +288,9 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
             variant="destructive" 
             onClick={handleDeleteAccount}
             className="w-full"
+            disabled
           >
-            Delete Account
+            Contact Support for Account Deletion
           </Button>
         </CardContent>
       </Card>

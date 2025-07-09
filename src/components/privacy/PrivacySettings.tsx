@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -6,29 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Shield, Mail, Eye, Bell, HelpCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Shield, Eye, HelpCircle, Bell } from "lucide-react";
+import { useUserPreferences, type PrivacySettings as PrivacySettingsType } from "@/hooks/useUserPreferences";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PrivacySettingsProps {
-  onSave?: (settings: PrivacySettings) => void;
-}
-
-interface PrivacySettings {
-  profileVisibility: string;
-  emailNotifications: {
-    newMessages: boolean;
-    newConnections: boolean;
-    feedbackReceived: boolean;
-    weeklyDigest: boolean;
-    communityActivity: boolean;
-  };
-  searchVisibility: boolean;
-  directInviteOnly: boolean;
+  onSave?: (settings: PrivacySettingsType) => void;
 }
 
 const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
-  const { toast } = useToast();
-  const [settings, setSettings] = useState<PrivacySettings>({
+  const { preferences, loading, updatePrivacySettings } = useUserPreferences();
+  const [settings, setSettings] = useState<PrivacySettingsType>({
     profileVisibility: "public",
     emailNotifications: {
       newMessages: true,
@@ -41,12 +29,29 @@ const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
     directInviteOnly: false
   });
 
-  const handleSave = () => {
-    onSave?.(settings);
-    toast({
-      title: "Settings Saved",
-      description: "Your privacy settings have been updated successfully.",
-    });
+  // Update local state when preferences are loaded
+  useEffect(() => {
+    if (preferences) {
+      setSettings({
+        profileVisibility: preferences.profile_visibility,
+        emailNotifications: {
+          newMessages: preferences.email_new_messages,
+          newConnections: preferences.email_new_connections,
+          feedbackReceived: preferences.email_feedback_received,
+          weeklyDigest: preferences.email_weekly_digest,
+          communityActivity: preferences.email_community_activity,
+        },
+        searchVisibility: preferences.search_visibility,
+        directInviteOnly: preferences.direct_invite_only,
+      });
+    }
+  }, [preferences]);
+
+  const handleSave = async () => {
+    const success = await updatePrivacySettings(settings);
+    if (success) {
+      onSave?.(settings);
+    }
   };
 
   const updateEmailNotification = (key: keyof typeof settings.emailNotifications, value: boolean) => {
@@ -58,6 +63,23 @@ const PrivacySettings = ({ onSave }: PrivacySettingsProps) => {
       }
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

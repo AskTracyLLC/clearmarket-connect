@@ -1,34 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Bell } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-interface NotificationSettings {
-  emailNotifications: {
-    newMessages: boolean;
-    newConnections: boolean;
-    feedbackReceived: boolean;
-    weeklyDigest: boolean;
-    communityActivity: boolean;
-  };
-  pushNotifications: {
-    enabled: boolean;
-    newMessages: boolean;
-    networkUpdates: boolean;
-  };
-}
+import { useUserPreferences, type NotificationSettings as NotificationSettingsType } from "@/hooks/useUserPreferences";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface NotificationsSettingsProps {
-  onSave?: (settings: NotificationSettings) => void;
+  onSave?: (settings: NotificationSettingsType) => void;
 }
 
 const NotificationsSettings = ({ onSave }: NotificationsSettingsProps) => {
-  const { toast } = useToast();
-  const [settings, setSettings] = useState<NotificationSettings>({
+  const { preferences, loading, updateNotificationSettings } = useUserPreferences();
+  const [settings, setSettings] = useState<NotificationSettingsType>({
     emailNotifications: {
       newMessages: true,
       newConnections: true,
@@ -43,12 +29,31 @@ const NotificationsSettings = ({ onSave }: NotificationsSettingsProps) => {
     }
   });
 
-  const handleSave = () => {
-    onSave?.(settings);
-    toast({
-      title: "Settings Saved",
-      description: "Your notification settings have been updated successfully.",
-    });
+  // Update local state when preferences are loaded
+  useEffect(() => {
+    if (preferences) {
+      setSettings({
+        emailNotifications: {
+          newMessages: preferences.email_new_messages,
+          newConnections: preferences.email_new_connections,
+          feedbackReceived: preferences.email_feedback_received,
+          weeklyDigest: preferences.email_weekly_digest,
+          communityActivity: preferences.email_community_activity,
+        },
+        pushNotifications: {
+          enabled: preferences.push_enabled,
+          newMessages: preferences.push_new_messages,
+          networkUpdates: preferences.push_network_updates,
+        },
+      });
+    }
+  }, [preferences]);
+
+  const handleSave = async () => {
+    const success = await updateNotificationSettings(settings);
+    if (success) {
+      onSave?.(settings);
+    }
   };
 
   const updateEmailNotification = (key: keyof typeof settings.emailNotifications, value: boolean) => {
@@ -70,6 +75,23 @@ const NotificationsSettings = ({ onSave }: NotificationsSettingsProps) => {
       }
     }));
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
