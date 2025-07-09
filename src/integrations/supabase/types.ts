@@ -932,6 +932,17 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      setup_test_user: {
+        Args: {
+          user_email: string
+          user_role: Database["public"]["Enums"]["user_role"]
+          display_name_val: string
+          trust_score_val: number
+          profile_complete_val: number
+          credits_val: number
+        }
+        Returns: undefined
+      }
       spend_credits: {
         Args: {
           spender_user_id: string
