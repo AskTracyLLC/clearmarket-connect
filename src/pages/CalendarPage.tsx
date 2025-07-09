@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import EnhancedCalendarView from "@/components/calendar/EnhancedCalendarView";
+import OptimizedCalendarView from "@/components/calendar/OptimizedCalendarView";
 import AutoReplySettings from "@/components/calendar/AutoReplySettings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,11 +91,11 @@ const CalendarPage = () => {
             </TabsList>
 
             <TabsContent value="calendar">
-              <EnhancedCalendarView userRole={userRole} />
+              <OptimizedCalendarView userRole={userRole} />
             </TabsContent>
 
             <TabsContent value="network">
-              <EnhancedCalendarView userRole={userRole} />
+              <OptimizedCalendarView userRole={userRole} />
             </TabsContent>
 
             <TabsContent value="auto-reply">
