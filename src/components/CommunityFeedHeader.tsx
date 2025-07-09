@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Search, MessageSquare, Send } from "lucide-react";
 import PostCreationModal from "./PostCreationModal";
 import { SortOption, categories } from "@/utils/postUtils";
 
@@ -41,9 +42,25 @@ const CommunityFeedHeader = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-foreground">
-          Community Board
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl font-bold text-foreground">
+            Community Board
+          </CardTitle>
+          
+          {/* Toggle between Community Board and Vendor Alerts */}
+          <Tabs defaultValue="community" className="w-auto">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="community" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Community
+              </TabsTrigger>
+              <TabsTrigger value="alerts" className="flex items-center gap-2" disabled>
+                <Send className="h-4 w-4" />
+                Vendor Alerts
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters and Controls */}
