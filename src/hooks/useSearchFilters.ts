@@ -12,6 +12,7 @@ export const useSearchFilters = () => {
   const [yearsExperience, setYearsExperience] = useState("");
   const [availabilityStatus, setAvailabilityStatus] = useState("");
   const [onlyActiveUsers, setOnlyActiveUsers] = useState(false);
+  const [onlyOutOfNetwork, setOnlyOutOfNetwork] = useState(false);
   const [sortBy, setSortBy] = useState("");
 
   const togglePlatform = (platform: string) => {
@@ -49,6 +50,7 @@ export const useSearchFilters = () => {
     availabilityStatus,
     certifications: selectedCertifications,
     onlyActiveUsers,
+    onlyOutOfNetwork,
     sortBy
   });
 
@@ -64,6 +66,7 @@ export const useSearchFilters = () => {
     yearsExperience,
     availabilityStatus,
     onlyActiveUsers,
+    onlyOutOfNetwork,
     sortBy,
     setAbcRequired,
     setHudKeyRequired,
@@ -71,6 +74,7 @@ export const useSearchFilters = () => {
     setYearsExperience,
     setAvailabilityStatus,
     setOnlyActiveUsers,
+    setOnlyOutOfNetwork,
     setSortBy,
     togglePlatform,
     toggleInspectionType,

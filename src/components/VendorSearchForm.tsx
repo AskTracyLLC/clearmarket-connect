@@ -34,6 +34,7 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
     yearsExperience,
     availabilityStatus,
     onlyActiveUsers,
+    onlyOutOfNetwork,
     sortBy,
     setAbcRequired,
     setHudKeyRequired,
@@ -41,6 +42,7 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
     setYearsExperience,
     setAvailabilityStatus,
     setOnlyActiveUsers,
+    setOnlyOutOfNetwork,
     setSortBy,
     togglePlatform,
     toggleInspectionType,
@@ -114,6 +116,8 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
         <QuickFilters
           onlyActiveUsers={onlyActiveUsers}
           onOnlyActiveUsersChange={setOnlyActiveUsers}
+          onlyOutOfNetwork={onlyOutOfNetwork}
+          onOnlyOutOfNetworkChange={setOnlyOutOfNetwork}
           sortBy={sortBy}
           onSortByChange={setSortBy}
         />

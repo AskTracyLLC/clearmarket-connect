@@ -9,6 +9,7 @@ export interface SearchFilters {
   availabilityStatus: string;
   certifications: string[];
   onlyActiveUsers: boolean;
+  onlyOutOfNetwork: boolean;
   sortBy: string;
 }
 

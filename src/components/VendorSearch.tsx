@@ -1,6 +1,7 @@
 import { useState } from "react";
 import VendorSearchForm from "./VendorSearchForm";
 import VendorSearchResults from "./VendorSearchResults";
+import { useSearchCredits } from "@/hooks/useSearchCredits";
 
 interface SearchFilters {
   zipCode: string;
@@ -13,6 +14,7 @@ interface SearchFilters {
   availabilityStatus: string;
   certifications: string[];
   onlyActiveUsers: boolean;
+  onlyOutOfNetwork: boolean;
   sortBy: string;
 }
 
@@ -27,6 +29,7 @@ const VendorSearch = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [searchFilters, setSearchFilters] = useState<SearchFilters | null>(null);
   const [paidFilters, setPaidFilters] = useState<PaidFilters | null>(null);
+  const { refundCredits } = useSearchCredits();
 
   const handleSearch = (filters: SearchFilters, paid?: PaidFilters) => {
     setSearchFilters(filters);
@@ -34,12 +37,27 @@ const VendorSearch = () => {
     setSearchPerformed(true);
   };
 
+  const handleRefundNeeded = () => {
+    if (searchFilters) {
+      refundCredits(
+        searchFilters.platforms,
+        searchFilters.abcRequired,
+        searchFilters.hudKeyRequired,
+        searchFilters.inspectionTypes
+      );
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <VendorSearchForm onSearch={handleSearch} />
       
       {searchPerformed && searchFilters && (
-        <VendorSearchResults filters={searchFilters} paidFilters={paidFilters} />
+        <VendorSearchResults 
+          filters={searchFilters} 
+          paidFilters={paidFilters} 
+          onRefundNeeded={handleRefundNeeded}
+        />
       )}
     </div>
   );

@@ -124,6 +124,49 @@ export const useSearchCredits = () => {
     }
   }, [user, paidFilters, toast]);
 
+  const refundCredits = useCallback(async (
+    platforms: string[],
+    abcRequired: boolean | null,
+    hudKeyRequired: boolean | null,
+    inspectionTypes: string[]
+  ) => {
+    if (!user) return false;
+
+    const creditCost = calculateCreditCost(platforms, abcRequired, hudKeyRequired, inspectionTypes);
+    if (creditCost === 0) return true;
+
+    try {
+      // Award credits back
+      const { data, error } = await supabase.rpc('award_credits', {
+        target_user_id: user.id,
+        rule_name_param: 'search_refund',
+        reference_type_param: 'search_filter_refund',
+        metadata_param: {
+          refund_reason: 'no_out_of_network_results',
+          platforms: platforms.length > 0 && paidFilters.platforms,
+          abcRequired: abcRequired === true && paidFilters.abcRequired,
+          hudKeyRequired: hudKeyRequired === true && paidFilters.hudKeyRequired,
+          inspectionTypes: inspectionTypes.length > 0 && paidFilters.inspectionTypes,
+        }
+      });
+
+      if (error || !data) {
+        console.error('Error refunding credits:', error);
+        return false;
+      }
+
+      toast({
+        title: "Credits Refunded",
+        description: `${creditCost} credit${creditCost > 1 ? 's' : ''} refunded - No Search Results = No Charge`,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error refunding credits:', error);
+      return false;
+    }
+  }, [user, paidFilters, toast, calculateCreditCost]);
+
   const resetPaidFilters = () => {
     setPaidFilters({
       platforms: false,
@@ -138,6 +181,7 @@ export const useSearchCredits = () => {
     isSpendingCredits,
     calculateCreditCost,
     spendCreditsForSearch,
+    refundCredits,
     resetPaidFilters,
   };
 };

@@ -6,6 +6,8 @@ import VendorResultCard from "./VendorResultCard";
 import { VendorResultSkeleton } from "@/components/ui/skeleton-loader";
 import { SearchEmptyState } from "@/components/ui/empty-states";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNetworkConnections } from "@/hooks/useNetworkConnections";
+import { useSearchCredits } from "@/hooks/useSearchCredits";
 import { Link } from "react-router-dom";
 
 interface SearchFilters {
@@ -19,6 +21,7 @@ interface SearchFilters {
   availabilityStatus: string;
   certifications: string[];
   onlyActiveUsers: boolean;
+  onlyOutOfNetwork: boolean;
   sortBy: string;
 }
 
@@ -31,10 +34,12 @@ interface VendorSearchResultsProps {
     inspectionTypes: boolean;
   } | null;
   isLoading?: boolean;
+  onRefundNeeded?: () => void;
 }
 
-const VendorSearchResults = ({ filters, paidFilters, isLoading = false }: VendorSearchResultsProps) => {
+const VendorSearchResults = ({ filters, paidFilters, isLoading = false, onRefundNeeded }: VendorSearchResultsProps) => {
   const { user } = useAuth();
+  const { isInNetwork } = useNetworkConnections();
   
   // Filter results based on search criteria
   const filteredResults = mockResults.filter(rep => {
@@ -71,8 +76,32 @@ const VendorSearchResults = ({ filters, paidFilters, isLoading = false }: Vendor
       }
     }
 
+    // Out-of-network filter
+    if (filters.onlyOutOfNetwork && user) {
+      if (isInNetwork(rep.id.toString())) {
+        return false;
+      }
+    }
+
     return true;
   });
+
+  // Separate results into in-network and out-of-network
+  const inNetworkResults = user ? filteredResults.filter(rep => isInNetwork(rep.id.toString())) : [];
+  const outOfNetworkResults = user ? filteredResults.filter(rep => !isInNetwork(rep.id.toString())) : filteredResults;
+  
+  // Check if refund is needed (no out-of-network results or only in-network results)
+  const shouldRefund = user && (outOfNetworkResults.length === 0 || (filteredResults.length > 0 && outOfNetworkResults.length === 0));
+  
+  // Trigger refund if needed
+  useEffect(() => {
+    if (shouldRefund && onRefundNeeded && paidFilters) {
+      const hasUsedPaidFilters = Object.values(paidFilters).some(Boolean);
+      if (hasUsedPaidFilters) {
+        onRefundNeeded();
+      }
+    }
+  }, [shouldRefund, onRefundNeeded, paidFilters]);
 
   // Show loading skeletons
   if (isLoading) {
@@ -153,6 +182,21 @@ const VendorSearchResults = ({ filters, paidFilters, isLoading = false }: Vendor
 
       {filteredResults.length === 0 && (
         <SearchEmptyState zipCode={filters.zipCode} />
+      )}
+      
+      {shouldRefund && filteredResults.length > 0 && (
+        <Card className="p-4 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
+          <CardContent className="text-center space-y-2">
+            <p className="text-green-800 dark:text-green-200 font-medium">
+              No Search Results = No Charge
+            </p>
+            <p className="text-green-600 dark:text-green-400 text-sm">
+              {outOfNetworkResults.length === 0 
+                ? "No out-of-network field reps found. Credits have been refunded." 
+                : "Only in-network field reps found. Credits have been refunded."}
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
