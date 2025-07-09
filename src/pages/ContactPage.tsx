@@ -12,6 +12,7 @@ import { useState } from "react";
 
 const ContactPage = () => {
   const [contactReason, setContactReason] = useState("");
+  const [subject, setSubject] = useState("");
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // For now, just show an alert - can be connected to backend later
@@ -83,7 +84,14 @@ const ContactPage = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="reason">Reason for Contact</Label>
-                    <Select value={contactReason} onValueChange={setContactReason} required>
+                    <Select 
+                      value={contactReason} 
+                      onValueChange={(value) => {
+                        setContactReason(value);
+                        setSubject(value.charAt(0).toUpperCase() + value.slice(1) + " - ");
+                      }} 
+                      required
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a reason" />
                       </SelectTrigger>
@@ -100,9 +108,9 @@ const ContactPage = () => {
                     <Label htmlFor="subject">Subject</Label>
                     <Input 
                       id="subject" 
-                      value={contactReason ? contactReason.charAt(0).toUpperCase() + contactReason.slice(1) : ""}
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
                       placeholder="Select a reason for contact above"
-                      readOnly
                       required 
                     />
                   </div>
