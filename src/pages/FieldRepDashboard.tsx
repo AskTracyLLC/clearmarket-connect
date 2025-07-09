@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import CreditExplainerModal from '@/components/CreditExplainerModal';
+import SendNetworkAlertModal from '@/components/VendorDashboard/SendNetworkAlertModal';
 import { 
   MapPin, 
   Users, 
@@ -22,6 +23,7 @@ import Footer from '@/components/Footer';
 const FieldRepDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
+  const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
 
   const dashboardStats = {
     networkedVendors: 8,
@@ -49,7 +51,7 @@ const FieldRepDashboard = () => {
                   Track your network connections, coverage opportunities, and performance metrics
                 </p>
               </div>
-              <Button size="lg" className="flex items-center gap-2 shrink-0">
+              <Button size="lg" className="flex items-center gap-2 shrink-0" onClick={() => setNetworkAlertOpen(true)}>
                 <Megaphone className="h-5 w-5" />
                 Network Alerts
               </Button>
@@ -289,6 +291,12 @@ const FieldRepDashboard = () => {
       <CreditExplainerModal 
         open={creditExplainerOpen} 
         onOpenChange={setCreditExplainerOpen} 
+      />
+      
+      <SendNetworkAlertModal 
+        open={networkAlertOpen}
+        onOpenChange={setNetworkAlertOpen}
+        networkSize={dashboardStats.networkedVendors}
       />
       
       <Footer />
