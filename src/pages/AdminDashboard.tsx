@@ -21,6 +21,13 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Skip auth checks in development mode
+    if (import.meta.env.DEV) {
+      setUserRole("admin");
+      setIsLoading(false);
+      return;
+    }
+
     const checkAdminAccess = async () => {
       if (!user) {
         navigate("/auth");
