@@ -101,11 +101,11 @@ export const filterData = (
     );
   }
 
-  if (filterState) {
+  if (filterState && filterState !== "all") {
     filtered = filtered.filter(item => item.state === filterState);
   }
 
-  if (filterRuralUrban) {
+  if (filterRuralUrban && filterRuralUrban !== "all") {
     filtered = filtered.filter(item => item.rural_urban_designation === filterRuralUrban);
   }
 

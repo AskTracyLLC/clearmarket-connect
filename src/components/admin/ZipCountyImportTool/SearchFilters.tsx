@@ -48,7 +48,7 @@ export const SearchFilters = ({
               <SelectValue placeholder="All states" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All states</SelectItem>
+              <SelectItem value="all">All states</SelectItem>
               {uniqueStates.map(state => (
                 <SelectItem key={state} value={state}>{state}</SelectItem>
               ))}
@@ -62,7 +62,7 @@ export const SearchFilters = ({
               <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All types</SelectItem>
+              <SelectItem value="all">All types</SelectItem>
               <SelectItem value="Rural">Rural</SelectItem>
               <SelectItem value="Urban">Urban</SelectItem>
             </SelectContent>
