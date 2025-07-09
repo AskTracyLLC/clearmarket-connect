@@ -4,8 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Megaphone, Calendar, MapPin, Eye, Users, Edit, Pause, Play, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import PostCoverageRequestModal from './PostCoverageRequestModal';
 
 const CoverageRequests = () => {
+  const [postRequestModalOpen, setPostRequestModalOpen] = useState(false);
+  
   // Mock coverage requests data
   const coverageRequests = [
     {
@@ -112,7 +115,7 @@ const CoverageRequests = () => {
                 Manage your active and past coverage requests
               </CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => setPostRequestModalOpen(true)}>
               <Megaphone className="h-4 w-4 mr-2" />
               Post New Request
             </Button>
@@ -253,7 +256,7 @@ const CoverageRequests = () => {
               <p className="text-muted-foreground mb-4">
                 Post your first coverage request to find Field Reps in areas you need.
               </p>
-              <Button>
+              <Button onClick={() => setPostRequestModalOpen(true)}>
                 <Megaphone className="h-4 w-4 mr-2" />
                 Post Coverage Request
               </Button>
@@ -261,6 +264,11 @@ const CoverageRequests = () => {
           )}
         </CardContent>
       </Card>
+      
+      <PostCoverageRequestModal 
+        open={postRequestModalOpen}
+        onOpenChange={setPostRequestModalOpen}
+      />
     </div>
   );
 };
