@@ -201,13 +201,9 @@ const FAQSection = () => {
           </Card>
 
           <div className="text-center mt-8">
-            <p className="text-muted-foreground mb-4">
-              Still have questions? We're here to help!
+            <p className="text-muted-foreground">
+              Still have questions? Use the contact form below!
             </p>
-            <Button variant="hero" size="lg">
-              <MessageCircle className="h-5 w-5" />
-              Contact Support
-            </Button>
           </div>
         </div>
       </div>
