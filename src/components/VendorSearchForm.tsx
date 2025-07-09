@@ -7,10 +7,17 @@ import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { SearchFilters } from "./search/SearchFilters";
 import AdvancedFilters from "./search/AdvancedFilters";
 import QuickFilters from "./search/QuickFilters";
+import CreditFilterWarning from "./search/CreditFilterWarning";
 import { useSearchFilters } from "@/hooks/useSearchFilters";
+import { useSearchCredits } from "@/hooks/useSearchCredits";
 
 interface VendorSearchFormProps {
-  onSearch: (filters: SearchFilters) => void;
+  onSearch: (filters: SearchFilters, paidFilters?: {
+    platforms: boolean;
+    abcRequired: boolean;
+    hudKeyRequired: boolean;
+    inspectionTypes: boolean;
+  }) => void;
 }
 
 const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
@@ -41,10 +48,35 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
     getFilters
   } = useSearchFilters();
 
-  const handleSearch = () => {
-    if (zipCode.trim()) {
-      onSearch(getFilters());
+  const {
+    paidFilters,
+    isSpendingCredits,
+    calculateCreditCost,
+    spendCreditsForSearch,
+    resetPaidFilters,
+  } = useSearchCredits();
+
+  const creditCost = calculateCreditCost(
+    selectedPlatforms,
+    abcRequired,
+    hudKeyRequired,
+    selectedInspectionTypes
+  );
+
+  const handleSearch = async () => {
+    if (!zipCode.trim()) return;
+
+    if (creditCost > 0) {
+      const success = await spendCreditsForSearch(
+        selectedPlatforms,
+        abcRequired,
+        hudKeyRequired,
+        selectedInspectionTypes
+      );
+      if (!success) return;
     }
+
+    onSearch(getFilters(), paidFilters);
   };
 
   return (
@@ -69,8 +101,13 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
               />
             </div>
           </div>
-          <Button onClick={handleSearch} variant="hero" className="px-6 sm:px-8 min-h-[44px] w-full sm:w-auto">
-            Search
+          <Button 
+            onClick={handleSearch} 
+            variant="hero" 
+            className="px-6 sm:px-8 min-h-[44px] w-full sm:w-auto"
+            disabled={isSpendingCredits}
+          >
+            {isSpendingCredits ? "Processing..." : "Search"}
           </Button>
         </div>
 
@@ -79,6 +116,11 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
           onOnlyActiveUsersChange={setOnlyActiveUsers}
           sortBy={sortBy}
           onSortByChange={setSortBy}
+        />
+
+        <CreditFilterWarning 
+          creditCost={creditCost} 
+          isVisible={showAdvanced && creditCost > 0} 
         />
 
         <div className="border-t border-border pt-4">
@@ -103,6 +145,7 @@ const VendorSearchForm = ({ onSearch }: VendorSearchFormProps) => {
               yearsExperience={yearsExperience}
               availabilityStatus={availabilityStatus}
               sortBy={sortBy}
+              paidFilters={paidFilters}
               onPlatformToggle={togglePlatform}
               onInspectionTypeToggle={toggleInspectionType}
               onCertificationToggle={toggleCertification}

@@ -3,6 +3,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CreditCard } from "lucide-react";
 import { 
   platforms, 
   inspectionTypes, 
@@ -22,6 +24,12 @@ interface AdvancedFiltersProps {
   yearsExperience: string;
   availabilityStatus: string;
   sortBy: string;
+  paidFilters: {
+    platforms: boolean;
+    abcRequired: boolean;
+    hudKeyRequired: boolean;
+    inspectionTypes: boolean;
+  };
   onPlatformToggle: (platform: string) => void;
   onInspectionTypeToggle: (type: string) => void;
   onCertificationToggle: (cert: string) => void;
@@ -43,6 +51,7 @@ const AdvancedFilters = ({
   yearsExperience,
   availabilityStatus,
   sortBy,
+  paidFilters,
   onPlatformToggle,
   onInspectionTypeToggle,
   onCertificationToggle,
@@ -127,7 +136,20 @@ const AdvancedFilters = ({
 
       {/* Inspection Platforms */}
       <div className="space-y-3">
-        <Label className="text-base font-medium">Inspection Platform(s)</Label>
+        <div className="flex items-center gap-2">
+          <Label className="text-base font-medium">Inspection Platform(s)</Label>
+          {!paidFilters.platforms && selectedPlatforms.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              <CreditCard className="h-3 w-3 mr-1" />
+              1 Credit
+            </Badge>
+          )}
+          {paidFilters.platforms && (
+            <Badge variant="default" className="text-xs bg-green-600">
+              ✓ Paid
+            </Badge>
+          )}
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {platforms.map((platform) => (
             <div key={platform} className="flex items-center space-x-2">
@@ -147,7 +169,20 @@ const AdvancedFilters = ({
       {/* ABC# Required */}
       <div className="flex items-center justify-between p-4 border border-border rounded-lg">
         <div className="space-y-1">
-          <Label className="text-base font-medium">ABC# Required?</Label>
+          <div className="flex items-center gap-2">
+            <Label className="text-base font-medium">ABC# Required?</Label>
+            {!paidFilters.abcRequired && abcRequired === true && (
+              <Badge variant="outline" className="text-xs">
+                <CreditCard className="h-3 w-3 mr-1" />
+                1 Credit
+              </Badge>
+            )}
+            {paidFilters.abcRequired && (
+              <Badge variant="default" className="text-xs bg-green-600">
+                ✓ Paid
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">Filter by ABC certification requirement</p>
         </div>
         <div className="flex gap-2">
@@ -174,7 +209,20 @@ const AdvancedFilters = ({
       <div className="space-y-3">
         <div className="flex items-center justify-between p-4 border border-border rounded-lg">
           <div className="space-y-1">
-            <Label className="text-base font-medium">HUD Key Required?</Label>
+            <div className="flex items-center gap-2">
+              <Label className="text-base font-medium">HUD Key Required?</Label>
+              {!paidFilters.hudKeyRequired && hudKeyRequired === true && (
+                <Badge variant="outline" className="text-xs">
+                  <CreditCard className="h-3 w-3 mr-1" />
+                  1 Credit
+                </Badge>
+              )}
+              {paidFilters.hudKeyRequired && (
+                <Badge variant="default" className="text-xs bg-green-600">
+                  ✓ Paid
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">Filter by HUD key requirement</p>
           </div>
           <div className="flex gap-2">
@@ -212,7 +260,20 @@ const AdvancedFilters = ({
 
       {/* Inspection Types */}
       <div className="space-y-3">
-        <Label className="text-base font-medium">Inspection Type</Label>
+        <div className="flex items-center gap-2">
+          <Label className="text-base font-medium">Inspection Type</Label>
+          {!paidFilters.inspectionTypes && selectedInspectionTypes.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              <CreditCard className="h-3 w-3 mr-1" />
+              1 Credit
+            </Badge>
+          )}
+          {paidFilters.inspectionTypes && (
+            <Badge variant="default" className="text-xs bg-green-600">
+              ✓ Paid
+            </Badge>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {inspectionTypes.map((type) => (
             <div key={type} className="flex items-center space-x-2">

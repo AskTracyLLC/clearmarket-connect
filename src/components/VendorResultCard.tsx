@@ -31,9 +31,15 @@ interface VendorResultCardProps {
     topRated?: boolean;
     backgroundCheck?: boolean;
   };
+  paidFilters?: {
+    platforms: boolean;
+    abcRequired: boolean;
+    hudKeyRequired: boolean;
+    inspectionTypes: boolean;
+  } | null;
 }
 
-const VendorResultCard = ({ rep }: VendorResultCardProps) => {
+const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -131,11 +137,17 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
             <div className="space-y-1">
               <Label className="text-sm text-muted-foreground">Platforms:</Label>
               <div className="flex flex-wrap gap-2">
-                {rep.platforms.map((platform) => (
-                  <Badge key={platform} variant="secondary">
-                    {platform}
+                {paidFilters?.platforms ? (
+                  rep.platforms.map((platform) => (
+                    <Badge key={platform} variant="secondary">
+                      {platform}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Unlock to see platforms
                   </Badge>
-                ))}
+                )}
               </div>
             </div>
 
@@ -143,16 +155,21 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
             <div className="space-y-1">
               <Label className="text-sm text-muted-foreground">Certifications & Keys:</Label>
               <div className="flex flex-wrap gap-2">
-                {rep.abcRequired && (
+                {paidFilters?.abcRequired && rep.abcRequired && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Shield className="h-3 w-3" />
                     ABC# Certified
                   </Badge>
                 )}
-                {rep.hudKeyRequired && (
+                {paidFilters?.hudKeyRequired && rep.hudKeyRequired && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Key className="h-3 w-3" />
                     HUD Key {rep.hudKeyCode && `(${rep.hudKeyCode})`}
+                  </Badge>
+                )}
+                {!paidFilters?.abcRequired && !paidFilters?.hudKeyRequired && (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Unlock to see certifications
                   </Badge>
                 )}
                 {rep.backgroundCheck && <TrustBadge type="background-check" />}
@@ -163,11 +180,17 @@ const VendorResultCard = ({ rep }: VendorResultCardProps) => {
             <div className="space-y-1">
               <Label className="text-sm text-muted-foreground">Inspection Types:</Label>
               <div className="flex flex-wrap gap-2">
-                {rep.inspectionTypes.map((type) => (
-                  <Badge key={type} variant="outline">
-                    {type}
+                {paidFilters?.inspectionTypes ? (
+                  rep.inspectionTypes.map((type) => (
+                    <Badge key={type} variant="outline">
+                      {type}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Unlock to see inspection types
                   </Badge>
-                ))}
+                )}
               </div>
             </div>
 

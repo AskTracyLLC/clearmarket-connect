@@ -16,12 +16,21 @@ interface SearchFilters {
   sortBy: string;
 }
 
+interface PaidFilters {
+  platforms: boolean;
+  abcRequired: boolean;
+  hudKeyRequired: boolean;
+  inspectionTypes: boolean;
+}
+
 const VendorSearch = () => {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [searchFilters, setSearchFilters] = useState<SearchFilters | null>(null);
+  const [paidFilters, setPaidFilters] = useState<PaidFilters | null>(null);
 
-  const handleSearch = (filters: SearchFilters) => {
+  const handleSearch = (filters: SearchFilters, paid?: PaidFilters) => {
     setSearchFilters(filters);
+    setPaidFilters(paid || null);
     setSearchPerformed(true);
   };
 
@@ -30,7 +39,7 @@ const VendorSearch = () => {
       <VendorSearchForm onSearch={handleSearch} />
       
       {searchPerformed && searchFilters && (
-        <VendorSearchResults filters={searchFilters} />
+        <VendorSearchResults filters={searchFilters} paidFilters={paidFilters} />
       )}
     </div>
   );

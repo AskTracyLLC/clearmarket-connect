@@ -24,10 +24,16 @@ interface SearchFilters {
 
 interface VendorSearchResultsProps {
   filters: SearchFilters;
+  paidFilters?: {
+    platforms: boolean;
+    abcRequired: boolean;
+    hudKeyRequired: boolean;
+    inspectionTypes: boolean;
+  } | null;
   isLoading?: boolean;
 }
 
-const VendorSearchResults = ({ filters, isLoading = false }: VendorSearchResultsProps) => {
+const VendorSearchResults = ({ filters, paidFilters, isLoading = false }: VendorSearchResultsProps) => {
   const { user } = useAuth();
   
   // Filter results based on search criteria
@@ -141,7 +147,7 @@ const VendorSearchResults = ({ filters, isLoading = false }: VendorSearchResults
       
       <div className="space-y-4">
         {filteredResults.map((rep) => (
-          <VendorResultCard key={rep.id} rep={rep} />
+          <VendorResultCard key={rep.id} rep={rep} paidFilters={paidFilters} />
         ))}
       </div>
 
