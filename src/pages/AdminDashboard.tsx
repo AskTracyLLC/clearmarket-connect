@@ -6,6 +6,7 @@ import { ZipCountyImportTool } from "@/components/admin/ZipCountyImportTool";
 import { CreditEarningSystem } from "@/components/admin/CreditEarningSystem";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { AdminQuickActions } from "@/components/admin/AdminQuickActions";
+import { UserManagement } from "@/components/admin/UserManagement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -84,23 +85,28 @@ const AdminDashboard = () => {
           </p>
         </div>
 
-        {/* Dashboard Overview */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Platform Overview</h2>
-          <AdminStatsCards />
-        </div>
-
+        {/* Dashboard Layout with Quick Actions on Left */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          <div className="lg:col-span-3">
+          {/* Quick Actions - Left Side */}
+          <div className="lg:col-span-1">
+            <AdminQuickActions />
+          </div>
+          
+          {/* Main Content - Right Side */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Platform Overview */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Platform Overview</h2>
+              <AdminStatsCards />
+            </div>
+            
+            {/* Admin Alert */}
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>
                 You have administrator privileges. Use these tools carefully as changes affect the entire platform.
               </AlertDescription>
             </Alert>
-          </div>
-          <div className="lg:col-span-1">
-            <AdminQuickActions />
           </div>
         </div>
 
@@ -137,16 +143,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  User management tools will be available here in future updates.
-                </p>
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="system" className="mt-6">

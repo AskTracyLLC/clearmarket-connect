@@ -825,6 +825,84 @@ export type Database = {
           },
         ]
       }
+      user_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invited_by: string
+          role: Database["public"]["Enums"]["user_role"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invitation_token: string
+          invited_by: string
+          role: Database["public"]["Enums"]["user_role"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          join_date: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          join_date?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          join_date?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           boost_expiration: string | null
@@ -951,6 +1029,10 @@ export type Database = {
           reference_type_param?: string
           metadata_param?: Json
         }
+        Returns: boolean
+      }
+      toggle_user_activation: {
+        Args: { target_user_id: string; is_active_param: boolean }
         Returns: boolean
       }
       update_trust_score: {
