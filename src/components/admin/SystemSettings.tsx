@@ -117,8 +117,8 @@ export const SystemSettings = () => {
   const renderSettingInput = (setting: SystemSetting) => {
     const currentValue = pendingChanges[setting.setting_key] !== undefined 
       ? pendingChanges[setting.setting_key] 
-      : setting.setting_type === 'string' && typeof setting.setting_value === 'string'
-        ? JSON.parse(setting.setting_value || '""')
+      : setting.setting_type === 'string' && typeof setting.setting_value === 'string' && setting.setting_value.startsWith('"')
+        ? JSON.parse(setting.setting_value)
         : setting.setting_value;
 
     switch (setting.setting_type) {
