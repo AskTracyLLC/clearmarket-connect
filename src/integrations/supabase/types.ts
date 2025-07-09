@@ -345,6 +345,162 @@ export type Database = {
           },
         ]
       }
+      coverage_request_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_bulk_message: boolean
+          message_content: string
+          read_at: string | null
+          recipient_id: string
+          request_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_bulk_message?: boolean
+          message_content: string
+          read_at?: string | null
+          recipient_id: string
+          request_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_bulk_message?: boolean
+          message_content?: string
+          read_at?: string | null
+          recipient_id?: string
+          request_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      coverage_request_passes: {
+        Row: {
+          created_at: string
+          field_rep_id: string
+          id: string
+          pass_reason: string
+          request_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          field_rep_id: string
+          id?: string
+          pass_reason: string
+          request_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          field_rep_id?: string
+          id?: string
+          pass_reason?: string
+          request_id?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      coverage_request_responses: {
+        Row: {
+          created_at: string
+          field_rep_id: string
+          id: string
+          request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_rep_id: string
+          id?: string
+          request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_rep_id?: string
+          id?: string
+          request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coverage_requests: {
+        Row: {
+          abc_required: boolean | null
+          budget_range: string
+          created_at: string
+          description: string
+          estimated_monthly_volume: string
+          expires_at: string
+          hide_from_all_network: boolean
+          hide_from_current_network: boolean
+          hud_key_required: boolean | null
+          id: string
+          selected_cities: string[] | null
+          selected_counties: string[] | null
+          selected_inspection_types: string[] | null
+          selected_platforms: string[] | null
+          selected_state: string
+          status: string
+          title: string
+          updated_at: string
+          vendor_id: string
+          years_experience_required: string | null
+        }
+        Insert: {
+          abc_required?: boolean | null
+          budget_range: string
+          created_at?: string
+          description: string
+          estimated_monthly_volume: string
+          expires_at?: string
+          hide_from_all_network?: boolean
+          hide_from_current_network?: boolean
+          hud_key_required?: boolean | null
+          id?: string
+          selected_cities?: string[] | null
+          selected_counties?: string[] | null
+          selected_inspection_types?: string[] | null
+          selected_platforms?: string[] | null
+          selected_state: string
+          status?: string
+          title: string
+          updated_at?: string
+          vendor_id: string
+          years_experience_required?: string | null
+        }
+        Update: {
+          abc_required?: boolean | null
+          budget_range?: string
+          created_at?: string
+          description?: string
+          estimated_monthly_volume?: string
+          expires_at?: string
+          hide_from_all_network?: boolean
+          hide_from_current_network?: boolean
+          hud_key_required?: boolean | null
+          id?: string
+          selected_cities?: string[] | null
+          selected_counties?: string[] | null
+          selected_inspection_types?: string[] | null
+          selected_platforms?: string[] | null
+          selected_state?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          vendor_id?: string
+          years_experience_required?: string | null
+        }
+        Relationships: []
+      }
       credit_earning_audit_log: {
         Row: {
           action_type: string
@@ -1050,6 +1206,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vendor_rep_comments: {
+        Row: {
+          comment_text: string
+          created_at: string
+          field_rep_id: string
+          id: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          comment_text: string
+          created_at?: string
+          field_rep_id: string
+          id?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          comment_text?: string
+          created_at?: string
+          field_rep_id?: string
+          id?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
       }
       zip_county_classifications: {
         Row: {

@@ -155,10 +155,34 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
     }));
   };
 
-  const handleSubmit = () => {
-    // TODO: Implement form submission
-    console.log("Coverage request form:", form);
-    onOpenChange(false);
+  const handleSubmit = async () => {
+    try {
+      // TODO: Implement actual Supabase insertion
+      const requestData = {
+        vendor_id: 'current-user-id', // This should come from auth context
+        title: form.title,
+        description: form.description,
+        estimated_monthly_volume: form.estimatedMonthlyVolume,
+        budget_range: form.budgetRange,
+        selected_state: form.selectedState,
+        selected_counties: form.selectedCounties,
+        selected_cities: form.selectedCities,
+        selected_platforms: form.selectedPlatforms,
+        selected_inspection_types: form.selectedInspectionTypes,
+        abc_required: form.abcRequired,
+        hud_key_required: form.hudKeyRequired,
+        years_experience_required: form.yearsExperienceRequired,
+        hide_from_all_network: form.hideFromAllNetwork,
+        hide_from_current_network: form.hideFromCurrentNetwork
+      };
+      
+      console.log("Creating coverage request:", requestData);
+      // Here you would insert into the coverage_requests table
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error creating coverage request:", error);
+    }
   };
 
   const getCountyName = (countyId: string) => {

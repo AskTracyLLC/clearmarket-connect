@@ -5,9 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Megaphone, Calendar, MapPin, Eye, Users, Edit, Pause, Play, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import PostCoverageRequestModal from './PostCoverageRequestModal';
+import CoverageRequestDetailModal from './CoverageRequestDetailModal';
 
 const CoverageRequests = () => {
   const [postRequestModalOpen, setPostRequestModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   
   // Mock coverage requests data
   const coverageRequests = [
@@ -97,8 +100,9 @@ const CoverageRequests = () => {
     console.log('Deleting request:', requestId);
   };
 
-  const handleViewResponses = (requestId: number) => {
-    console.log('Viewing responses for request:', requestId);
+  const handleViewResponses = (request: any) => {
+    setSelectedRequest(request);
+    setDetailModalOpen(true);
   };
 
   return (
@@ -237,7 +241,7 @@ const CoverageRequests = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleViewResponses(request.id)}
+                        onClick={() => handleViewResponses(request)}
                       >
                         <Users className="h-3 w-3 mr-1" />
                         {request.responses} Responses
@@ -268,6 +272,12 @@ const CoverageRequests = () => {
       <PostCoverageRequestModal 
         open={postRequestModalOpen}
         onOpenChange={setPostRequestModalOpen}
+      />
+      
+      <CoverageRequestDetailModal 
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        request={selectedRequest}
       />
     </div>
   );
