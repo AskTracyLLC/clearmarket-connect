@@ -18,7 +18,6 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/fieldrep/search" className="text-muted-foreground hover:text-foreground transition-colors">Find Work</Link></li>
               <li><Link to="/fieldrep/profile" className="text-muted-foreground hover:text-foreground transition-colors">Build Profile</Link></li>
-              <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Success Stories</Link></li>
             </ul>
           </div>
 
@@ -26,6 +25,7 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">For Vendors</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/vendor/search" className="text-muted-foreground hover:text-foreground transition-colors">Find Coverage</Link></li>
+              <li><Link to="/vendor/profile" className="text-muted-foreground hover:text-foreground transition-colors">Build Profile</Link></li>
             </ul>
           </div>
 
@@ -34,6 +34,8 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">Credits System</Link></li>
               <li><Link to="#" className="text-muted-foreground hover:text-foreground transition-colors">Platform Guide</Link></li>
+              <li><Link to="/refund-policy" className="text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link></li>
+              <li><Link to="/faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</Link></li>
             </ul>
           </div>
 
@@ -41,10 +43,9 @@ const Footer = () => {
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact</Link></li>
+              <li><Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Success Stories</Link></li>
               <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
-              <li><Link to="/refund-policy" className="text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link></li>
-              <li><Link to="/faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</Link></li>
             </ul>
           </div>
         </div>
