@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import CreditExplainerModal from '@/components/CreditExplainerModal';
-import SendNetworkAlertModal from '@/components/VendorDashboard/SendNetworkAlertModal';
+import SendFieldRepNetworkAlert from '@/components/FieldRepDashboard/SendFieldRepNetworkAlert';
 import { 
   MapPin, 
   Users, 
@@ -293,7 +293,7 @@ const FieldRepDashboard = () => {
         onOpenChange={setCreditExplainerOpen} 
       />
       
-      <SendNetworkAlertModal 
+      <SendFieldRepNetworkAlert 
         open={networkAlertOpen}
         onOpenChange={setNetworkAlertOpen}
         networkSize={dashboardStats.networkedVendors}
