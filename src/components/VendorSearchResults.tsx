@@ -76,6 +76,14 @@ const VendorSearchResults = ({ filters, paidFilters, isLoading = false, onRefund
       }
     }
 
+    // Active users filter
+    if (filters.onlyActiveUsers) {
+      // Simulate "active" based on random activity (since mockData doesn't have lastActive)
+      // In a real app, this would check actual lastActive timestamp
+      const simulatedLastActiveDays = Math.floor(Math.random() * 30);
+      if (simulatedLastActiveDays > 14) return false;
+    }
+
     // Out-of-network filter
     if (filters.onlyOutOfNetwork && user) {
       if (isInNetwork(rep.userId)) {
