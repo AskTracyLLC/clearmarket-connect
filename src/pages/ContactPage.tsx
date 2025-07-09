@@ -1,11 +1,13 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import FAQSection from "@/components/FAQSection";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Clock } from "lucide-react";
 
 const ContactPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,70 +28,19 @@ const ContactPage = () => {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Information */}
-            <div className="space-y-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" />
-                    Email Support
-                  </CardTitle>
-                  <CardDescription>
-                    Send us an email and we'll respond within 24 hours
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <a 
-                    href="mailto:support@clearmarket.io" 
-                    className="text-primary hover:underline font-medium text-lg"
-                  >
-                    support@clearmarket.io
-                  </a>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Response Times
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>General Inquiries:</span>
-                      <span className="font-medium">24-48 hours</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Technical Issues:</span>
-                      <span className="font-medium">4-12 hours</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Billing Questions:</span>
-                      <span className="font-medium">12-24 hours</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Frequently Asked Questions</CardTitle>
-                  <CardDescription>
-                    Check our FAQ section for quick answers to common questions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="outline" asChild>
-                    <a href="/faq">Visit FAQ Page</a>
-                  </Button>
-                </CardContent>
-              </Card>
+          {/* FAQ Section */}
+          <div className="mb-16">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">🔎 Frequently Asked Questions</h2>
+              <p className="text-muted-foreground">
+                Quick answers to common questions about ClearMarket accounts, credits, profiles, and more.
+              </p>
             </div>
+            <FAQSection />
+          </div>
 
-            {/* Contact Form */}
+          {/* Contact Form */}
+          <div className="max-w-2xl mx-auto">
             <Card>
               <CardHeader>
                 <CardTitle>Send us a Message</CardTitle>
@@ -129,6 +80,21 @@ const ContactPage = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="reason">Reason for Contact</Label>
+                    <Select required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a reason" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="billing">Billing</SelectItem>
+                        <SelectItem value="support">Support</SelectItem>
+                        <SelectItem value="sales">Sales</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="subject">Subject</Label>
                     <Input 
                       id="subject" 
@@ -151,6 +117,32 @@ const ContactPage = () => {
                     Send Message
                   </Button>
                 </form>
+              </CardContent>
+            </Card>
+
+            {/* Response Times */}
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Response Times
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>General Inquiries:</span>
+                    <span className="font-medium">24-48 hours</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Technical Issues:</span>
+                    <span className="font-medium">4-12 hours</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Billing Questions:</span>
+                    <span className="font-medium">12-24 hours</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
