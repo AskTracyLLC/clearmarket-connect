@@ -40,12 +40,20 @@ const FieldRepDashboard = () => {
         <div className="container mx-auto px-4">
           {/* Dashboard Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Field Rep Dashboard
-            </h1>
-            <p className="text-muted-foreground">
-              Track your network connections, coverage opportunities, and performance metrics
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  Field Rep Dashboard
+                </h1>
+                <p className="text-muted-foreground">
+                  Track your network connections, coverage opportunities, and performance metrics
+                </p>
+              </div>
+              <Button size="lg" className="flex items-center gap-2 shrink-0">
+                <Megaphone className="h-5 w-5" />
+                Network Alerts
+              </Button>
+            </div>
           </div>
 
           {/* Quick Stats */}
