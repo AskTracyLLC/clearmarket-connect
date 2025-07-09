@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock } from "lucide-react";
+import { useState } from "react";
 
 const ContactPage = () => {
+  const [contactReason, setContactReason] = useState("");
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // For now, just show an alert - can be connected to backend later
@@ -81,7 +83,7 @@ const ContactPage = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="reason">Reason for Contact</Label>
-                    <Select required>
+                    <Select value={contactReason} onValueChange={setContactReason} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a reason" />
                       </SelectTrigger>
@@ -98,7 +100,9 @@ const ContactPage = () => {
                     <Label htmlFor="subject">Subject</Label>
                     <Input 
                       id="subject" 
-                      placeholder="How can we help you?" 
+                      value={contactReason ? contactReason.charAt(0).toUpperCase() + contactReason.slice(1) : ""}
+                      placeholder="Select a reason for contact above"
+                      readOnly
                       required 
                     />
                   </div>
