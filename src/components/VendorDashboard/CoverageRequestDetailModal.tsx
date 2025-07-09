@@ -16,10 +16,12 @@ import {
   Star,
   MessageCircle,
   X,
-  CheckCheck
+  CheckCheck,
+  NotebookPen
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import UserCommentModal from "@/components/ui/UserCommentModal";
 
 interface CoverageRequest {
   id: string;
@@ -120,6 +122,8 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
   const [customPassReason, setCustomPassReason] = useState("");
   const [selectedRepForPass, setSelectedRepForPass] = useState<string | null>(null);
   const [repComments, setRepComments] = useState<Record<string, string>>({});
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [selectedCommentUser, setSelectedCommentUser] = useState<{id: string; name: string; initials?: string} | null>(null);
 
   if (!request) return null;
 
@@ -166,6 +170,15 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
     console.log("Updating comment for user:", targetUserId, "Comment:", comment);
   };
 
+  const handleOpenComment = (rep: InterestedRep) => {
+    setSelectedCommentUser({
+      id: rep.id,
+      name: rep.name,
+      initials: rep.name.split(' ').map(n => n[0]).join('')
+    });
+    setCommentModalOpen(true);
+  };
+
   const RepCard = ({ rep, showPassOption = true }: { rep: InterestedRep; showPassOption?: boolean }) => (
     <Card key={rep.id} className="border border-muted">
       <CardContent className="p-4">
@@ -210,15 +223,18 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
             )}
           </div>
 
-          {/* Comment Section */}
-          <div className="space-y-2">
+          {/* Private Notes Button */}
+          <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Private Notes:</label>
-            <Textarea
-              placeholder="Add private notes about this rep..."
-              value={repComments[rep.id] || ""}
-              onChange={(e) => handleUpdateComment(rep.id, e.target.value)}
-              className="min-h-[60px]"
-            />
+            <Button
+              variant="ghost" 
+              size="sm"
+              onClick={() => handleOpenComment(rep)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <NotebookPen className="h-4 w-4 mr-1" />
+              Notes
+            </Button>
           </div>
 
           {/* Actions */}
@@ -423,6 +439,13 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
             </DialogContent>
           </Dialog>
         )}
+
+        {/* User Comment Modal */}
+        <UserCommentModal
+          open={commentModalOpen}
+          onOpenChange={setCommentModalOpen}
+          targetUser={selectedCommentUser}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -3,12 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, Calendar, MapPin, MessageCircle, Star, MoreHorizontal, Send } from 'lucide-react';
+import { Users, Calendar, MapPin, MessageCircle, Star, MoreHorizontal, Send, NotebookPen } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import SendNetworkAlertModal from './SendNetworkAlertModal';
+import UserCommentModal from '@/components/ui/UserCommentModal';
 
 const VendorNetwork = () => {
   const [alertModalOpen, setAlertModalOpen] = useState(false);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{id: string; name: string; initials: string} | null>(null);
   
   // Mock network data
   const networkReps = [
@@ -71,6 +74,15 @@ const VendorNetwork = () => {
       default:
         return 'outline';
     }
+  };
+
+  const handleOpenComment = (rep: any) => {
+    setSelectedUser({
+      id: rep.id.toString(),
+      name: rep.name,
+      initials: rep.initials
+    });
+    setCommentModalOpen(true);
   };
 
   return (
@@ -148,6 +160,10 @@ const VendorNetwork = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenComment(rep)}>
+                            <NotebookPen className="h-4 w-4 mr-2" />
+                            Private Notes
+                          </DropdownMenuItem>
                           <DropdownMenuItem>
                             <MessageCircle className="h-4 w-4 mr-2" />
                             Send Message
@@ -204,6 +220,12 @@ const VendorNetwork = () => {
         open={alertModalOpen}
         onOpenChange={setAlertModalOpen}
         networkSize={networkReps.length}
+      />
+      
+      <UserCommentModal
+        open={commentModalOpen}
+        onOpenChange={setCommentModalOpen}
+        targetUser={selectedUser}
       />
     </div>
   );
