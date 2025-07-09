@@ -981,6 +981,33 @@ export type Database = {
           },
         ]
       }
+      user_comments: {
+        Row: {
+          comment_text: string
+          commenter_id: string
+          created_at: string
+          id: string
+          target_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment_text: string
+          commenter_id: string
+          created_at?: string
+          id?: string
+          target_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment_text?: string
+          commenter_id?: string
+          created_at?: string
+          id?: string
+          target_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_invitations: {
         Row: {
           created_at: string
@@ -1206,33 +1233,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      vendor_rep_comments: {
-        Row: {
-          comment_text: string
-          created_at: string
-          field_rep_id: string
-          id: string
-          updated_at: string
-          vendor_id: string
-        }
-        Insert: {
-          comment_text: string
-          created_at?: string
-          field_rep_id: string
-          id?: string
-          updated_at?: string
-          vendor_id: string
-        }
-        Update: {
-          comment_text?: string
-          created_at?: string
-          field_rep_id?: string
-          id?: string
-          updated_at?: string
-          vendor_id?: string
-        }
-        Relationships: []
       }
       zip_county_classifications: {
         Row: {
