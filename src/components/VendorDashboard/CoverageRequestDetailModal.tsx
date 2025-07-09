@@ -160,10 +160,10 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
     setSelectedRepForPass(null);
   };
 
-  const handleUpdateComment = (repId: string, comment: string) => {
-    setRepComments(prev => ({ ...prev, [repId]: comment }));
-    // TODO: Implement comment saving
-    console.log("Updating comment for rep:", repId, "Comment:", comment);
+  const handleUpdateComment = (targetUserId: string, comment: string) => {
+    setRepComments(prev => ({ ...prev, [targetUserId]: comment }));
+    // TODO: Implement comment saving using new user_comments table
+    console.log("Updating comment for user:", targetUserId, "Comment:", comment);
   };
 
   const RepCard = ({ rep, showPassOption = true }: { rep: InterestedRep; showPassOption?: boolean }) => (
