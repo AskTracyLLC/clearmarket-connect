@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isEmailVerified: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -27,16 +28,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Handle email verification redirects
+        if (event === 'SIGNED_IN' && session?.user) {
+          const user = session.user;
+          const isVerified = !!user.email_confirmed_at;
+          
+          // If not verified and not already on verification page, redirect
+          if (!isVerified && !window.location.pathname.includes('verify-email')) {
+            window.location.href = '/verify-email';
+          }
+        }
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -71,10 +83,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
   };
 
+  const isEmailVerified = user?.email_confirmed_at !== null;
+
   const value = {
     user,
     session,
     loading,
+    isEmailVerified,
     signIn,
     signUp,
     signOut,

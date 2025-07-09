@@ -28,6 +28,7 @@ import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/refund-policy" element={<RefundPolicyPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/verify-email" element={<EmailVerificationPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

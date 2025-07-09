@@ -438,6 +438,57 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          rule_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          rule_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          rule_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "credit_earning_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credits: {
         Row: {
           current_balance: number | null
@@ -465,6 +516,48 @@ export type Database = {
             foreignKeyName: "credits_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_credit_earnings: {
+        Row: {
+          date: string
+          id: string
+          rule_id: string
+          times_earned: number
+          total_credits: number
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          id?: string
+          rule_id: string
+          times_earned?: number
+          total_credits?: number
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          rule_id?: string
+          times_earned?: number
+          total_credits?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_credit_earnings_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "credit_earning_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_credit_earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -508,6 +601,38 @@ export type Database = {
           },
         ]
       }
+      helpful_votes: {
+        Row: {
+          created_at: string
+          id: string
+          target_id: string
+          target_type: string
+          voter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_id: string
+          target_type: string
+          voter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_id?: string
+          target_type?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "helpful_votes_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string | null
@@ -544,6 +669,70 @@ export type Database = {
           {
             foreignKeyName: "referrals_referrer_id_fkey"
             columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          review_text: string | null
+          reviewed_user_id: string
+          reviewer_id: string
+          updated_at: string
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+          work_completed_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          review_text?: string | null
+          reviewed_user_id: string
+          reviewer_id: string
+          updated_at?: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          work_completed_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          review_text?: string | null
+          reviewed_user_id?: string
+          reviewer_id?: string
+          updated_at?: string
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          work_completed_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_reviewed_user_id_fkey"
+            columns: ["reviewed_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_verified_by_fkey"
+            columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -685,6 +874,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_credits: {
+        Args: {
+          target_user_id: string
+          rule_name_param: string
+          reference_id_param?: string
+          reference_type_param?: string
+          metadata_param?: Json
+        }
+        Returns: boolean
+      }
       can_create_flag: {
         Args: { user_id: string }
         Returns: boolean
@@ -696,6 +895,20 @@ export type Database = {
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      spend_credits: {
+        Args: {
+          spender_user_id: string
+          amount_param: number
+          reference_id_param?: string
+          reference_type_param?: string
+          metadata_param?: Json
+        }
+        Returns: boolean
+      }
+      update_trust_score: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

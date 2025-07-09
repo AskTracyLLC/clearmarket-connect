@@ -5,6 +5,7 @@ import { ThumbsUp, ThumbsDown, Flag, Star, Bookmark, Camera, CheckCircle, Flame 
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/data/mockCommunityPosts";
 import UserBadge from "./UserBadge";
+import HelpfulVoteButton from "./HelpfulVoteButton";
 import { getPostTypeColor } from "@/utils/postTypeColors";
 
 interface CommunityPostCardProps {
@@ -134,18 +135,16 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
           {/* Interaction buttons */}
           <div className="flex items-center justify-between pt-2 border-t">
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 gap-1"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onVote(post.id, 'helpful');
+              <HelpfulVoteButton
+                targetId={post.id.toString()}
+                targetType="post"
+                currentVotes={post.helpfulVotes}
+                onVoteChange={(newCount) => {
+                  // Update the local post state - in real implementation this would be managed by parent
+                  post.helpfulVotes = newCount;
                 }}
-              >
-                <ThumbsUp className="h-3 w-3" />
-                <span className="text-xs">{post.helpfulVotes}</span>
-              </Button>
+                className="h-8"
+              />
               
               <Button
                 variant="ghost"

@@ -1,191 +1,202 @@
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Copy, Star, Users } from "lucide-react";
-import { mockConnections } from "@/data/mockData";
-import ReviewConnectionCard from "./ReviewConnectionCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Unlock, CreditCard, AlertTriangle, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface UnlockContactModalProps {
-  repInitials: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  targetUser: {
+    id: string;
+    display_name: string;
+    role: string;
+  };
+  userCredits: number;
+  onUnlockSuccess: () => void;
 }
 
-const UnlockContactModal = ({ repInitials }: UnlockContactModalProps) => {
-  const [modalView, setModalView] = useState<"main" | "earn-credits" | "review-connections" | "referral-code">("main");
+const UNLOCK_COST = 1; // 1 credit to unlock contact info
+
+const UnlockContactModal = ({ 
+  open, 
+  onOpenChange, 
+  targetUser, 
+  userCredits, 
+  onUnlockSuccess 
+}: UnlockContactModalProps) => {
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockResult, setUnlockResult] = useState<'success' | 'error' | null>(null);
+  const { toast } = useToast();
+
+  const handleUnlock = async () => {
+    if (userCredits < UNLOCK_COST) {
+      toast({
+        title: "Insufficient Credits",
+        description: `You need ${UNLOCK_COST} credit to unlock contact information. Please earn or purchase more credits.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUnlocking(true);
+    
+    try {
+      // First, spend the credits
+      const { data: spendResult, error: spendError } = await supabase.rpc('spend_credits', {
+        spender_user_id: (await supabase.auth.getUser()).data.user?.id,
+        amount_param: UNLOCK_COST,
+        reference_id_param: targetUser.id,
+        reference_type_param: 'contact_unlock',
+        metadata_param: { target_user_role: targetUser.role }
+      });
+
+      if (spendError || !spendResult) {
+        throw new Error('Failed to spend credits');
+      }
+
+      // Then create the contact unlock record
+      const { error: unlockError } = await supabase
+        .from('contact_unlocks')
+        .insert({
+          unlocker_id: (await supabase.auth.getUser()).data.user?.id,
+          unlocked_user_id: targetUser.id,
+          method: 'credit'
+        });
+
+      if (unlockError) {
+        throw unlockError;
+      }
+
+      setUnlockResult('success');
+      toast({
+        title: "Contact Unlocked!",
+        description: `You can now view ${targetUser.display_name}'s contact information.`,
+      });
+      
+      // Trigger success callback to refresh data
+      onUnlockSuccess();
+      
+    } catch (error) {
+      console.error('Unlock error:', error);
+      setUnlockResult('error');
+      toast({
+        title: "Unlock Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUnlocking(false);
+    }
+  };
+
+  const handleClose = () => {
+    setUnlockResult(null);
+    onOpenChange(false);
+  };
 
   return (
-    <DialogContent className="sm:max-w-md">
-      {modalView === "main" && (
-        <>
-          <DialogHeader>
-            <DialogTitle>Unlock Contact Information</DialogTitle>
-            <DialogDescription>
-              Get access to {repInitials}'s contact details
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <p className="text-center text-foreground">
-                <span className="font-semibold">Unlock contact for 3 credits</span>
-              </p>
-              <p className="text-center text-muted-foreground text-sm mt-1">
-                Not enough credits? Earn by reviews, referrals, or purchase more.
-              </p>
-            </div>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Unlock className="h-5 w-5" />
+            Unlock Contact Information
+          </DialogTitle>
+        </DialogHeader>
 
-            <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4">
+          {unlockResult === 'success' ? (
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Successfully unlocked contact information for <strong>{targetUser.display_name}</strong>. 
+                You can now message them directly and see their full contact details.
+              </AlertDescription>
+            </Alert>
+          ) : unlockResult === 'error' ? (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Failed to unlock contact information. Please try again or contact support if the problem persists.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <>
+              <div className="text-center space-y-3">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground mb-2">
+                    Unlock {targetUser.display_name}'s Contact Info
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Get access to their email, phone number, and direct messaging
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                  <span className="text-sm font-medium">Cost:</span>
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <CreditCard className="h-3 w-3" />
+                    {UNLOCK_COST} Credit
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                  <span className="text-sm font-medium">Your Balance:</span>
+                  <Badge variant={userCredits >= UNLOCK_COST ? "default" : "destructive"}>
+                    {userCredits} Credits
+                  </Badge>
+                </div>
+
+                {userCredits < UNLOCK_COST && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      You don't have enough credits. You need {UNLOCK_COST - userCredits} more credit(s).
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        <DialogFooter>
+          {unlockResult === 'success' ? (
+            <Button onClick={handleClose} className="w-full">
+              Close
+            </Button>
+          ) : (
+            <div className="flex gap-2 w-full">
               <Button 
                 variant="outline" 
-                className="w-full"
-                onClick={() => setModalView("earn-credits")}
+                onClick={handleClose}
+                className="flex-1"
               >
-                Earn Credits
+                Cancel
               </Button>
-              <Button variant="hero" className="w-full">
-                Purchase Credits
+              <Button 
+                onClick={handleUnlock}
+                disabled={isUnlocking || userCredits < UNLOCK_COST}
+                className="flex-1"
+              >
+                {isUnlocking ? (
+                  <>Unlocking...</>
+                ) : (
+                  <>
+                    <Unlock className="h-4 w-4 mr-2" />
+                    Unlock for {UNLOCK_COST} Credit
+                  </>
+                )}
               </Button>
             </div>
-          </div>
-        </>
-      )}
-
-      {modalView === "earn-credits" && (
-        <>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 p-0"
-                onClick={() => setModalView("main")}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              Earn Credits
-            </DialogTitle>
-            <DialogDescription>
-              Choose how you'd like to earn credits
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-3">
-              <Button 
-                variant="outline" 
-                className="w-full p-4 h-auto flex-col gap-2"
-                onClick={() => setModalView("review-connections")}
-              >
-                <Star className="h-5 w-5" />
-                <div className="text-center">
-                  <div className="font-medium">Review Connections</div>
-                  <div className="text-xs text-muted-foreground">Rate Field Reps you've worked with</div>
-                  <div className="text-xs text-primary font-medium">+1 credit per review</div>
-                </div>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full p-4 h-auto flex-col gap-2"
-                onClick={() => setModalView("referral-code")}
-              >
-                <Users className="h-5 w-5" />
-                <div className="text-center">
-                  <div className="font-medium">Share Referral Code</div>
-                  <div className="text-xs text-muted-foreground">Invite new users to the platform</div>
-                  <div className="text-xs text-primary font-medium">+2 credits per successful referral</div>
-                </div>
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {modalView === "review-connections" && (
-        <>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 p-0"
-                onClick={() => setModalView("earn-credits")}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              Review Connections
-            </DialogTitle>
-            <DialogDescription>
-              Rate Field Reps you've previously worked with
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {mockConnections.map((connection) => (
-              <ReviewConnectionCard key={connection.id} connection={connection} />
-            ))}
-            
-            {mockConnections.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
-                <p>No connections to review yet.</p>
-                <p className="text-sm">Work with Field Reps to unlock review opportunities.</p>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {modalView === "referral-code" && (
-        <>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 p-0"
-                onClick={() => setModalView("earn-credits")}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              Share Referral Code
-            </DialogTitle>
-            <DialogDescription>
-              Invite new users and earn credits
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <Label className="text-sm font-medium">Your Referral Code</Label>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex-1 p-2 bg-background border rounded text-center font-mono">
-                  VENDOR-ABC123
-                </div>
-                <Button size="icon" variant="outline">
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            <div className="space-y-2 text-sm">
-              <div className="font-medium">How it works:</div>
-              <ul className="space-y-1 text-muted-foreground text-xs">
-                <li>• Share your code with new users</li>
-                <li>• They sign up and complete profile setup</li>
-                <li>• Once they make their first connection, you earn 2 credits</li>
-              </ul>
-            </div>
-            
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="text-xs text-orange-800">
-                <strong>Important:</strong> Credits are awarded only after successful verification. 
-                Fake accounts will not generate credits.
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </DialogContent>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

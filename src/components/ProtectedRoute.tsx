@@ -4,10 +4,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requireEmailVerification?: boolean;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, requireEmailVerification = true }: ProtectedRouteProps) => {
+  const { user, loading, isEmailVerified } = useAuth();
 
   // Skip auth in development mode
   if (import.meta.env.DEV) {
@@ -27,6 +28,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Check email verification if required
+  if (requireEmailVerification && !isEmailVerified) {
+    return <Navigate to="/verify-email" replace />;
   }
 
   return <>{children}</>;
