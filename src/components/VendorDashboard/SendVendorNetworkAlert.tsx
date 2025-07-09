@@ -8,13 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Send, X } from 'lucide-react';
 
-interface SendFieldRepNetworkAlertProps {
+interface SendVendorNetworkAlertProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   networkSize: number;
 }
 
-const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendFieldRepNetworkAlertProps) => {
+const SendVendorNetworkAlert = ({ open, onOpenChange, networkSize }: SendVendorNetworkAlertProps) => {
   const [subject, setSubject] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [selectedState, setSelectedState] = useState('');
@@ -177,4 +177,4 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
   );
 };
 
-export default SendFieldRepNetworkAlert;
+export default SendVendorNetworkAlert;
