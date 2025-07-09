@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Info, Edit2, Save, X } from "lucide-react";
-import { statesAndCounties, type State } from "@/data/statesAndCounties";
+import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
 import { useToast } from "@/hooks/use-toast";
 import { CoverageArea } from "./types";
 
@@ -17,7 +17,9 @@ interface CoverageAreasProps {
 
 export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreasProps) => {
   const { toast } = useToast();
+  const { states } = useStates();
   const [selectedState, setSelectedState] = useState<State | null>(null);
+  const { counties } = useCountiesByState(selectedState?.code);
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
   const [selectAllCounties, setSelectAllCounties] = useState(false);
   const [standardPrice, setStandardPrice] = useState("");
@@ -26,7 +28,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
   const [editValues, setEditValues] = useState<{ standardPrice: string; rushPrice: string }>({ standardPrice: "", rushPrice: "" });
 
   const handleStateChange = (stateCode: string) => {
-    const state = statesAndCounties.find(s => s.code === stateCode);
+    const state = states.find(s => s.code === stateCode);
     setSelectedState(state || null);
     setSelectedCounties([]);
     setSelectAllCounties(false);
@@ -35,7 +37,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
   const handleSelectAllCounties = (checked: boolean) => {
     setSelectAllCounties(checked);
     if (checked && selectedState) {
-      setSelectedCounties(selectedState.counties.map(c => c.id));
+      setSelectedCounties(counties.map(c => c.id));
     } else {
       setSelectedCounties([]);
     }
@@ -46,7 +48,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
       const newSelectedCounties = [...selectedCounties, countyId];
       setSelectedCounties(newSelectedCounties);
       // Check if all counties are now selected
-      if (selectedState && newSelectedCounties.length === selectedState.counties.length) {
+      if (selectedState && newSelectedCounties.length === counties.length) {
         setSelectAllCounties(true);
       }
     } else {
@@ -72,7 +74,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
       counties: selectAllCounties 
         ? ["All Counties"] 
         : selectedCounties.map(id => 
-            selectedState.counties.find(c => c.id === id)?.name || ""
+            counties.find(c => c.id === id)?.name || ""
           ).filter(Boolean),
       standardPrice,
       rushPrice,
@@ -154,7 +156,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
                 <SelectValue placeholder="Choose a state" />
               </SelectTrigger>
               <SelectContent>
-                {statesAndCounties.map((state) => (
+                {states.map((state) => (
                   <SelectItem key={state.code} value={state.code}>
                     {state.name}
                   </SelectItem>
@@ -184,7 +186,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
                 
                 {/* Individual Counties - Two Column Grid */}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  {selectedState.counties
+                  {counties
                     .sort((a, b) => a.name.localeCompare(b.name))
                     .map((county) => (
                       <div key={county.id} className="flex items-center space-x-2">

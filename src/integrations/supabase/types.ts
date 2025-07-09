@@ -345,6 +345,38 @@ export type Database = {
           },
         ]
       }
+      counties: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          state_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          state_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          state_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "counties_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coverage_request_messages: {
         Row: {
           created_at: string
@@ -1025,6 +1057,30 @@ export type Database = {
         }
         Relationships: []
       }
+      states: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           category: string
@@ -1438,6 +1494,51 @@ export type Database = {
           },
         ]
       }
+      zip_codes: {
+        Row: {
+          county_id: string
+          created_at: string
+          id: string
+          rural_urban_designation: string
+          state_id: string
+          updated_at: string
+          zip_code: string
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          id?: string
+          rural_urban_designation: string
+          state_id: string
+          updated_at?: string
+          zip_code: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          id?: string
+          rural_urban_designation?: string
+          state_id?: string
+          updated_at?: string
+          zip_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zip_codes_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zip_codes_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "states"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zip_county_classifications: {
         Row: {
           county_name: string
@@ -1494,6 +1595,10 @@ export type Database = {
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      populate_location_data_from_csv: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       setup_test_user: {
         Args: {

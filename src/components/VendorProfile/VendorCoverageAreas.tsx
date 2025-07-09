@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus } from "lucide-react";
-import { statesAndCounties, type State } from "@/data/statesAndCounties";
+import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
 import { CoverageArea } from "./types";
 
 interface VendorCoverageAreasProps {
@@ -16,12 +16,14 @@ interface VendorCoverageAreasProps {
 
 export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorCoverageAreasProps) => {
   const { toast } = useToast();
+  const { states } = useStates();
   const [selectedState, setSelectedState] = useState<State | null>(null);
+  const { counties } = useCountiesByState(selectedState?.code);
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
   const [isAllCounties, setIsAllCounties] = useState(true);
 
   const handleStateChange = (stateCode: string) => {
-    const state = statesAndCounties.find(s => s.code === stateCode);
+    const state = states.find(s => s.code === stateCode);
     setSelectedState(state || null);
     setSelectedCounties([]);
     setIsAllCounties(true);
@@ -30,7 +32,7 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
   const handleAllCountiesChange = (checked: boolean) => {
     setIsAllCounties(checked);
     if (checked && selectedState) {
-      setSelectedCounties(selectedState.counties.map(c => c.id));
+      setSelectedCounties(counties.map(c => c.id));
     } else {
       setSelectedCounties([]);
     }
@@ -41,7 +43,7 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
       const newSelectedCounties = [...selectedCounties, countyId];
       setSelectedCounties(newSelectedCounties);
       // Check if all counties are now selected
-      if (selectedState && newSelectedCounties.length === selectedState.counties.length) {
+      if (selectedState && newSelectedCounties.length === counties.length) {
         setIsAllCounties(true);
       }
     } else {
@@ -75,8 +77,8 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
       state: selectedState.name,
       stateCode: selectedState.code,
       counties: isAllCounties 
-        ? selectedState.counties.map(c => c.name)
-        : selectedCounties.map(id => selectedState.counties.find(c => c.id === id)?.name || ""),
+        ? counties.map(c => c.name)
+        : selectedCounties.map(id => counties.find(c => c.id === id)?.name || ""),
       isAllCounties,
     };
 
@@ -112,7 +114,7 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
               <SelectValue placeholder="Choose a state" />
             </SelectTrigger>
             <SelectContent>
-              {statesAndCounties.map((state) => (
+              {states.map((state) => (
                 <SelectItem key={state.code} value={state.code}>
                   {state.name}
                 </SelectItem>
@@ -139,7 +141,7 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
               
               {/* Individual Counties - Two Column Grid */}
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                {selectedState.counties
+                {counties
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((county) => (
                     <div key={county.id} className="flex items-center space-x-2">

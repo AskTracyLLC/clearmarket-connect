@@ -51,6 +51,23 @@ export const ZipCountyImportTool = () => {
         description: `${parsedData.valid.length} records imported successfully`
       });
 
+      // Populate normalized location tables
+      const { error: normalizeError } = await supabase.rpc('populate_location_data_from_csv');
+      
+      if (normalizeError) {
+        console.error('Error normalizing data:', normalizeError);
+        toast({
+          title: "Warning",
+          description: "Data imported but normalization failed. Please contact admin.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Data Normalized",
+          description: "Location data has been properly organized into states, counties, and ZIP codes"
+        });
+      }
+
       setParsedData(null);
       await fetchExistingData();
     } catch (error) {

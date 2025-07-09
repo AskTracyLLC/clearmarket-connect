@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, X, DollarSign } from "lucide-react";
-import { statesAndCounties, State, County } from "@/data/statesAndCounties";
+import { useStates, useCountiesByState, type State, type County } from "@/hooks/useLocationData";
 import { platforms, inspectionTypes } from "@/components/search/SearchFilters";
 
 interface PostCoverageRequestModalProps {
@@ -63,6 +63,7 @@ const experienceOptions = [
 ];
 
 const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestModalProps) => {
+  const { states } = useStates();
   const [form, setForm] = useState<CoverageRequestForm>({
     title: "",
     description: "",
@@ -80,7 +81,8 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
     hideFromCurrentNetwork: false,
   });
 
-  const selectedStateData = statesAndCounties.find(state => state.code === form.selectedState);
+  const { counties } = useCountiesByState(form.selectedState);
+  const selectedStateData = states.find(state => state.code === form.selectedState);
 
   const handleStateChange = (stateCode: string) => {
     setForm(prev => ({
@@ -186,7 +188,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
   };
 
   const getCountyName = (countyId: string) => {
-    return selectedStateData?.counties.find(c => c.id === countyId)?.name || countyId;
+    return counties.find(c => c.id === countyId)?.name || countyId;
   };
 
   return (
@@ -268,7 +270,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
-                    {statesAndCounties.map((state) => (
+                    {states.map((state) => (
                       <SelectItem key={state.code} value={state.code}>
                         {state.name}
                       </SelectItem>
@@ -277,11 +279,11 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                 </Select>
               </div>
 
-              {selectedStateData && (
+              {selectedStateData && counties.length > 0 && (
                 <div className="space-y-2">
                   <Label>Counties</Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
-                    {selectedStateData.counties.map((county) => (
+                    {counties.map((county) => (
                       <div key={county.id} className="flex items-center space-x-2">
                         <Checkbox
                           id={county.id}

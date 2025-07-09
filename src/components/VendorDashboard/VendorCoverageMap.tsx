@@ -4,10 +4,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Plus, Search } from 'lucide-react';
-import { statesAndCounties } from '@/data/statesAndCounties';
+import { useStates } from '@/hooks/useLocationData';
 import USMap from './USMap';
 
 const VendorCoverageMap = () => {
+  const { states } = useStates();
   const [selectedState, setSelectedState] = useState<string>('');
 
   // Mock data for states with coverage
@@ -95,7 +96,7 @@ const VendorCoverageMap = () => {
                     <SelectValue placeholder="Select a state..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {statesAndCounties.map((state) => (
+                    {states.map((state) => (
                       <SelectItem key={state.code} value={state.code}>
                         {state.name}
                       </SelectItem>
@@ -113,7 +114,7 @@ const VendorCoverageMap = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">
-                    {statesAndCounties.find(s => s.code === selectedState)?.name} Coverage
+                    {states.find(s => s.code === selectedState)?.name} Coverage
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
