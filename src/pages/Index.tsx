@@ -8,10 +8,12 @@ import FAQSection from "@/components/FAQSection";
 import HowItWorks from "@/components/HowItWorks";
 import PricingSection from "@/components/PricingSection";
 import Footer from "@/components/Footer";
+import { usePublicSettings } from "@/hooks/usePublicSettings";
 
 const Index = () => {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const { settings } = usePublicSettings();
 
   useEffect(() => {
     const checkHash = () => {
@@ -48,8 +50,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <HeroSection />
-      <TestimonialsSection />
-      <SuccessStoriesSection />
+      {settings.testimonials_section_visible && <TestimonialsSection />}
+      {settings.success_stories_section_visible && <SuccessStoriesSection />}
       <RecentlyJoinedCarousel />
       <FAQSection />
       <HowItWorks />
