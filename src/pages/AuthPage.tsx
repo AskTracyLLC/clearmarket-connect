@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft } from 'lucide-react';
 
 const AuthPage = () => {
@@ -36,10 +37,47 @@ const AuthPage = () => {
         variant: "destructive",
       });
     } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
+      // Fetch user role and redirect to appropriate dashboard
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', (await supabase.auth.getUser()).data.user?.id)
+          .single();
+
+        if (userError) throw userError;
+
+        // Redirect based on role
+        switch (userData.role) {
+          case 'admin':
+            navigate('/admin');
+            break;
+          case 'moderator':
+            navigate('/moderator');
+            break;
+          case 'vendor':
+            navigate('/vendor/dashboard');
+            break;
+          case 'field_rep':
+            navigate('/fieldrep/profile');
+            break;
+          default:
+            navigate('/');
+        }
+
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+      } catch (roleError) {
+        console.error('Error fetching user role:', roleError);
+        // Fallback to home page if role fetch fails
+        navigate('/');
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+      }
     }
 
     setLoading(false);
