@@ -40,6 +40,12 @@ export const useNetworkConnections = () => {
   }, [user]);
 
   const isInNetwork = (fieldRepId: string) => {
+    // For development, also check the mock network data
+    if (import.meta.env.DEV) {
+      // Check mock data by matching userId with repId conversion
+      const mockNetworkUserIds = ["mock-user-2"]; // J.D. from mock data
+      if (mockNetworkUserIds.includes(fieldRepId)) return true;
+    }
     return networkConnections.includes(fieldRepId);
   };
 
