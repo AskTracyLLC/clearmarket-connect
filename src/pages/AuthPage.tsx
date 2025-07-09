@@ -59,7 +59,7 @@ const AuthPage = () => {
             navigate('/vendor/dashboard');
             break;
           case 'field_rep':
-            navigate('/fieldrep/profile');
+            navigate('/fieldrep/dashboard');
             break;
           default:
             navigate('/');

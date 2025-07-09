@@ -15,6 +15,7 @@ import VendorSearchPage from "./pages/VendorSearchPage";
 import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
+import FieldRepDashboard from "./pages/FieldRepDashboard";
 import FeedbackPage from "./pages/FeedbackPage";
 import FAQPage from "./pages/FAQPage";
 import MessagesPage from "./pages/MessagesPage";
@@ -50,6 +51,11 @@ const App = () => (
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
+                <Route path="/fieldrep/dashboard" element={
+                  <ProtectedRoute>
+                    <FieldRepDashboard />
+                  </ProtectedRoute>
+                } />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/community" element={
