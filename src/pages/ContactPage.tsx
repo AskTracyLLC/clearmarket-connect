@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock } from "lucide-react";
 import { useState } from "react";
-
 const ContactPage = () => {
   const [contactReason, setContactReason] = useState("");
   const [subject, setSubject] = useState("");
@@ -18,9 +17,7 @@ const ContactPage = () => {
     // For now, just show an alert - can be connected to backend later
     alert("Thank you for your message. We'll get back to you within 24 hours!");
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-20 pb-16">
         <div className="container mx-auto px-4 max-w-6xl">
@@ -35,9 +32,7 @@ const ContactPage = () => {
           <div className="mb-16">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-foreground mb-2">🔎 Frequently Asked Questions</h2>
-              <p className="text-muted-foreground">
-                Quick answers to common questions about ClearMarket accounts, credits, profiles, and more.
-              </p>
+              
             </div>
             <FAQSection />
           </div>
@@ -56,42 +51,25 @@ const ContactPage = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
-                      <Input 
-                        id="firstName" 
-                        placeholder="John" 
-                        required 
-                      />
+                      <Input id="firstName" placeholder="John" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name</Label>
-                      <Input 
-                        id="lastName" 
-                        placeholder="Doe" 
-                        required 
-                      />
+                      <Input id="lastName" placeholder="Doe" required />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="john@example.com" 
-                      required 
-                    />
+                    <Input id="email" type="email" placeholder="john@example.com" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="reason">Reason for Contact</Label>
-                    <Select 
-                      value={contactReason} 
-                      onValueChange={(value) => {
-                        setContactReason(value);
-                        setSubject(value.charAt(0).toUpperCase() + value.slice(1) + " - ");
-                      }} 
-                      required
-                    >
+                    <Select value={contactReason} onValueChange={value => {
+                    setContactReason(value);
+                    setSubject(value.charAt(0).toUpperCase() + value.slice(1) + " - ");
+                  }} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a reason" />
                       </SelectTrigger>
@@ -106,23 +84,12 @@ const ContactPage = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="subject">Subject</Label>
-                    <Input 
-                      id="subject" 
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      placeholder="Select a reason for contact above"
-                      required 
-                    />
+                    <Input id="subject" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Select a reason for contact above" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="message">Message</Label>
-                    <Textarea 
-                      id="message" 
-                      placeholder="Tell us more about your question or concern..."
-                      rows={6}
-                      required 
-                    />
+                    <Textarea id="message" placeholder="Tell us more about your question or concern..." rows={6} required />
                   </div>
 
                   <Button type="submit" className="w-full">
@@ -161,8 +128,6 @@ const ContactPage = () => {
         </div>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default ContactPage;
