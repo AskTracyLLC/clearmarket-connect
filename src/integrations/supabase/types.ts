@@ -953,6 +953,104 @@ export type Database = {
           },
         ]
       }
+      vendor_network_alert_recipients: {
+        Row: {
+          alert_id: string
+          created_at: string
+          delivery_status: string | null
+          id: string
+          recipient_id: string
+          sent_at: string | null
+        }
+        Insert: {
+          alert_id: string
+          created_at?: string
+          delivery_status?: string | null
+          id?: string
+          recipient_id: string
+          sent_at?: string | null
+        }
+        Update: {
+          alert_id?: string
+          created_at?: string
+          delivery_status?: string | null
+          id?: string
+          recipient_id?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_vendor_network_alert_recipients_alert_id"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_network_alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_vendor_network_alert_recipients_recipient_id"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_network_alerts: {
+        Row: {
+          created_at: string
+          filters_used: Json | null
+          id: string
+          is_archived: boolean
+          is_outdated: boolean
+          message_body: string
+          scheduled_send_date: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          total_recipients: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters_used?: Json | null
+          id?: string
+          is_archived?: boolean
+          is_outdated?: boolean
+          message_body: string
+          scheduled_send_date?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          total_recipients?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          filters_used?: Json | null
+          id?: string
+          is_archived?: boolean
+          is_outdated?: boolean
+          message_body?: string
+          scheduled_send_date?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          total_recipients?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_vendor_network_alerts_vendor_id"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zip_county_classifications: {
         Row: {
           county_name: string
