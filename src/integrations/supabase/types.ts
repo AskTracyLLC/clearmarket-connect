@@ -739,6 +739,39 @@ export type Database = {
           },
         ]
       }
+      sent_emails: {
+        Row: {
+          email_type: string
+          id: string
+          metadata: Json | null
+          sent_at: string
+          status: string | null
+          subject: string
+          to_email: string
+          user_id: string | null
+        }
+        Insert: {
+          email_type: string
+          id?: string
+          metadata?: Json | null
+          sent_at?: string
+          status?: string | null
+          subject: string
+          to_email: string
+          user_id?: string | null
+        }
+        Update: {
+          email_type?: string
+          id?: string
+          metadata?: Json | null
+          sent_at?: string
+          status?: string | null
+          subject?: string
+          to_email?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount_cents: number
@@ -794,6 +827,7 @@ export type Database = {
       }
       users: {
         Row: {
+          boost_expiration: string | null
           community_score: number | null
           created_at: string | null
           display_name: string | null
@@ -806,6 +840,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          boost_expiration?: string | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
@@ -818,6 +853,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          boost_expiration?: string | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null

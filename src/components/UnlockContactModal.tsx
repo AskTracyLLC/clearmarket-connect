@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Unlock, CreditCard, AlertTriangle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UnlockContactModalProps {
   open: boolean;
@@ -30,6 +31,7 @@ const UnlockContactModal = ({
 }: UnlockContactModalProps) => {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [unlockResult, setUnlockResult] = useState<'success' | 'error' | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleUnlock = async () => {
@@ -45,9 +47,11 @@ const UnlockContactModal = ({
     setIsUnlocking(true);
     
     try {
+      if (!user) throw new Error('User not authenticated');
+
       // First, spend the credits
       const { data: spendResult, error: spendError } = await supabase.rpc('spend_credits', {
-        spender_user_id: (await supabase.auth.getUser()).data.user?.id,
+        spender_user_id: user.id,
         amount_param: UNLOCK_COST,
         reference_id_param: targetUser.id,
         reference_type_param: 'contact_unlock',
@@ -62,13 +66,31 @@ const UnlockContactModal = ({
       const { error: unlockError } = await supabase
         .from('contact_unlocks')
         .insert({
-          unlocker_id: (await supabase.auth.getUser()).data.user?.id,
+          unlocker_id: user.id,
           unlocked_user_id: targetUser.id,
           method: 'credit'
         });
 
       if (unlockError) {
         throw unlockError;
+      }
+
+      // Send confirmation email
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            emailType: 'unlock_confirmation',
+            toEmail: user.email,
+            userId: user.id,
+            templateData: {
+              unlockerName: user.email,
+              unlockedName: targetUser.display_name,
+              creditsUsed: UNLOCK_COST
+            }
+          }
+        });
+      } catch (emailError) {
+        console.warn('Email notification failed:', emailError);
       }
 
       setUnlockResult('success');

@@ -1,59 +1,64 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { TrendingUp, AlertTriangle } from "lucide-react";
+import BoostProfileModal from "./BoostProfileModal";
 
 interface BoostEligibilityBadgeProps {
-  isEligible: boolean;
-  trustScore?: number;
-  communityScore?: number;
-  className?: string;
+  trustScore: number;
+  profileComplete: number;
+  onBoostComplete?: () => void;
 }
 
-const BoostEligibilityBadge = ({ 
-  isEligible, 
-  trustScore = 0, 
-  communityScore = 0, 
-  className 
-}: BoostEligibilityBadgeProps) => {
-  if (isEligible) {
-    return (
-      <div className={`bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 border border-green-200 dark:border-green-800 rounded-lg p-4 ${className}`}>
-        <div className="flex items-center gap-3">
-          <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg">
-            <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-          </div>
-          <div>
-            <div className="font-semibold text-green-800 dark:text-green-200 flex items-center gap-2">
-              🔼 Eligible for Boosting
-            </div>
-            <div className="text-sm text-green-700 dark:text-green-300 mt-1">
-              Your profile meets the criteria to appear higher in search results.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+const BoostEligibilityBadge = ({ trustScore, profileComplete, onBoostComplete }: BoostEligibilityBadgeProps) => {
+  const [boostModalOpen, setBoostModalOpen] = useState(false);
+  const isEligible = trustScore >= 80 && profileComplete >= 100;
 
   return (
-    <div className={`bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 border border-orange-200 dark:border-orange-800 rounded-lg p-4 ${className}`}>
-      <div className="flex items-center gap-3">
-        <div className="bg-orange-100 dark:bg-orange-900 p-2 rounded-lg">
-          <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-        </div>
-        <div>
-          <div className="font-semibold text-orange-800 dark:text-orange-200 flex items-center gap-2">
-            ⚠️ Not Eligible for Boosting
-          </div>
-          <div className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-            Earn credits and improve your Trust Score to boost your visibility.
-          </div>
-          <div className="text-xs text-orange-600 dark:text-orange-400 mt-2 space-y-1">
-            <div>Trust Score: {trustScore}/100 (minimum 75 required)</div>
-            <div>Community Score: {communityScore}/100 (minimum 50 required)</div>
-          </div>
-        </div>
+    <>
+      <div className="flex items-center gap-2 p-3 rounded-lg border">
+        {isEligible ? (
+          <>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+            <div className="flex-1">
+              <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                🔼 Eligible for Boosting
+              </Badge>
+              <p className="text-xs text-muted-foreground mt-1">
+                Your profile meets the criteria to appear higher in search results.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setBoostModalOpen(true)}
+              className="ml-2"
+            >
+              Boost Profile
+            </Button>
+          </>
+        ) : (
+          <>
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <div className="flex-1">
+              <Badge variant="outline" className="bg-orange-50 text-orange-800 border-orange-200">
+                ⚠️ Not Eligible for Boosting
+              </Badge>
+              <p className="text-xs text-muted-foreground mt-1">
+                Earn credits and improve your Trust Score to boost your visibility.
+              </p>
+            </div>
+          </>
+        )}
       </div>
-    </div>
+
+      <BoostProfileModal
+        open={boostModalOpen}
+        onOpenChange={setBoostModalOpen}
+        trustScore={trustScore}
+        profileComplete={profileComplete}
+        onBoostComplete={onBoostComplete}
+      />
+    </>
   );
 };
 

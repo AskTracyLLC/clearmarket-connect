@@ -105,9 +105,8 @@ const FieldRepProfile = () => {
         </Card>
         
         <BoostEligibilityBadge 
-          isEligible={mockUserData.trustScore >= 75 && mockUserData.communityScore >= 50}
           trustScore={mockUserData.trustScore}
-          communityScore={mockUserData.communityScore}
+          profileComplete={85} 
         />
       </div>
       
