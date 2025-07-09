@@ -385,17 +385,17 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                   <div className="space-y-2">
                     <Label>ABC# Required</Label>
                     <Select 
-                      value={form.abcRequired === null ? "" : form.abcRequired.toString()} 
+                      value={form.abcRequired === null ? "no_preference" : form.abcRequired.toString()} 
                       onValueChange={(value) => setForm(prev => ({ 
                         ...prev, 
-                        abcRequired: value === "" ? null : value === "true" 
+                        abcRequired: value === "no_preference" ? null : value === "true" 
                       }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="No preference" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No preference</SelectItem>
+                        <SelectItem value="no_preference">No preference</SelectItem>
                         <SelectItem value="true">Yes, required</SelectItem>
                         <SelectItem value="false">No, not required</SelectItem>
                       </SelectContent>
@@ -405,17 +405,17 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                   <div className="space-y-2">
                     <Label>HUD Key Required</Label>
                     <Select 
-                      value={form.hudKeyRequired === null ? "" : form.hudKeyRequired.toString()} 
+                      value={form.hudKeyRequired === null ? "no_preference" : form.hudKeyRequired.toString()} 
                       onValueChange={(value) => setForm(prev => ({ 
                         ...prev, 
-                        hudKeyRequired: value === "" ? null : value === "true" 
+                        hudKeyRequired: value === "no_preference" ? null : value === "true" 
                       }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="No preference" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No preference</SelectItem>
+                        <SelectItem value="no_preference">No preference</SelectItem>
                         <SelectItem value="true">Yes, required</SelectItem>
                         <SelectItem value="false">No, not required</SelectItem>
                       </SelectContent>
