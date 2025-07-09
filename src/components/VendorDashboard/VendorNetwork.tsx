@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, Calendar, MapPin, MessageCircle, Star, MoreHorizontal } from 'lucide-react';
+import { Users, Calendar, MapPin, MessageCircle, Star, MoreHorizontal, Send } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import SendNetworkAlertModal from './SendNetworkAlertModal';
 
 const VendorNetwork = () => {
+  const [alertModalOpen, setAlertModalOpen] = useState(false);
+  
   // Mock network data
   const networkReps = [
     {
@@ -73,13 +77,21 @@ const VendorNetwork = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            My Network
-          </CardTitle>
-          <CardDescription>
-            Field Reps you've connected with and their details
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                My Network
+              </CardTitle>
+              <CardDescription>
+                Field Reps you've connected with and their details
+              </CardDescription>
+            </div>
+            <Button onClick={() => setAlertModalOpen(true)} className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Send Network Alert
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -187,6 +199,12 @@ const VendorNetwork = () => {
           )}
         </CardContent>
       </Card>
+
+      <SendNetworkAlertModal 
+        open={alertModalOpen}
+        onOpenChange={setAlertModalOpen}
+        networkSize={networkReps.length}
+      />
     </div>
   );
 };

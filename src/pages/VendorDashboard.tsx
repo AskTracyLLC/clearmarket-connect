@@ -26,6 +26,7 @@ import SavedSearches from '@/components/VendorDashboard/SavedSearches';
 import CoverageRequests from '@/components/VendorDashboard/CoverageRequests';
 import VendorReviews from '@/components/VendorDashboard/VendorReviews';
 import AccountBilling from '@/components/VendorDashboard/AccountBilling';
+import NetworkAlertsTab from '@/components/VendorDashboard/NetworkAlertsTab';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('coverage');
@@ -123,7 +124,7 @@ const VendorDashboard = () => {
 
           {/* Main Dashboard Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
               <TabsTrigger value="coverage" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 <span className="hidden sm:inline">Coverage</span>
@@ -131,6 +132,10 @@ const VendorDashboard = () => {
               <TabsTrigger value="network" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Network</span>
+              </TabsTrigger>
+              <TabsTrigger value="alerts" className="flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                <span className="hidden sm:inline">📢 Alerts</span>
               </TabsTrigger>
               <TabsTrigger value="searches" className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
@@ -156,6 +161,10 @@ const VendorDashboard = () => {
 
             <TabsContent value="network">
               <VendorNetwork />
+            </TabsContent>
+
+            <TabsContent value="alerts">
+              <NetworkAlertsTab />
             </TabsContent>
 
             <TabsContent value="searches">
