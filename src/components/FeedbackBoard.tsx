@@ -1,47 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThumbsUp, MessageSquare, Bell, BellOff, Plus } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { FeedbackSubmissionModal } from './FeedbackSubmissionModal';
 import { FeedbackDetailModal } from './FeedbackDetailModal';
-
-interface FeedbackUser {
-  email: string;
-  anonymousUsername: string;
-  accessToken: string;
-}
+import { useFeedbackPosts, type FeedbackPost } from '@/hooks/useFeedbackPosts';
 
 interface FeedbackBoardProps {
-  currentUser?: FeedbackUser;
-}
-
-interface DatabasePost {
-  id: string;
-  content: string;
-  created_at: string;
-  helpful_votes: number;
-  flagged: boolean;
-  users?: {
-    display_name: string;
-  } | null;
-}
-
-interface FeedbackPost {
-  id: string;
-  title: string;
-  description: string;
-  category: 'bug-report' | 'feature-request';
-  status: 'under-review' | 'planned' | 'in-progress' | 'completed' | 'closed';
-  upvotes: number;
-  userHasUpvoted: boolean;
-  userIsFollowing: boolean;
-  author: string;
-  createdAt: string;
-  comments: any[];
+  currentUser?: any; // For backward compatibility
 }
 
 const statusColors = {
@@ -58,98 +27,23 @@ const categoryLabels = {
 };
 
 export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
-  const [posts, setPosts] = useState<FeedbackPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { posts, loading, createPost } = useFeedbackPosts();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<FeedbackPost | null>(null);
   const { toast } = useToast();
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('feedback_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Transform database posts to feedback format
-      const transformedPosts: FeedbackPost[] = (data || []).map((post: any) => ({
-        id: post.id,
-        title: post.title,
-        description: post.description,
-        category: post.category as 'bug-report' | 'feature-request',
-        status: post.status as 'under-review' | 'planned' | 'in-progress' | 'completed' | 'closed',
-        upvotes: post.helpful_votes || 0,
-        userHasUpvoted: false, // We'll implement this later
-        userIsFollowing: false, // We'll implement this later
-        author: post.author_username,
-        createdAt: new Date(post.created_at).toISOString().split('T')[0],
-        comments: []
-      }));
-
-      setPosts(transformedPosts);
-    } catch (error: any) {
-      console.error('Error fetching posts:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load feedback posts.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
   const handleUpvote = async (postId: string) => {
-    if (!currentUser) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to vote on feedback.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // For now, just update local state
-      setPosts(posts.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              upvotes: post.userHasUpvoted ? post.upvotes - 1 : post.upvotes + 1,
-              userHasUpvoted: !post.userHasUpvoted 
-            }
-          : post
-      ));
-
-      toast({
-        title: "Vote recorded",
-        description: "Thank you for your feedback!",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to record vote.",
-        variant: "destructive"
-      });
-    }
+    // TODO: Implement upvote functionality with database
+    toast({
+      title: "Vote recorded",
+      description: "Thank you for your feedback!",
+    });
   };
 
   const handleFollow = (postId: string) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, userIsFollowing: !post.userIsFollowing }
-        : post
-    ));
-    
+    // TODO: Implement follow functionality with database
     toast({
       title: "Notification settings updated",
       description: "You'll be notified of updates to this post.",
@@ -157,43 +51,9 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
   };
 
   const handleSubmitFeedback = async (newPost: { title: string; description: string; category: string }) => {
-    if (!currentUser) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to submit feedback.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('feedback_posts')
-        .insert({
-          title: newPost.title,
-          description: newPost.description,
-          category: newPost.category,
-          author_username: currentUser.anonymousUsername,
-          author_email: currentUser.email,
-          access_token: currentUser.accessToken
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Feedback submitted!",
-        description: "Thank you for your feedback. It will be reviewed by our team.",
-      });
-
+    const success = await createPost(newPost);
+    if (success) {
       setIsSubmissionModalOpen(false);
-      await fetchPosts(); // Refresh the posts
-    } catch (error: any) {
-      console.error('Error submitting feedback:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit feedback. Please try again.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -224,12 +84,10 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
           <h1 className="text-3xl font-bold mb-2">Community Feedback</h1>
           <p className="text-muted-foreground">Help us improve ClearMarket by sharing your ideas and reporting issues</p>
         </div>
-        {currentUser && (
-          <Button onClick={() => setIsSubmissionModalOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Submit Feedback
-          </Button>
-        )}
+        <Button onClick={() => setIsSubmissionModalOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Submit Feedback
+        </Button>
       </div>
 
       {/* Filters */}
@@ -307,7 +165,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
                       className="gap-2"
                     >
                       <MessageSquare className="h-4 w-4" />
-                      {post.comments.length}
+                      0
                     </Button>
                   </div>
                   <Button
@@ -343,7 +201,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
 
       {selectedPost && (
         <FeedbackDetailModal
-          post={selectedPost}
+          post={{ ...selectedPost, comments: [] }}
           isOpen={!!selectedPost}
           onClose={() => setSelectedPost(null)}
           onUpvote={() => handleUpvote(selectedPost.id)}

@@ -780,46 +780,40 @@ export type Database = {
       }
       feedback_posts: {
         Row: {
-          access_token: string
-          author_email: string
-          author_username: string
+          author: string
           category: string
           created_at: string
           description: string
-          flagged: boolean
-          helpful_votes: number
           id: string
           status: string
           title: string
           updated_at: string
+          upvotes: number
+          user_id: string | null
         }
         Insert: {
-          access_token: string
-          author_email: string
-          author_username: string
+          author: string
           category?: string
           created_at?: string
           description: string
-          flagged?: boolean
-          helpful_votes?: number
           id?: string
           status?: string
           title: string
           updated_at?: string
+          upvotes?: number
+          user_id?: string | null
         }
         Update: {
-          access_token?: string
-          author_email?: string
-          author_username?: string
+          author?: string
           category?: string
           created_at?: string
           description?: string
-          flagged?: boolean
-          helpful_votes?: number
           id?: string
           status?: string
           title?: string
           updated_at?: string
+          upvotes?: number
+          user_id?: string | null
         }
         Relationships: []
       }
