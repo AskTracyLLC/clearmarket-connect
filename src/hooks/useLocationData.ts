@@ -66,19 +66,30 @@ export const useCountiesByState = (stateCode?: string) => {
     const fetchCounties = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // First get the state ID from the state code
+        const { data: stateData, error: stateError } = await supabase
+          .from("states")
+          .select("id")
+          .eq("code", stateCode)
+          .single();
+
+        if (stateError) throw stateError;
+        if (!stateData) {
+          setCounties([]);
+          return;
+        }
+
+        // Then fetch counties for that state ID
+        const { data: countiesData, error: countiesError } = await supabase
           .from("counties")
-          .select(`
-            *,
-            state:states!counties_state_id_fkey(code)
-          `)
-          .eq("state.code", stateCode)
+          .select("*")
+          .eq("state_id", stateData.id)
           .order("name");
 
-        if (error) throw error;
+        if (countiesError) throw countiesError;
         
         // Deduplicate counties by name (prioritize shorter names without "County" suffix)
-        const deduplicatedCounties = (data || []).reduce((acc, county) => {
+        const deduplicatedCounties = (countiesData || []).reduce((acc, county) => {
           const baseName = county.name.replace(/\s+County$/i, '');
           const existing = acc.find(c => 
             c.name.replace(/\s+County$/i, '') === baseName
@@ -95,11 +106,12 @@ export const useCountiesByState = (stateCode?: string) => {
           }
           
           return acc;
-        }, [] as typeof data);
+        }, [] as typeof countiesData);
         
         setCounties(deduplicatedCounties);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch counties");
+        setCounties([]);
       } finally {
         setLoading(false);
       }
