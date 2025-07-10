@@ -216,11 +216,36 @@ const VendorCoverageMap = () => {
                 <div className="mb-4 text-center">
                   <h3 className="text-lg font-semibold mb-2">Interactive US Coverage Map</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Click on states below to view detailed county coverage. Visual map integration coming soon.
+                    Map shows active Field Rep coverage based on your connected reps. Click on states for detailed county view.
                   </p>
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-primary rounded"></div>
+                      <span className="text-xs">States with Coverage</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-muted rounded"></div>
+                      <span className="text-xs">No Coverage</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                      <span className="text-xs">Coverage Requested</span>
+                    </div>
+                  </div>
                 </div>
                 
-                {/* Show states as cards */}
+                <div className="relative flex justify-center">
+                  <USMap 
+                    statesWithCoverage={statesWithCoverage}
+                    onStateClick={handleStateSelect}
+                    selectedState={selectedState}
+                  />
+                </div>
+              </div>
+
+              {/* Additional State Cards */}
+              <div className="mb-6">
+                <h4 className="text-md font-semibold mb-3">States with Coverage</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   {Object.entries(statesWithCoverage).map(([stateCode, stateData]) => (
                     <Card 
