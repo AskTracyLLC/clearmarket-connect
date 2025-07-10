@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Search, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
   const [counties, setCounties] = useState([]);
   const [countyData, setCountyData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchCountiesForState();
@@ -56,25 +60,70 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
     return '#d1d5db';
   };
 
+  const getCountyDisplayName = (countyName) => {
+    // Remove "County" from the end if it exists
+    return countyName.replace(/\s+County$/i, '');
+  };
+
+  // Filter counties based on search term
+  const filteredCounties = useMemo(() => {
+    if (!searchTerm) return counties;
+    
+    return counties.filter(county =>
+      county.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [counties, searchTerm]);
+
+  // Highlight matching counties
+  const highlightedCounties = useMemo(() => {
+    if (!searchTerm) return new Set();
+    
+    return new Set(
+      counties.filter(county =>
+        county.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [counties, searchTerm]);
+
   if (loading) {
     return <Skeleton className="w-full h-96" />;
   }
 
-  // For states with detailed SVG maps, use your existing ones
-  if (['CA', 'TX', 'FL', 'NY', 'IL'].includes(stateCode)) {
-    // Import your existing StateCountyMap component here
-    // return <YourExistingStateCountyMap stateCode={stateCode} counties={countyData} onCountyClick={onCountyClick} />;
-  }
-
-  // For all other states, create a simple grid layout with real county names
-  const gridCols = Math.ceil(Math.sqrt(counties.length));
-  const gridRows = Math.ceil(counties.length / gridCols);
-
   return (
     <div className="bg-muted/10 border border-muted rounded-lg p-6">
-      <h4 className="text-lg font-semibold mb-4 text-center">
-        {stateCode} Counties ({counties.length} total)
-      </h4>
+      {/* Header with Search */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-lg font-semibold">
+            {stateCode} Counties ({counties.length} total)
+          </h4>
+          <Badge variant="outline" className="text-sm">
+            {filteredCounties.length} {searchTerm ? 'matching' : 'total'}
+          </Badge>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search counties or zip codes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        {/* Search Results Summary */}
+        {searchTerm && (
+          <div className="mt-2 text-sm text-muted-foreground">
+            {filteredCounties.length > 0 ? (
+              <>Found {filteredCounties.length} matching counties</>
+            ) : (
+              <>No counties found matching "{searchTerm}"</>
+            )}
+          </div>
+        )}
+      </div>
       
       {/* Legend */}
       <div className="flex flex-wrap gap-4 justify-center mb-6">
@@ -93,28 +142,82 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       </div>
 
       {/* Counties Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-96 overflow-y-auto">
-        {counties.map((countyName) => (
-          <div
-            key={countyName}
-            className={`p-2 rounded border text-center cursor-pointer hover:opacity-80 transition-opacity`}
-            style={{ backgroundColor: getCountyFill(countyName) }}
-            onClick={() => onCountyClick?.(countyName)}
-          >
-            <div className="text-xs font-semibold text-white">
-              {countyName.length > 10 ? countyName.substring(0, 10) + '...' : countyName}
-            </div>
-            {countyData[countyName]?.active && (
-              <div className="text-xs text-white">
-                {countyData[countyName].reps} rep{countyData[countyName].reps !== 1 ? 's' : ''}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-96 overflow-y-auto">
+        {counties.map((countyName) => {
+          const isHighlighted = highlightedCounties.has(countyName);
+          const isFiltered = searchTerm && !filteredCounties.includes(countyName);
+          
+          return (
+            <div
+              key={countyName}
+              className={`p-3 rounded-lg border-2 text-center cursor-pointer transition-all duration-200 ${
+                isFiltered 
+                  ? 'opacity-30 scale-95' 
+                  : isHighlighted 
+                  ? 'ring-2 ring-blue-500 ring-offset-1 shadow-lg scale-105' 
+                  : 'hover:opacity-80 hover:scale-105'
+              }`}
+              style={{ 
+                backgroundColor: getCountyFill(countyName),
+                borderColor: isHighlighted ? '#3b82f6' : 'transparent'
+              }}
+              onClick={() => onCountyClick?.(countyName)}
+            >
+              <div className="text-sm font-bold text-white leading-tight">
+                {getCountyDisplayName(countyName)}
               </div>
-            )}
-          </div>
-        ))}
+              {countyData[countyName]?.active && (
+                <div className="text-xs text-white mt-1">
+                  {countyData[countyName].reps} rep{countyData[countyName].reps !== 1 ? 's' : ''}
+                </div>
+              )}
+              {isHighlighted && (
+                <div className="mt-1">
+                  <MapPin className="h-3 w-3 text-white mx-auto" />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       
+      {/* Search Results List (when searching) */}
+      {searchTerm && filteredCounties.length > 0 && (
+        <div className="mt-6 pt-4 border-t">
+          <h5 className="font-semibold mb-3">Search Results:</h5>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {filteredCounties.map((countyName) => (
+              <div
+                key={`search-${countyName}`}
+                className="flex items-center justify-between p-2 rounded border cursor-pointer hover:bg-muted/50"
+                onClick={() => onCountyClick?.(countyName)}
+              >
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: getCountyFill(countyName) }}
+                  />
+                  <span className="font-medium">{getCountyDisplayName(countyName)}</span>
+                </div>
+                <Badge variant={countyData[countyName]?.active ? "default" : "secondary"} className="text-xs">
+                  {countyData[countyName]?.active 
+                    ? `${countyData[countyName].reps} reps` 
+                    : countyData[countyName]?.requested 
+                    ? 'Requested' 
+                    : 'No coverage'
+                  }
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <p className="text-center text-sm text-muted-foreground mt-4">
-        Click on counties for detailed information
+        {searchTerm 
+          ? "Click on highlighted counties or search results for details" 
+          : "Click on counties for detailed information"
+        }
       </p>
     </div>
   );
