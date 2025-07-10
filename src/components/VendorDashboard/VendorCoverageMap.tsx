@@ -3,10 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Plus, Search, ArrowLeft, Zoom } from 'lucide-react';
+import { MapPin, Plus, Search, ArrowLeft, ZoomIn } from 'lucide-react';
 import { useStates } from '@/hooks/useLocationData';
 import USMap from './USMap';
-import StateCountyMap from './StateCountyMap'; // Import the new component
+import StateCountyMap from '../StateCountyMap'; // Import the new component
 
 const VendorCoverageMap = () => {
   const { states } = useStates();
@@ -112,7 +112,7 @@ const VendorCoverageMap = () => {
 
     const counties = Object.entries(stateData.countiesWithCoverage);
     const activeCounties = counties.filter(([_, county]) => county.active).length;
-    const requestedCounties = counties.filter(([_, county]) => county.requested).length;
+    const requestedCounties = counties.filter(([_, county]) => 'requested' in county && county.requested).length;
     const totalCounties = counties.length;
 
     return (
@@ -177,10 +177,10 @@ const VendorCoverageMap = () => {
                       <span className="font-medium">Coverage Status:</span>
                       <Badge variant={
                         countyData.active ? "default" : 
-                        countyData.requested ? "secondary" : "outline"
+                        ('requested' in countyData && countyData.requested) ? "secondary" : "outline"
                       }>
                         {countyData.active ? "Active Coverage" : 
-                         countyData.requested ? "Coverage Requested" : "No Coverage"}
+                         ('requested' in countyData && countyData.requested) ? "Coverage Requested" : "No Coverage"}
                       </Badge>
                     </div>
                     
@@ -236,14 +236,14 @@ const VendorCoverageMap = () => {
                   <div className="flex items-center gap-3">
                     <div className={`w-4 h-4 rounded-full ${
                       countyData.active ? 'bg-green-500' : 
-                      countyData.requested ? 'bg-yellow-500' : 'bg-gray-300'
+                      ('requested' in countyData && countyData.requested) ? 'bg-yellow-500' : 'bg-gray-300'
                     }`}></div>
                     <div>
                       <div className="font-medium">{countyName} County</div>
                       <div className="text-sm text-muted-foreground">
                         {countyData.active 
                           ? `${countyData.reps} Field Rep${countyData.reps !== 1 ? 's' : ''} active`
-                          : countyData.requested 
+                          : ('requested' in countyData && countyData.requested)
                           ? 'Coverage requested by vendor'
                           : 'No coverage or requests'
                         }
@@ -253,7 +253,7 @@ const VendorCoverageMap = () => {
                   <div className="flex gap-2">
                     {countyData.active ? (
                       <Badge variant="default">Active</Badge>
-                    ) : countyData.requested ? (
+                    ) : ('requested' in countyData && countyData.requested) ? (
                       <Badge variant="secondary">Requested</Badge>
                     ) : (
                       <Button variant="outline" size="sm" onClick={(e) => {
@@ -371,7 +371,7 @@ const VendorCoverageMap = () => {
                       <CardTitle className="text-lg flex items-center justify-between">
                         {states.find(s => s.code === selectedState)?.name} Coverage
                         <Button variant="outline" size="sm" onClick={() => handleStateSelect(selectedState)}>
-                          <Zoom className="h-4 w-4 mr-2" />
+                          <ZoomIn className="h-4 w-4 mr-2" />
                           View County Map
                         </Button>
                       </CardTitle>
@@ -394,7 +394,7 @@ const VendorCoverageMap = () => {
                             </div>
                           </div>
                           <Button className="w-full" onClick={() => handleStateSelect(selectedState)}>
-                            <Zoom className="h-4 w-4 mr-2" />
+                            <ZoomIn className="h-4 w-4 mr-2" />
                             View Visual County Map
                           </Button>
                         </div>
