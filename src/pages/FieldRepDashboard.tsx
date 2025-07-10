@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +26,10 @@ const FieldRepDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const dashboardStats = {
     networkedVendors: 8,
@@ -32,6 +38,53 @@ const FieldRepDashboard = () => {
     creditBalance: 12,
     profileComplete: 85,
     trustScore: 75
+  };
+
+  // Handler functions for button interactions
+  const handleViewAnalytics = () => {
+    toast({
+      title: "Analytics Coming Soon",
+      description: "Detailed analytics dashboard is in development.",
+    });
+  };
+
+  const handleFindVendors = () => {
+    navigate('/vendor/search');
+  };
+
+  const handleMessageVendor = (vendorId) => {
+    navigate(`/messages?recipient=${vendorId}`);
+  };
+
+  const handleApplyToOpportunity = async (opportunityId) => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast({
+        title: "Application Submitted!",
+        description: "The vendor will be notified of your interest.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFilterOpportunities = () => {
+    toast({
+      title: "Filter Coming Soon",
+      description: "Advanced filtering options are in development.",
+    });
+  };
+
+  const handleNetworkAlert = () => {
+    setNetworkAlertOpen(true);
   };
 
   return (
@@ -51,7 +104,7 @@ const FieldRepDashboard = () => {
                   Track your network connections, coverage opportunities, and performance metrics
                 </p>
               </div>
-              <Button size="lg" className="flex items-center gap-2 shrink-0" onClick={() => setNetworkAlertOpen(true)}>
+              <Button size="lg" className="flex items-center gap-2 shrink-0" onClick={handleNetworkAlert}>
                 <Megaphone className="h-5 w-5" />
                 Network Alerts
               </Button>
@@ -211,7 +264,7 @@ const FieldRepDashboard = () => {
                       </div>
 
                       <div className="pt-4 border-t">
-                        <Button variant="outline" className="w-full">
+                        <Button variant="outline" className="w-full" onClick={handleViewAnalytics}>
                           View Detailed Analytics
                         </Button>
                       </div>
@@ -222,35 +275,98 @@ const FieldRepDashboard = () => {
             </TabsContent>
 
             <TabsContent value="network">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Vendor Network</CardTitle>
-                  <CardDescription>
-                    Manage your connections with vendors in your coverage areas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Network management features coming soon. Connect with vendors to unlock contact information and build your professional network.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Connections</CardTitle>
+                    <CardDescription>
+                      Your newest vendor connections
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {[1,2,3].map((i) => (
+                        <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Users className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Vendor Name {i}</p>
+                              <p className="text-sm text-muted-foreground">Connected 2 days ago</p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => handleMessageVendor(i)}>
+                            Message
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Network Growth</CardTitle>
+                    <CardDescription>
+                      Expand your professional network
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span>This Month</span>
+                        <span className="font-semibold">3 new connections</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Response Rate</span>
+                        <span className="font-semibold">89%</span>
+                      </div>
+                      <Button className="w-full" onClick={handleFindVendors}>
+                        Find New Vendors
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="opportunities">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Coverage Opportunities</CardTitle>
-                  <CardDescription>
-                    Find new areas and vendors looking for field rep coverage
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Opportunity matching features coming soon. We'll help you discover vendors seeking coverage in your areas.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Available Opportunities</h3>
+                  <Button variant="outline" onClick={handleFilterOpportunities}>
+                    Filter
+                  </Button>
+                </div>
+                
+                <div className="grid gap-4">
+                  {[1,2,3].map((i) => (
+                    <Card key={i} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold mb-2">Property Coverage - Chicago Area</h4>
+                            <p className="text-sm text-muted-foreground mb-3">
+                              Seeking reliable field rep for property inspections and vendor coordination
+                            </p>
+                            <div className="flex gap-2">
+                              <Badge variant="secondary">Chicago</Badge>
+                              <Badge variant="outline">$50/visit</Badge>
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={() => handleApplyToOpportunity(i)}
+                            disabled={isLoading}
+                          >
+                            {isLoading ? 'Applying...' : 'Apply'}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="reviews">
@@ -262,9 +378,18 @@ const FieldRepDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    Review management features coming soon. View and respond to feedback from your vendor network.
-                  </p>
+                  <div className="space-y-4">
+                    <div className="text-center py-8">
+                      <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Reviews Yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Complete your first job to start receiving vendor feedback and building your reputation.
+                      </p>
+                      <Button onClick={handleFindVendors}>
+                        Find Opportunities
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -278,9 +403,18 @@ const FieldRepDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    Settings and preferences coming soon. Customize your dashboard experience.
-                  </p>
+                  <div className="space-y-4">
+                    <div className="text-center py-8">
+                      <Settings className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Settings Coming Soon</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Notification preferences and dashboard customization options are in development.
+                      </p>
+                      <Button variant="outline" onClick={() => navigate('/settings')}>
+                        Go to Profile Settings
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
