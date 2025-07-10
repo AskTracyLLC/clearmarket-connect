@@ -361,11 +361,6 @@ const Index = () => {
               <div className="text-2xl font-bold text-secondary">3,143</div>
               <div className="text-sm text-muted-foreground">Counties Mapped</div>
             </div>
-            <div className="w-px h-12 bg-border"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{emailCount}+</div>
-              <div className="text-sm text-muted-foreground">Early Signups</div>
-            </div>
           </div>
 
           {/* Enhanced Email Signup Form */}
