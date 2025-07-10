@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -21,10 +22,12 @@ import {
   Building,
   UserCheck,
   TrendingUp,
-  Clock
+  Clock,
+  BarChart3
 } from 'lucide-react';
 
 const Index = () => {
+  // Existing state
   const [email, setEmail] = useState('');
   const [userType, setUserType] = useState('');
   const [primaryState, setPrimaryState] = useState('');
@@ -36,7 +39,77 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
   const [states, setStates] = useState([]);
+  
+  // New research fields
+  const [primaryService, setPrimaryService] = useState('');
+  const [fieldRepName, setFieldRepName] = useState('');
+  const [workTypes, setWorkTypes] = useState([]);
+  const [experienceLevel, setExperienceLevel] = useState('');
+  const [currentChallenges, setCurrentChallenges] = useState('');
+  const [interestedFeatures, setInterestedFeatures] = useState([]);
+  const [wantsProgressReports, setWantsProgressReports] = useState(false);
+  const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
+  
   const { toast } = useToast();
+
+  // Service types for vendors
+  const serviceTypes = [
+    { value: 'bpo', label: 'BPO Services' },
+    { value: 'inspections', label: 'Property Inspections' },
+    { value: 'preservation', label: 'Property Preservation' },
+    { value: 'reo', label: 'REO Services' },
+    { value: 'valuation', label: 'Property Valuation' },
+    { value: 'maintenance', label: 'Property Maintenance' },
+    { value: 'other', label: 'Other Services' }
+  ];
+
+  // Work types for field reps
+  const fieldRepWorkTypes = [
+    { value: 'interior-inspections', label: 'Interior Inspections' },
+    { value: 'exterior-inspections', label: 'Exterior Inspections' },
+    { value: 'occupancy-checks', label: 'Occupancy Checks' },
+    { value: 'property-preservation', label: 'Property Preservation' },
+    { value: 'winterizations', label: 'Winterizations' },
+    { value: 'lawn-maintenance', label: 'Lawn Maintenance' },
+    { value: 'lock-changes', label: 'Lock Changes' },
+    { value: 'debris-removal', label: 'Debris Removal' },
+    { value: 'photography', label: 'Photography Services' },
+    { value: 'violations', label: 'Violation Monitoring' },
+    { value: 'evictions', label: 'Eviction Services' },
+    { value: 'cash-for-keys', label: 'Cash for Keys' }
+  ];
+
+  // Experience levels
+  const experienceLevels = [
+    { value: 'new', label: 'New (Less than 1 year)' },
+    { value: 'beginner', label: 'Beginner (1-2 years)' },
+    { value: 'experienced', label: 'Experienced (3-5 years)' },
+    { value: 'expert', label: 'Expert (5+ years)' },
+    { value: 'veteran', label: 'Veteran (10+ years)' }
+  ];
+
+  // Feature options
+  const vendorFeatureOptions = [
+    { value: 'field-rep-search', label: 'Better Field Rep Search' },
+    { value: 'coverage-mapping', label: 'Coverage Area Mapping' },
+    { value: 'quality-scoring', label: 'Quality Scoring System' },
+    { value: 'communication-tools', label: 'Communication Tools' },
+    { value: 'scheduling', label: 'Scheduling & Calendar' },
+    { value: 'payment-processing', label: 'Payment Processing' },
+    { value: 'reporting', label: 'Reporting & Analytics' },
+    { value: 'mobile-app', label: 'Mobile App' }
+  ];
+
+  const fieldRepFeatureOptions = [
+    { value: 'job-matching', label: 'Better Job Matching' },
+    { value: 'coverage-expansion', label: 'Coverage Area Tools' },
+    { value: 'vendor-ratings', label: 'Vendor Rating System' },
+    { value: 'quick-communication', label: 'Quick Communication' },
+    { value: 'schedule-management', label: 'Schedule Management' },
+    { value: 'payment-tracking', label: 'Payment Tracking' },
+    { value: 'performance-analytics', label: 'Performance Reports' },
+    { value: 'mobile-first', label: 'Mobile-First Design' }
+  ];
 
   // Load states on component mount
   useEffect(() => {
@@ -50,15 +123,40 @@ const Index = () => {
     loadStates();
   }, []);
 
+  // Helper functions for multi-select
+  const handleWorkTypeToggle = (workType) => {
+    setWorkTypes(prev => 
+      prev.includes(workType) 
+        ? prev.filter(w => w !== workType)
+        : [...prev, workType]
+    );
+  };
+
+  const handleFeatureToggle = (feature) => {
+    setInterestedFeatures(prev => 
+      prev.includes(feature) 
+        ? prev.filter(f => f !== feature)
+        : [...prev, feature]
+    );
+  };
+
+  const handleStateToggle = (state) => {
+    setStatesCovered(prev => 
+      prev.includes(state) 
+        ? prev.filter(s => s !== state)
+        : [...prev, state]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !userType) return;
+    if (!email || !userType || !agreedToAnalytics) return;
 
     // Field rep validation
-    if (userType === 'field-rep' && !primaryState) {
+    if (userType === 'field-rep' && (!primaryState || !fieldRepName)) {
       toast({
         title: "Missing Information",
-        description: "Please select your primary state.",
+        description: "Please complete all required fields.",
         variant: "destructive"
       });
       return;
@@ -95,11 +193,21 @@ const Index = () => {
         user_type: userType,
         join_feedback_group: joinFeedbackGroup,
         anonymous_username: anonymousUsername,
-        ...(userType === 'field-rep' && { primary_state: primaryState }),
+        wants_progress_reports: wantsProgressReports,
+        agreed_to_analytics: agreedToAnalytics,
+        current_challenges: currentChallenges || null,
+        interested_features: interestedFeatures.length > 0 ? interestedFeatures : null,
+        ...(userType === 'field-rep' && { 
+          primary_state: primaryState,
+          field_rep_name: fieldRepName,
+          work_types: workTypes.length > 0 ? workTypes : null,
+          experience_level: experienceLevel || null
+        }),
         ...(userType === 'vendor' && {
           company_name: companyName,
           company_website: companyWebsite || null,
-          states_covered: statesCovered
+          states_covered: statesCovered,
+          primary_service: primaryService || null
         })
       };
 
@@ -157,8 +265,8 @@ const Index = () => {
   };
 
   const isFormValid = () => {
-    if (!email || !userType) return false;
-    if (userType === 'field-rep' && !primaryState) return false;
+    if (!email || !userType || !agreedToAnalytics) return false;
+    if (userType === 'field-rep' && (!primaryState || !fieldRepName)) return false;
     if (userType === 'vendor' && !companyName) return false;
     return true;
   };
@@ -255,14 +363,14 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Email Signup Form */}
+          {/* Enhanced Email Signup Form */}
           {!isSubmitted ? (
-            <Card className="max-w-2xl mx-auto p-8 shadow-elevated">
+            <Card className="max-w-3xl mx-auto p-8 shadow-elevated">
               <h3 className="text-2xl font-semibold mb-6 text-foreground">
-                Be First to Know When We Launch
+                Join ClearMarket - Help Shape Our Platform
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* User Type Selection */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <Button
@@ -292,107 +400,308 @@ const Index = () => {
                   </Button>
                 </div>
                 
-                {/* Email Input */}
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Enter your professional email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="p-3"
-                    required
-                  />
-                </div>
-
-                {/* Field Rep Specific Fields */}
-                {userType === 'field-rep' && (
-                  <div className="space-y-4">
+                {userType && (
+                  <>
+                    {/* Email Input */}
                     <div>
-                      <Label htmlFor="primary-state" className="text-sm font-medium">
-                        Primary State *
-                      </Label>
-                      <Select value={primaryState} onValueChange={setPrimaryState}>
-                        <SelectTrigger id="primary-state" className="mt-1">
-                          <SelectValue placeholder="Select your primary state" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {states.map((state) => (
-                            <SelectItem key={state.code} value={state.code}>
-                              {state.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-
-                {/* Vendor Specific Fields */}
-                {userType === 'vendor' && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="company-name" className="text-sm font-medium">
-                        Company Name *
+                      <Label htmlFor="email" className="text-sm font-medium">
+                        Professional Email *
                       </Label>
                       <Input
-                        id="company-name"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder="Enter your company name"
+                        id="email"
+                        type="email"
+                        placeholder="Enter your professional email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="mt-1 p-3"
                         required
                       />
                     </div>
+
+                    {/* Field Rep Specific Fields */}
+                    {userType === 'field-rep' && (
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="field-rep-name" className="text-sm font-medium">
+                            Your Name or Business Name *
+                          </Label>
+                          <Input
+                            id="field-rep-name"
+                            value={fieldRepName}
+                            onChange={(e) => setFieldRepName(e.target.value)}
+                            placeholder="Enter your name or business name"
+                            className="mt-1 p-3"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="primary-state" className="text-sm font-medium">
+                            Primary State *
+                          </Label>
+                          <Select value={primaryState} onValueChange={setPrimaryState}>
+                            <SelectTrigger id="primary-state" className="mt-1">
+                              <SelectValue placeholder="Select your primary state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {states.map((state) => (
+                                <SelectItem key={state.code} value={state.code}>
+                                  {state.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium">Experience Level</Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                            {experienceLevels.map((level) => (
+                              <Button
+                                key={level.value}
+                                type="button"
+                                variant={experienceLevel === level.value ? 'default' : 'outline'}
+                                className="text-left justify-start text-sm"
+                                onClick={() => setExperienceLevel(level.value)}
+                              >
+                                {level.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium">Types of Work You Do</Label>
+                          <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
+                          <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                              {fieldRepWorkTypes.map((workType) => (
+                                <div key={workType.value} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={workType.value}
+                                    checked={workTypes.includes(workType.value)}
+                                    onCheckedChange={() => handleWorkTypeToggle(workType.value)}
+                                  />
+                                  <Label htmlFor={workType.value} className="text-sm cursor-pointer">
+                                    {workType.label}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {workTypes.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Selected: {workTypes.length} work type{workTypes.length !== 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Vendor Specific Fields */}
+                    {userType === 'vendor' && (
+                      <div className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="company-name" className="text-sm font-medium">
+                              Company Name *
+                            </Label>
+                            <Input
+                              id="company-name"
+                              value={companyName}
+                              onChange={(e) => setCompanyName(e.target.value)}
+                              placeholder="Enter your company name"
+                              className="mt-1 p-3"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="company-website" className="text-sm font-medium">
+                              Company Website <span className="text-muted-foreground">(Optional)</span>
+                            </Label>
+                            <Input
+                              id="company-website"
+                              value={companyWebsite}
+                              onChange={(e) => setCompanyWebsite(e.target.value)}
+                              placeholder="https://yourcompany.com"
+                              className="mt-1 p-3"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium">Primary Service Type</Label>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                            {serviceTypes.map((service) => (
+                              <Button
+                                key={service.value}
+                                type="button"
+                                variant={primaryService === service.value ? 'default' : 'outline'}
+                                className="text-sm"
+                                onClick={() => setPrimaryService(service.value)}
+                              >
+                                {service.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium">States Where You Need Coverage</Label>
+                          <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
+                          <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                              {states.map((state) => (
+                                <div key={state.code} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`state-${state.code}`}
+                                    checked={statesCovered.includes(state.code)}
+                                    onCheckedChange={() => handleStateToggle(state.code)}
+                                  />
+                                  <Label htmlFor={`state-${state.code}`} className="text-sm cursor-pointer">
+                                    {state.name}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {statesCovered.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Selected: {statesCovered.length} state{statesCovered.length !== 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Common Fields */}
                     <div>
-                      <Label htmlFor="company-website" className="text-sm font-medium">
-                        Company Website <span className="text-muted-foreground">(Optional)</span>
+                      <Label htmlFor="challenges" className="text-sm font-medium">
+                        Current Challenges <span className="text-muted-foreground">(Optional)</span>
                       </Label>
-                      <Input
-                        id="company-website"
-                        value={companyWebsite}
-                        onChange={(e) => setCompanyWebsite(e.target.value)}
-                        placeholder="https://yourcompany.com"
-                        className="mt-1 p-3"
+                      <Textarea
+                        id="challenges"
+                        placeholder={
+                          userType === 'vendor'
+                            ? 'What are your biggest challenges in finding reliable field representatives?'
+                            : 'What are your biggest challenges in finding consistent work or working with vendors?'
+                        }
+                        value={currentChallenges}
+                        onChange={(e) => setCurrentChallenges(e.target.value)}
+                        className="mt-1"
+                        rows={3}
                       />
                     </div>
-                  </div>
-                )}
-                
-                {/* Feedback Group Checkbox */}
-                <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border">
-                  <Checkbox 
-                    id="feedback-group"
-                    checked={joinFeedbackGroup}
-                    onCheckedChange={(checked) => setJoinFeedbackGroup(checked === true)}
-                    className="mt-0.5"
-                  />
-                  <div className="flex-1">
-                    <Label 
-                      htmlFor="feedback-group" 
-                      className="text-sm font-medium cursor-pointer text-foreground"
-                    >
-                      I'd like to join the anonymous ClearMarket Feedback Group
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Help shape our features and get early access to our feedback community. Your identity will remain anonymous.
-                    </p>
-                  </div>
-                </div>
 
-                {/* Submit Button */}
-                <div className="pt-4">
-                  <Button 
-                    onClick={handleSubmit}
-                    className="w-full py-3"
-                    disabled={!isFormValid() || isLoading}
-                  >
-                    {isLoading ? 'Adding you to the list...' : 'Notify Me When We Launch'}
-                    {!isLoading && <ArrowRight className="h-4 w-4 ml-2" />}
-                  </Button>
-                </div>
+                    <div>
+                      <Label className="text-sm font-medium">Most Interested Features</Label>
+                      <p className="text-xs text-muted-foreground mb-2">Select features you'd find most valuable</p>
+                      <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                          {(userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map((feature) => (
+                            <div key={feature.value} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={feature.value}
+                                checked={interestedFeatures.includes(feature.value)}
+                                onCheckedChange={() => handleFeatureToggle(feature.value)}
+                              />
+                              <Label htmlFor={feature.value} className="text-sm cursor-pointer">
+                                {feature.label}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Reports */}
+                    <div className="flex items-start space-x-3 p-4 bg-primary/5 rounded-lg border">
+                      <Checkbox 
+                        id="progress-reports"
+                        checked={wantsProgressReports}
+                        onCheckedChange={(checked) => setWantsProgressReports(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <Label 
+                          htmlFor="progress-reports" 
+                          className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
+                        >
+                          <BarChart3 className="h-4 w-4 text-primary" />
+                          Send me development progress updates
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Get occasional emails about new features as we build them
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Feedback Group Checkbox */}
+                    <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border">
+                      <Checkbox 
+                        id="feedback-group"
+                        checked={joinFeedbackGroup}
+                        onCheckedChange={(checked) => setJoinFeedbackGroup(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <Label 
+                          htmlFor="feedback-group" 
+                          className="text-sm font-medium cursor-pointer text-foreground"
+                        >
+                          I'd like to join the anonymous ClearMarket Feedback Group
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Help shape our features and get early access to our feedback community. Your identity will remain anonymous.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Privacy Agreement */}
+                    <div className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <Checkbox 
+                        id="analytics-agreement"
+                        checked={agreedToAnalytics}
+                        onCheckedChange={(checked) => setAgreedToAnalytics(checked === true)}
+                        className="mt-0.5"
+                        required
+                      />
+                      <div className="flex-1">
+                        <Label 
+                          htmlFor="analytics-agreement" 
+                          className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
+                        >
+                          <Shield className="h-4 w-4 text-green-600" />
+                          Privacy & Analytics Agreement *
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          I agree to receive launch notifications. My information will be used for analytical purposes only and will never be sold to third parties.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="pt-4">
+                      <Button 
+                        onClick={handleSubmit}
+                        className="w-full py-3"
+                        disabled={!isFormValid() || isLoading}
+                      >
+                        {isLoading ? 'Joining ClearMarket...' : 'Join ClearMarket - Get Early Access'}
+                        {!isLoading && <ArrowRight className="h-4 w-4 ml-2" />}
+                      </Button>
+                    </div>
+
+                    {!isFormValid() && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Please complete all required fields and agree to our privacy policy
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
               
-              <p className="text-sm text-muted-foreground mt-4">
+              <p className="text-sm text-muted-foreground mt-4 text-center">
                 Get exclusive early access and help shape the platform with your feedback.
               </p>
             </Card>
@@ -415,6 +724,7 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Rest of your existing sections remain the same */}
       {/* Features Preview */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 max-w-6xl">
