@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create feedback page access link
-    const feedbackLink = `${Deno.env.get("SUPABASE_URL")?.replace('//', '//').replace('https:', 'https:').replace('http:', 'http:').split('.supabase.co')[0]}.lovable.app/feedback?token=${accessToken}`;
+    const feedbackLink = `https://clearmarket.lovable.app/feedback?token=${accessToken}`;
 
     // Send welcome email
     const emailResponse = await resend.emails.send({
