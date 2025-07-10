@@ -134,7 +134,7 @@ const VendorCoverageMap = () => {
         {selectedCounty && (
           <Card>
             <CardHeader>
-              <CardTitle>{selectedCounty} County Details</CardTitle>
+              <CardTitle>{selectedCounty.replace(/\s+County$/i, '')} County Details</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
