@@ -16,6 +16,13 @@ export interface FeedbackPost {
   user_id: string;
 }
 
+export interface FeedbackComment {
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
+}
+
 export const useFeedbackPosts = () => {
   const [posts, setPosts] = useState<FeedbackPost[]>([]);
   const [loading, setLoading] = useState(true);

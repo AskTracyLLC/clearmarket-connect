@@ -5,14 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ThumbsUp, MessageSquare, Bell, BellOff, Send } from 'lucide-react';
-import { FeedbackPost } from '@/hooks/useFeedbackPosts';
-
-interface FeedbackComment {
-  id: string;
-  author: string;
-  content: string;
-  createdAt: string;
-}
+import { FeedbackPost, FeedbackComment } from '@/hooks/useFeedbackPosts';
 
 interface FeedbackDetailModalProps {
   post: FeedbackPost;
