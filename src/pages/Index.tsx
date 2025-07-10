@@ -34,7 +34,6 @@ const Index = () => {
   const [companyName, setCompanyName] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
   const [statesCovered, setStatesCovered] = useState([]);
-  const [joinFeedbackGroup, setJoinFeedbackGroup] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
@@ -175,40 +174,9 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      // Generate anonymous username if joining feedback group
-      let anonymousUsername = null;
-      if (joinFeedbackGroup) {
-        try {
-          const { data: usernameData, error: usernameError } = await supabase
-            .rpc('generate_anonymous_username', { user_type_param: userType });
-          
-          if (usernameError) {
-            console.error('Error generating username:', usernameError);
-            toast({
-              title: "Username Generation Failed",
-              description: "Could not generate anonymous username. Please try again.",
-              variant: "destructive"
-            });
-            return;
-          } else {
-            anonymousUsername = usernameData;
-          }
-        } catch (usernameErr) {
-          console.error('Username generation error:', usernameErr);
-          toast({
-            title: "Username Generation Failed", 
-            description: "Could not generate anonymous username. Please try again.",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-
       const signupData = {
         email,
         user_type: userType,
-        join_feedback_group: joinFeedbackGroup,
-        anonymous_username: anonymousUsername,
         wants_progress_reports: wantsProgressReports,
         agreed_to_analytics: agreedToAnalytics,
         current_challenges: currentChallenges || null,
@@ -242,31 +210,12 @@ const Index = () => {
           throw error;
         }
       } else {
-        // Send feedback welcome email if user joined feedback group
-        if (joinFeedbackGroup && anonymousUsername) {
-          try {
-            await supabase.functions.invoke('send-feedback-welcome', {
-              body: { 
-                email,
-                anonymousUsername
-              }
-            });
-          } catch (emailError) {
-            console.error('Error sending feedback welcome email:', emailError);
-            // Don't fail the signup if email fails
-          }
-        }
-
         setIsSubmitted(true);
         setEmailCount(prev => prev + 1);
         
-        const successMessage = joinFeedbackGroup 
-          ? "You've been added to our launch list and feedback group! Check your email for access instructions."
-          : "You've been added to our launch notification list.";
-          
         toast({
           title: "Success!",
-          description: successMessage
+          description: "You've been added to our launch notification list."
         });
       }
     } catch (error) {
@@ -655,26 +604,6 @@ const Index = () => {
                       </div>
                     </div>
                     
-                    {/* Feedback Group Checkbox */}
-                    <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border">
-                      <Checkbox 
-                        id="feedback-group"
-                        checked={joinFeedbackGroup}
-                        onCheckedChange={(checked) => setJoinFeedbackGroup(checked === true)}
-                        className="mt-0.5"
-                      />
-                      <div className="flex-1">
-                        <Label 
-                          htmlFor="feedback-group" 
-                          className="text-sm font-medium cursor-pointer text-foreground"
-                        >
-                          I'd like to join the anonymous ClearMarket Feedback Group
-                        </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Help shape our features and get early access to our feedback community. Your identity will remain anonymous.
-                        </p>
-                      </div>
-                    </div>
 
                     {/* Privacy Agreement */}
                     <div className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
