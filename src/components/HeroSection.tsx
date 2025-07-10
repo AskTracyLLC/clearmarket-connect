@@ -1,9 +1,20 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PlatformGrowthStats } from "@/components/ui/stats-bar";
 import { Users, Search, Shield, TrendingUp } from "lucide-react";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handleFieldRepClick = () => {
+    navigate('/fieldrep/search');
+  };
+
+  const handleVendorClick = () => {
+    navigate('/vendor/search');
+  };
+
   return (
     <section className="py-20 bg-gradient-to-br from-background via-muted/30 to-background">
       <div className="container mx-auto px-4">
@@ -20,11 +31,21 @@ const HeroSection = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button variant="hero" size="xl" className="min-w-[200px]">
+            <Button 
+              variant="hero" 
+              size="xl" 
+              className="min-w-[200px]"
+              onClick={handleFieldRepClick}
+            >
               I'm Looking for Work
               <span className="text-xs opacity-80 ml-2">(Field Reps)</span>
             </Button>
-            <Button variant="outline-primary" size="xl" className="min-w-[200px]">
+            <Button 
+              variant="outline-primary" 
+              size="xl" 
+              className="min-w-[200px]"
+              onClick={handleVendorClick}
+            >
               I'm Seeking Coverage
               <span className="text-xs opacity-80 ml-2">(Vendors)</span>
             </Button>
