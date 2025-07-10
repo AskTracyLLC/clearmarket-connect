@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThumbsUp, MessageSquare, Bell, BellOff, Plus } from 'lucide-react';
 import { useFeedbackPosts, FeedbackPost } from '@/hooks/useFeedbackPosts';
+import { useFeedbackAuth } from '@/hooks/useFeedbackAuth';
 import { FeedbackSubmissionModal } from './FeedbackSubmissionModal';
 import { FeedbackDetailModal } from './FeedbackDetailModal';
 
@@ -26,6 +27,7 @@ const categoryLabels = {
 export const FeedbackBoardNew = () => {
   console.log('🔥 Component starting...');
   
+  const { user: feedbackUser } = useFeedbackAuth();
   const { posts, loading, createPost } = useFeedbackPosts();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -44,12 +46,6 @@ export const FeedbackBoardNew = () => {
       </div>
     );
   }
-
-  // ✅ CORRECT: Call hook at component level
-const FeedbackBoardNew = () => {
-  const { user: feedbackUser } = useFeedbackAuth(); // Move this to top level
-  const { posts, loading, createPost, upvotePost, followPost } = useFeedbackPosts();
-  // ... other state variables
 
   // ✅ CORRECT: Use the user from component level
   const handleSubmitFeedback = async (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => {
