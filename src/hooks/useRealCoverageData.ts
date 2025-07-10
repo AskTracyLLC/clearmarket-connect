@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useRealCoverageData = (vendorId) => {
-  const [statesWithCoverage, setStatesWithCoverage] = useState({});
-  const [coverageSummary, setCoverageSummary] = useState(null);
+interface StateData {
+  name: string;
+  repCount: number;
+}
+
+interface CoverageSummary {
+  states_with_coverage: number;
+  total_counties: number;
+  total_field_reps: number;
+  states_needing_coverage: number;
+}
+
+export const useRealCoverageData = (vendorId?: string) => {
+  const [statesWithCoverage, setStatesWithCoverage] = useState<Record<string, StateData>>({});
+  const [coverageSummary, setCoverageSummary] = useState<CoverageSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCoverageData();
@@ -32,7 +44,7 @@ export const useRealCoverageData = (vendorId) => {
         states_needing_coverage: 45
       });
 
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
