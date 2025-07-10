@@ -31,10 +31,14 @@ export const useFeedbackPosts = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Fetching feedback posts from database...');
+      
       const { data, error } = await supabase
         .from('feedback_posts')
         .select('*')
         .order('created_at', { ascending: false });
+
+      console.log('📊 Database response:', { data, error });
 
       if (error) throw error;
 
@@ -52,9 +56,10 @@ export const useFeedbackPosts = () => {
         user_id: post.user_id
       }));
 
+      console.log('✅ Transformed posts:', transformedPosts);
       setPosts(transformedPosts);
     } catch (error: any) {
-      console.error('Error fetching posts:', error);
+      console.error('❌ Error fetching posts:', error);
       toast({
         title: "Error",
         description: "Failed to load feedback posts.",

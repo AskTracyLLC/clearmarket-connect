@@ -34,6 +34,13 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
   const [selectedPost, setSelectedPost] = useState<FeedbackPost | null>(null);
   const { toast } = useToast();
 
+  // Debug logging
+  console.log('🎯 FeedbackBoard render:', { 
+    postsCount: posts.length, 
+    loading, 
+    posts: posts.slice(0, 3) // Log first 3 posts only
+  });
+
   const handleUpvote = async (postId: string) => {
     // TODO: Implement upvote functionality with database
     toast({
