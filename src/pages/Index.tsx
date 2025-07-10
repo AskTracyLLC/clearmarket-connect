@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   Users, 
   MapPin, 
@@ -86,10 +87,13 @@ const Index = () => {
               </div>
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
-            <Badge variant="secondary" className="bg-primary/10 text-primary">
-              <Clock className="h-3 w-3 mr-1" />
-              Coming Soon
-            </Badge>
+            <div className="flex items-center space-x-3">
+              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                <Clock className="h-3 w-3 mr-1" />
+                Coming Soon
+              </Badge>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
