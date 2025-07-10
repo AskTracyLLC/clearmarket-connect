@@ -76,7 +76,28 @@ export const useCountiesByState = (stateCode?: string) => {
           .order("name");
 
         if (error) throw error;
-        setCounties(data || []);
+        
+        // Deduplicate counties by name (prioritize longer names with "County" suffix)
+        const deduplicatedCounties = (data || []).reduce((acc, county) => {
+          const baseName = county.name.replace(/\s+County$/i, '');
+          const existing = acc.find(c => 
+            c.name.replace(/\s+County$/i, '') === baseName
+          );
+          
+          if (!existing) {
+            acc.push(county);
+          } else {
+            // Replace with longer name (prefer "County" suffix)
+            if (county.name.length > existing.name.length) {
+              const index = acc.indexOf(existing);
+              acc[index] = county;
+            }
+          }
+          
+          return acc;
+        }, [] as typeof data);
+        
+        setCounties(deduplicatedCounties);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch counties");
       } finally {
