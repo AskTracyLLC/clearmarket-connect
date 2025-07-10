@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Info, Edit2, Save, X } from "lucide-react";
+import { Trash2, Info, Edit2, Save, X, Download } from "lucide-react";
 import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
 import { useToast } from "@/hooks/use-toast";
 import { CoverageArea } from "./types";
@@ -138,6 +138,53 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     setEditValues({ standardPrice: "", rushPrice: "" });
   };
 
+  const exportToCSV = () => {
+    // Mock user data - in real app this would come from auth context
+    const fieldRepName = "John Smith"; // This should come from user profile/auth
+    
+    const headers = [
+      "Field Rep Name",
+      "State",
+      "State Code", 
+      "Counties",
+      "Standard Pricing",
+      "Rush Pricing"
+    ];
+    
+    const rows = coverageAreas.map(area => [
+      fieldRepName,
+      area.state,
+      area.stateCode,
+      area.counties.length === 1 && area.counties[0] === "All Counties" 
+        ? "All Counties" 
+        : area.counties.join("; "),
+      area.standardPrice,
+      area.rushPrice
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${fieldRepName.replace(/\s+/g, '_')}_Coverage_Areas.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: "Coverage areas have been exported to CSV.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -235,7 +282,18 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
       {/* Coverage Areas Table */}
       {coverageAreas.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-medium">Your Coverage Areas</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium">Your Coverage Areas</h4>
+            <Button 
+              onClick={exportToCSV}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
           
           {/* Pricing Disclaimer */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
@@ -266,7 +324,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
               <TableBody>
                 {coverageAreas.map((area) => (
                   <TableRow key={area.id}>
-                    <TableCell className="font-medium">{area.state}</TableCell>
+                    <TableCell className="font-medium">{area.stateCode}</TableCell>
                     <TableCell>
                       {area.counties.length === 1 && area.counties[0] === "All Counties" 
                         ? "All Counties" 
