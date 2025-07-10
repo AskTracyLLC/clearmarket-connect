@@ -2,6 +2,7 @@ import Header from '@/components/Header';
 import { FeedbackBoard } from '@/components/FeedbackBoard';
 import Footer from '@/components/Footer';
 import { useFeedbackAuth } from '@/hooks/useFeedbackAuth';
+import { FeedbackSignInForm } from '@/components/FeedbackSignInForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, Mail, AlertCircle } from 'lucide-react';
@@ -60,7 +61,13 @@ const FeedbackPage = () => {
                 <span>Access links expire after 24 hours for security</span>
               </div>
 
-              <Button className="w-full" onClick={() => window.location.href = '/'}>
+              <FeedbackSignInForm />
+
+              <div className="text-center text-sm text-muted-foreground">
+                Don't have access yet?
+              </div>
+
+              <Button variant="outline" className="w-full" onClick={() => window.location.href = '/'}>
                 Sign Up for Access
               </Button>
             </CardContent>
