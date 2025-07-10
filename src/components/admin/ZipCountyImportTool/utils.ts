@@ -45,9 +45,22 @@ export const parseCSV = (csvText: string): ParsedData => {
     const countyName = values[headerMap["County_Name"]];
     const ruralUrban = values[headerMap["Rural_Urban_Designation"]];
 
-    // Validate zip code (5 digits)
-    if (!zipCode || !/^\d{5}$/.test(zipCode)) {
-      rowErrors.push("Invalid ZIP code (must be 5 digits)");
+    // Validate and normalize zip code
+    let normalizedZipCode = zipCode;
+    if (!zipCode) {
+      rowErrors.push("ZIP code is required");
+    } else {
+      // Remove any non-digit characters and leading zeros, then pad to 5 digits
+      const cleanZip = zipCode.replace(/\D/g, '');
+      if (cleanZip.length === 0) {
+        rowErrors.push("Invalid ZIP code format");
+      } else if (cleanZip.length > 5) {
+        // Take first 5 digits if longer (handles ZIP+4 format)
+        normalizedZipCode = cleanZip.substring(0, 5);
+      } else {
+        // Pad with leading zeros if shorter
+        normalizedZipCode = cleanZip.padStart(5, '0');
+      }
     }
 
     // Validate state (2 letters)
@@ -69,7 +82,7 @@ export const parseCSV = (csvText: string): ParsedData => {
       errors.push({ row: i + 1, errors: rowErrors });
     } else {
       valid.push({
-        zip_code: zipCode,
+        zip_code: normalizedZipCode,
         state: state.toUpperCase(),
         county_name: countyName,
         rural_urban_designation: ruralUrban as "Rural" | "Urban"
