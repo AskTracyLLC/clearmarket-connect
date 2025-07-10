@@ -8,13 +8,13 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 96%;
     --foreground: 215 25% 15%;
 
-    --card: 0 0% 98%;
+    --card: 0 0% 96%;
     --card-foreground: 215 25% 15%;
 
-    --popover: 0 0% 98%;
+    --popover: 0 0% 96%;
     --popover-foreground: 215 25% 15%;
 
     /* Professional blue - trustworthy, reliable */
@@ -22,8 +22,8 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 100%;
     --primary-glow: 214 100% 70%;
 
-    /* Clean professional gray */
-    --secondary: 215 16% 94%;
+    /* Darker gray for better contrast */
+    --secondary: 215 16% 75%;
     --secondary-foreground: 215 25% 15%;
 
     /* Muted backgrounds */
