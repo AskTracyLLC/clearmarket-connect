@@ -751,6 +751,33 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: number
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          html_content: string
+          id?: never
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: never
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       flags: {
         Row: {
           created_at: string | null
