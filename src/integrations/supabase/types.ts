@@ -970,6 +970,104 @@ export type Database = {
           },
         ]
       }
+      launch_notifications: {
+        Row: {
+          agreed_to_analytics: boolean
+          annual_volume: string | null
+          company_name: string | null
+          company_size: string | null
+          coverage_areas: string[] | null
+          created_at: string
+          current_challenges: string | null
+          email: string
+          engagement_score: number | null
+          feature_name: string
+          id: string
+          interested_features: string[] | null
+          ip_address: unknown | null
+          last_engagement: string | null
+          notes: string | null
+          notified_at: string | null
+          primary_service: string | null
+          referrer: string | null
+          signup_source: string | null
+          unsubscribed_at: string | null
+          user_agent: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          wants_progress_reports: boolean
+          website_url: string | null
+        }
+        Insert: {
+          agreed_to_analytics?: boolean
+          annual_volume?: string | null
+          company_name?: string | null
+          company_size?: string | null
+          coverage_areas?: string[] | null
+          created_at?: string
+          current_challenges?: string | null
+          email: string
+          engagement_score?: number | null
+          feature_name?: string
+          id?: string
+          interested_features?: string[] | null
+          ip_address?: unknown | null
+          last_engagement?: string | null
+          notes?: string | null
+          notified_at?: string | null
+          primary_service?: string | null
+          referrer?: string | null
+          signup_source?: string | null
+          unsubscribed_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          wants_progress_reports?: boolean
+          website_url?: string | null
+        }
+        Update: {
+          agreed_to_analytics?: boolean
+          annual_volume?: string | null
+          company_name?: string | null
+          company_size?: string | null
+          coverage_areas?: string[] | null
+          created_at?: string
+          current_challenges?: string | null
+          email?: string
+          engagement_score?: number | null
+          feature_name?: string
+          id?: string
+          interested_features?: string[] | null
+          ip_address?: unknown | null
+          last_engagement?: string | null
+          notes?: string | null
+          notified_at?: string | null
+          primary_service?: string | null
+          referrer?: string | null
+          signup_source?: string | null
+          unsubscribed_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          wants_progress_reports?: boolean
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moderation_actions: {
         Row: {
           action_type: string
