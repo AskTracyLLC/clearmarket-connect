@@ -8,13 +8,13 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 96%;
+    --background: 215 20% 94%;
     --foreground: 215 25% 15%;
 
-    --card: 0 0% 96%;
+    --card: 0 0% 100%;
     --card-foreground: 215 25% 15%;
 
-    --popover: 0 0% 96%;
+    --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
 
     /* Professional blue - trustworthy, reliable */
@@ -23,12 +23,12 @@ All colors MUST be HSL.
     --primary-glow: 214 100% 70%;
 
     /* Darker gray for better contrast */
-    --secondary: 215 16% 75%;
+    --secondary: 215 16% 65%;
     --secondary-foreground: 215 25% 15%;
 
     /* Muted backgrounds */
-    --muted: 215 16% 96%;
-    --muted-foreground: 215 13% 55%;
+    --muted: 215 16% 88%;
+    --muted-foreground: 215 13% 45%;
 
     /* Success accent for positive actions */
     --accent: 142 76% 36%;
