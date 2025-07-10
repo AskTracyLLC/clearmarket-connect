@@ -1,7 +1,8 @@
+console.log('🚨 FEEDBACK BOARD NEW FILE IS LOADING');
+
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // adjust this import if your Supabase client is in a different path
-import FeedbackCard from './FeedbackCard'; // or replace with inline JSX if not using a separate component
-import { Spinner } from '@/components/ui/spinner'; // optional, or use fallback loading
+import { supabase } from '@/integrations/supabase/client';
+import FeedbackCard from './FeedbackCard';
 
 type FeedbackPost = {
   id: string;
@@ -16,6 +17,7 @@ type FeedbackPost = {
 };
 
 export const FeedbackBoardNew = () => {
+  console.log('🔥 Component starting...');
   const [posts, setPosts] = useState<FeedbackPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,12 @@ export const FeedbackBoardNew = () => {
         setError('Unable to fetch feedback posts.');
         console.error(error);
       } else {
-        setPosts(data as FeedbackPost[]);
+        const transformedPosts = (data || []).map((post: any) => ({
+          ...post,
+          type: post.category,
+          comments_count: 0
+        }));
+        setPosts(transformedPosts);
       }
 
       setLoading(false);
@@ -43,7 +50,7 @@ export const FeedbackBoardNew = () => {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Spinner /> {/* Or replace with text like: <p>Loading...</p> */}
+        <p>Loading...</p>
       </div>
     );
   }
