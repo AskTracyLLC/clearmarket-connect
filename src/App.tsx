@@ -33,6 +33,7 @@ import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import NotFound from "./pages/NotFound";
+import { TestingDashboard } from "./components/TestingDashboard";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
                 } />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
+                <Route path="/testing" element={<TestingDashboard />} />
                 <Route path="/community" element={
                   <ProtectedRoute>
                     <CommunityBoard />
