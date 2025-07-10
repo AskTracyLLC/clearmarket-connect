@@ -24,13 +24,13 @@ const categoryLabels = {
 export const FeedbackBoard = () => {
   console.log('🚀 NEW FeedbackBoard component rendering');
   
-  const { posts, loading, createPost } = useFeedbackPosts();
+  const { posts, loading, error, createPost } = useFeedbackPosts();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<FeedbackPost | null>(null);
 
-  console.log('📊 Posts data:', { count: posts.length, loading });
+  console.log('📊 Posts data:', { count: posts.length, loading, error });
 
   if (loading) {
     return (
@@ -38,6 +38,17 @@ export const FeedbackBoard = () => {
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-8">Community Feedback</h1>
           <p>Loading feedback posts...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-8">Community Feedback</h1>
+          <p className="text-red-500">Error loading posts: {error.message}</p>
         </div>
       </div>
     );
@@ -166,7 +177,7 @@ export const FeedbackBoard = () => {
                       className="gap-2"
                     >
                       <MessageSquare className="h-4 w-4" />
-                      0
+                      {post.comments?.length || 0}
                     </Button>
                   </div>
                   <Button
