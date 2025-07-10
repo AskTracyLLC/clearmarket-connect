@@ -77,7 +77,7 @@ export const useCountiesByState = (stateCode?: string) => {
 
         if (error) throw error;
         
-        // Deduplicate counties by name (prioritize longer names with "County" suffix)
+        // Deduplicate counties by name (prioritize shorter names without "County" suffix)
         const deduplicatedCounties = (data || []).reduce((acc, county) => {
           const baseName = county.name.replace(/\s+County$/i, '');
           const existing = acc.find(c => 
@@ -87,8 +87,8 @@ export const useCountiesByState = (stateCode?: string) => {
           if (!existing) {
             acc.push(county);
           } else {
-            // Replace with longer name (prefer "County" suffix)
-            if (county.name.length > existing.name.length) {
+            // Replace with shorter name (prefer without "County" suffix)
+            if (county.name.length < existing.name.length) {
               const index = acc.indexOf(existing);
               acc[index] = county;
             }
