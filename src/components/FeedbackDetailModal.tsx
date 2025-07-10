@@ -5,7 +5,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ThumbsUp, MessageSquare, Bell, BellOff, Send } from 'lucide-react';
-import { FeedbackPost, FeedbackComment } from '@/data/mockFeedbackData';
+import { FeedbackPost } from '@/hooks/useFeedbackPosts';
+
+interface FeedbackComment {
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
+}
 
 interface FeedbackDetailModalProps {
   post: FeedbackPost;
@@ -30,7 +37,7 @@ const categoryLabels = {
 
 export const FeedbackDetailModal = ({ post, isOpen, onClose, onUpvote, onFollow }: FeedbackDetailModalProps) => {
   const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState<FeedbackComment[]>(post.comments);
+  const [comments, setComments] = useState<FeedbackComment[]>([]);
 
   const handleAddComment = () => {
     if (newComment.trim()) {

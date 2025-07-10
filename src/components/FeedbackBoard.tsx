@@ -121,7 +121,9 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
       <div className="space-y-4">
         {filteredAndSortedPosts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No feedback posts yet. Be the first to share your thoughts!</p>
+            <p className="text-muted-foreground">
+              {loading ? "Loading feedback posts..." : "No feedback posts found. Be the first to share your thoughts!"}
+            </p>
           </div>
         ) : (
           filteredAndSortedPosts.map((post) => (
@@ -201,7 +203,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
 
       {selectedPost && (
         <FeedbackDetailModal
-          post={{ ...selectedPost, comments: [] }}
+          post={selectedPost}
           isOpen={!!selectedPost}
           onClose={() => setSelectedPost(null)}
           onUpvote={() => handleUpvote(selectedPost.id)}

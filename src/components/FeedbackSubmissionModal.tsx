@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { FeedbackPost } from '@/data/mockFeedbackData';
+// No longer using FeedbackPost interface from imports
 
 interface FeedbackSubmissionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (post: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments' | 'author'>) => void;
+  onSubmit: (post: { title: string; description: string; category: string }) => void;
 }
 
 export const FeedbackSubmissionModal = ({ isOpen, onClose, onSubmit }: FeedbackSubmissionModalProps) => {
@@ -24,8 +24,7 @@ export const FeedbackSubmissionModal = ({ isOpen, onClose, onSubmit }: FeedbackS
       onSubmit({
         title,
         description,
-        category,
-        status: 'under-review'
+        category
       });
       setTitle('');
       setDescription('');
