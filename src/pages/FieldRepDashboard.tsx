@@ -295,6 +295,18 @@ const FieldRepDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-6">
+                      {/* Profile Edit Button */}
+                      <div className="pb-4 border-b">
+                        <Button 
+                          variant="outline" 
+                          className="w-full" 
+                          onClick={() => navigate('/fieldrep/profile')}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Edit Profile
+                        </Button>
+                      </div>
+
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Profile Completeness</span>
