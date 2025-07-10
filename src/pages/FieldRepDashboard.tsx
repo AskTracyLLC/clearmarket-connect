@@ -33,6 +33,8 @@ const FieldRepDashboard = () => {
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
   const [loadingOpportunities, setLoadingOpportunities] = useState<Set<number>>(new Set());
+  const [appliedOpportunities, setAppliedOpportunities] = useState<Map<number, Date>>(new Map());
+  const [nudgingOpportunities, setNudgingOpportunities] = useState<Set<number>>(new Set());
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -91,8 +93,12 @@ const FieldRepDashboard = () => {
   const handleApplyToOpportunity = async (opportunityId) => {
     setLoadingOpportunities(prev => new Set(prev).add(opportunityId));
     try {
-      // Simulate API call
+      // Simulate API call - applying is free for field reps
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mark as applied with current timestamp
+      setAppliedOpportunities(prev => new Map(prev).set(opportunityId, new Date()));
+      
       toast({
         title: "Application Submitted!",
         description: "The vendor will be notified of your interest.",
@@ -110,6 +116,52 @@ const FieldRepDashboard = () => {
         return newSet;
       });
     }
+  };
+
+  const handleNudgeOpportunity = async (opportunityId) => {
+    if (dashboardStats.creditBalance < 2) {
+      toast({
+        title: "Insufficient Credits",
+        description: "You need 2 credits to nudge this opportunity.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setNudgingOpportunities(prev => new Set(prev).add(opportunityId));
+    try {
+      // Simulate API call for nudging (costs 2 credits)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Nudge Sent!",
+        description: "Your continued interest has been sent to the vendor.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send nudge. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setNudgingOpportunities(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(opportunityId);
+        return newSet;
+      });
+    }
+  };
+
+  const canNudgeOpportunity = (opportunityId) => {
+    const appliedDate = appliedOpportunities.get(opportunityId);
+    if (!appliedDate) return false;
+    
+    const hoursSinceApplied = (new Date().getTime() - appliedDate.getTime()) / (1000 * 60 * 60);
+    return hoursSinceApplied >= 72; // 72 hours = 3 days
+  };
+
+  const formatAppliedDate = (date) => {
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleFilterOpportunities = () => {
@@ -522,18 +574,50 @@ const FieldRepDashboard = () => {
                             <p className="text-sm text-muted-foreground mb-3">
                               Seeking reliable field rep for property inspections and vendor coordination
                             </p>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 mb-2">
                               <Badge variant="secondary">Chicago</Badge>
                               <Badge variant="outline">$50/visit</Badge>
-                              <Badge variant="outline">2 credits required</Badge>
+                              <Badge variant="outline">Apply FREE</Badge>
                             </div>
+                            {appliedOpportunities.has(i) && (
+                              <p className="text-xs text-muted-foreground">
+                                Applied: {formatAppliedDate(appliedOpportunities.get(i))}
+                              </p>
+                            )}
                           </div>
-                          <Button 
-                            onClick={() => handleApplyToOpportunity(i)}
-                            disabled={loadingOpportunities.has(i) || dashboardStats.creditBalance < 2}
-                          >
-                            {loadingOpportunities.has(i) ? 'Applying...' : dashboardStats.creditBalance < 2 ? 'Need 2 Credits' : 'Apply'}
-                          </Button>
+                          <div className="flex flex-col gap-2">
+                            {!appliedOpportunities.has(i) ? (
+                              <Button 
+                                onClick={() => handleApplyToOpportunity(i)}
+                                disabled={loadingOpportunities.has(i)}
+                              >
+                                {loadingOpportunities.has(i) ? 'Applying...' : 'Apply (FREE)'}
+                              </Button>
+                            ) : (
+                              <>
+                                <div className="text-center">
+                                  <Badge variant="default" className="mb-2">
+                                    Applied - {formatAppliedDate(appliedOpportunities.get(i))}
+                                  </Badge>
+                                </div>
+                                {canNudgeOpportunity(i) && (
+                                  <Button 
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNudgeOpportunity(i)}
+                                    disabled={nudgingOpportunities.has(i) || dashboardStats.creditBalance < 2}
+                                  >
+                                    {nudgingOpportunities.has(i) 
+                                      ? 'Nudging...' 
+                                      : dashboardStats.creditBalance < 2 
+                                        ? 'Need 2 Credits' 
+                                        : 'Nudge (2 Credits)'
+                                    }
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
