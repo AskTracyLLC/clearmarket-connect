@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Users, 
   MapPin, 
@@ -22,17 +26,104 @@ import {
 const Index = () => {
   const [email, setEmail] = useState('');
   const [userType, setUserType] = useState('');
+  const [primaryState, setPrimaryState] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [companyWebsite, setCompanyWebsite] = useState('');
+  const [statesCovered, setStatesCovered] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [emailCount, setEmailCount] = useState(78); // Starting count
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailCount, setEmailCount] = useState(78);
+  const [states, setStates] = useState([]);
+  const { toast } = useToast();
 
-  const handleSubmit = (e) => {
+  // Load states on component mount
+  useEffect(() => {
+    const loadStates = async () => {
+      const { data } = await supabase
+        .from('states')
+        .select('code, name')
+        .order('name');
+      if (data) setStates(data);
+    };
+    loadStates();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email && userType) {
-      // Here you would integrate with your email collection service
-      console.log('Email submitted:', { email, userType });
-      setIsSubmitted(true);
-      setEmailCount(prev => prev + 1);
+    if (!email || !userType) return;
+
+    // Field rep validation
+    if (userType === 'field-rep' && !primaryState) {
+      toast({
+        title: "Missing Information",
+        description: "Please select your primary state.",
+        variant: "destructive"
+      });
+      return;
     }
+
+    // Vendor validation
+    if (userType === 'vendor' && !companyName) {
+      toast({
+        title: "Missing Information", 
+        description: "Please enter your company name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const signupData = {
+        email,
+        user_type: userType,
+        ...(userType === 'field-rep' && { primary_state: primaryState }),
+        ...(userType === 'vendor' && {
+          company_name: companyName,
+          company_website: companyWebsite || null,
+          states_covered: statesCovered
+        })
+      };
+
+      const { error } = await supabase
+        .from('pre_launch_signups')
+        .insert([signupData]);
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          toast({
+            title: "Email Already Registered",
+            description: "This email address is already on our waiting list.",
+            variant: "destructive"
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        setIsSubmitted(true);
+        setEmailCount(prev => prev + 1);
+        toast({
+          title: "Success!",
+          description: "You've been added to our launch notification list."
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isFormValid = () => {
+    if (!email || !userType) return false;
+    if (userType === 'field-rep' && !primaryState) return false;
+    if (userType === 'vendor' && !companyName) return false;
+    return true;
   };
 
   const features = [
@@ -135,6 +226,7 @@ const Index = () => {
               </h3>
               
               <div className="space-y-4">
+                {/* User Type Selection */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <Button
                     type="button"
@@ -163,22 +255,81 @@ const Index = () => {
                   </Button>
                 </div>
                 
-                <div className="flex space-x-3">
+                {/* Email Input */}
+                <div>
                   <Input
                     type="email"
                     placeholder="Enter your professional email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 p-3"
+                    className="p-3"
                     required
                   />
+                </div>
+
+                {/* Field Rep Specific Fields */}
+                {userType === 'field-rep' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="primary-state" className="text-sm font-medium">
+                        Primary State *
+                      </Label>
+                      <Select value={primaryState} onValueChange={setPrimaryState}>
+                        <SelectTrigger id="primary-state" className="mt-1">
+                          <SelectValue placeholder="Select your primary state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {states.map((state) => (
+                            <SelectItem key={state.code} value={state.code}>
+                              {state.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vendor Specific Fields */}
+                {userType === 'vendor' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="company-name" className="text-sm font-medium">
+                        Company Name *
+                      </Label>
+                      <Input
+                        id="company-name"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Enter your company name"
+                        className="mt-1 p-3"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="company-website" className="text-sm font-medium">
+                        Company Website <span className="text-muted-foreground">(Optional)</span>
+                      </Label>
+                      <Input
+                        id="company-website"
+                        value={companyWebsite}
+                        onChange={(e) => setCompanyWebsite(e.target.value)}
+                        placeholder="https://yourcompany.com"
+                        className="mt-1 p-3"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Submit Button */}
+                <div className="pt-4">
                   <Button 
                     onClick={handleSubmit}
-                    className="px-8 py-3"
-                    disabled={!email || !userType}
+                    className="w-full py-3"
+                    disabled={!isFormValid() || isLoading}
                   >
-                    Notify Me
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    {isLoading ? 'Adding you to the list...' : 'Notify Me When We Launch'}
+                    {!isLoading && <ArrowRight className="h-4 w-4 ml-2" />}
                   </Button>
                 </div>
               </div>

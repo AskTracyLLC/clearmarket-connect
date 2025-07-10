@@ -945,6 +945,42 @@ export type Database = {
           },
         ]
       }
+      pre_launch_signups: {
+        Row: {
+          company_name: string | null
+          company_website: string | null
+          created_at: string
+          email: string
+          id: string
+          primary_state: string | null
+          states_covered: string[] | null
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          company_name?: string | null
+          company_website?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          primary_state?: string | null
+          states_covered?: string[] | null
+          updated_at?: string
+          user_type: string
+        }
+        Update: {
+          company_name?: string | null
+          company_website?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          primary_state?: string | null
+          states_covered?: string[] | null
+          updated_at?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string | null
