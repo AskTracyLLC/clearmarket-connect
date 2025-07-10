@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Camera, X } from "lucide-react";
+import { sanitizeInput } from "@/utils/security";
 
 const postTypes = [
   "Coverage Needed",
@@ -99,12 +100,13 @@ const PostCreationModal = ({ onCreatePost, onClose }: PostCreationModalProps) =>
     if (linkError) return;
     
     if (postType && title.trim() && content.trim()) {
+      // SECURITY: Sanitize inputs before submission
       onCreatePost({
-        type: postType,
-        title: title.trim(),
-        content: content.trim(),
+        type: sanitizeInput(postType),
+        title: sanitizeInput(title.trim()),
+        content: sanitizeInput(content.trim()),
         isAnonymous,
-        systemTags,
+        systemTags: systemTags.map(tag => sanitizeInput(tag)),
         screenshots: screenshots.length > 0 ? screenshots : undefined
       });
       

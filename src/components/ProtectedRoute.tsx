@@ -10,10 +10,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requireEmailVerification = true }: ProtectedRouteProps) => {
   const { user, loading, isEmailVerified } = useAuth();
 
-  // Skip auth in development mode
-  if (import.meta.env.DEV) {
-    return <>{children}</>;
-  }
+  // SECURITY: Removed development mode bypass for proper authentication
 
   if (loading) {
     return (

@@ -41,7 +41,18 @@ export const useFeedbackAuth = () => {
     try {
       setIsLoading(true);
       
-      // Validate token and get session info
+      // SECURITY: Enhanced token validation with proper error handling
+      if (!token || token.length < 10) {
+        toast({
+          title: "Invalid Token",
+          description: "Please use a valid access link.",
+          variant: "destructive"
+        });
+        setUser(null);
+        return;
+      }
+      
+      // Validate token and get session info - temporarily using service role for validation
       const { data: session, error } = await supabase
         .from('feedback_sessions')
         .select('*')

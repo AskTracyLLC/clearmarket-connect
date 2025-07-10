@@ -1870,6 +1870,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_update_user_role: {
+        Args: {
+          target_user_id: string
+          new_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
       award_credits: {
         Args: {
           target_user_id: string
