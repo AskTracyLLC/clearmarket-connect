@@ -58,17 +58,23 @@ export const useFeedbackPosts = () => {
     }
   };
 
-  const createPost = async (newPost: { title: string; description: string; category: string }) => {
+  const createPost = async (newPost: { title: string; description: string; category: string }, feedbackUser?: any) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Check if we have a feedback user (token-based auth) or regular auth user
+      let author = 'Anonymous';
+      let userId = null;
       
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to submit feedback.",
-          variant: "destructive"
-        });
-        return false;
+      if (feedbackUser) {
+        // Use feedback user info
+        author = feedbackUser.anonymousUsername || feedbackUser.email || 'Anonymous';
+        userId = null; // For feedback posts, we don't need to link to auth.users
+      } else {
+        // Try regular Supabase auth as fallback
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          author = user.email || 'Anonymous';
+          userId = user.id;
+        }
       }
 
       const { error } = await supabase
@@ -77,8 +83,8 @@ export const useFeedbackPosts = () => {
           title: newPost.title,
           description: newPost.description,
           category: newPost.category,
-          author: user.email || 'Anonymous',
-          user_id: user.id
+          author: author,
+          user_id: userId
         });
 
       if (error) throw error;

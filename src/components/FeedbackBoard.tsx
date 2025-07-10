@@ -51,7 +51,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
   };
 
   const handleSubmitFeedback = async (newPost: { title: string; description: string; category: string }) => {
-    const success = await createPost(newPost);
+    const success = await createPost(newPost, currentUser);
     if (success) {
       setIsSubmissionModalOpen(false);
     }
