@@ -22,7 +22,8 @@ import {
   Award,
   ThumbsUp,
   UserCheck,
-  Coins
+  Coins,
+  User
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -187,7 +188,7 @@ const FieldRepDashboard = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setActiveTab('reviews')}>
               <CardContent className="p-4 text-center">
                 <Star className="h-6 w-6 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold">{dashboardStats.totalReviews}</div>
@@ -240,9 +241,9 @@ const FieldRepDashboard = () => {
                 <Megaphone className="h-4 w-4" />
                 <span className="hidden sm:inline">Opportunities</span>
               </TabsTrigger>
-              <TabsTrigger value="reviews" className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                <span className="hidden sm:inline">Reviews</span>
+              <TabsTrigger value="edit-profile" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Edit Profile</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -436,18 +437,6 @@ const FieldRepDashboard = () => {
               </div>
             </TabsContent>
 
-            {/* Edit Profile Button */}
-            <div className="flex justify-center py-4">
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => navigate('/fieldrep/profile')}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Edit Profile
-              </Button>
-            </div>
 
             <TabsContent value="network">
               <div className="grid md:grid-cols-2 gap-6">
@@ -547,6 +536,36 @@ const FieldRepDashboard = () => {
                   ))}
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="edit-profile">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Edit Your Profile</CardTitle>
+                  <CardDescription>
+                    Complete and update your Field Rep profile to attract more vendor connections
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="text-center py-8">
+                      <User className="h-12 w-12 mx-auto mb-4 text-primary" />
+                      <h3 className="text-lg font-semibold mb-2">Profile Completion: {dashboardStats.profileComplete}%</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Complete your profile to increase visibility and earn bonus credits
+                      </p>
+                      <Button 
+                        size="lg"
+                        onClick={() => navigate('/fieldrep/profile')}
+                        className="flex items-center gap-2"
+                      >
+                        <User className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="reviews">
