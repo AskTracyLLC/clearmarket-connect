@@ -1,5 +1,5 @@
 import Header from '@/components/Header';
-import { FeedbackBoard } from '@/components/FeedbackBoard';
+import { FeedbackBoardNew } from '@/components/FeedbackBoardNew';
 import Footer from '@/components/Footer';
 import { useFeedbackAuth } from '@/hooks/useFeedbackAuth';
 import { FeedbackSignInForm } from '@/components/FeedbackSignInForm';
@@ -96,7 +96,7 @@ const FeedbackPage = () => {
           </div>
         </div>
       </div>
-      <FeedbackBoard />
+      <FeedbackBoardNew />
       <Footer />
     </div>
   );
