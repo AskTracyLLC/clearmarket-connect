@@ -29,12 +29,12 @@ export const mockFeedbackPosts: FeedbackPost[] = [
     upvotes: 47,
     userHasUpvoted: false,
     userIsFollowing: false,
-    author: 'Sarah M.',
+    author: 'Vendor#3',
     createdAt: '2024-01-15',
     comments: [
       {
         id: '1',
-        author: 'John D.',
+        author: 'FieldRep#7',
         content: 'This would be amazing! My eyes would thank you.',
         createdAt: '2024-01-16'
       },
@@ -55,12 +55,12 @@ export const mockFeedbackPosts: FeedbackPost[] = [
     upvotes: 23,
     userHasUpvoted: true,
     userIsFollowing: true,
-    author: 'Mike R.',
+    author: 'FieldRep#1',
     createdAt: '2024-01-20',
     comments: [
       {
         id: '3',
-        author: 'Lisa K.',
+        author: 'Vendor#1',
         content: 'I\'m experiencing the same issue on my Android device.',
         createdAt: '2024-01-21'
       }
@@ -75,7 +75,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
     upvotes: 34,
     userHasUpvoted: false,
     userIsFollowing: false,
-    author: 'Alex T.',
+    author: 'Vendor#5',
     createdAt: '2024-01-10',
     comments: []
   },
@@ -88,7 +88,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
     upvotes: 18,
     userHasUpvoted: false,
     userIsFollowing: false,
-    author: 'Jennifer L.',
+    author: 'FieldRep#2',
     createdAt: '2024-01-05',
     comments: [
       {
@@ -108,7 +108,7 @@ export const mockFeedbackPosts: FeedbackPost[] = [
     upvotes: 12,
     userHasUpvoted: false,
     userIsFollowing: false,
-    author: 'David W.',
+    author: 'Vendor#2',
     createdAt: '2024-01-01',
     comments: [
       {

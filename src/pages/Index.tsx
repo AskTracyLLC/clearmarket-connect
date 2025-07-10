@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -30,6 +31,7 @@ const Index = () => {
   const [companyName, setCompanyName] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
   const [statesCovered, setStatesCovered] = useState([]);
+  const [joinFeedbackGroup, setJoinFeedbackGroup] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
@@ -75,9 +77,24 @@ const Index = () => {
     setIsLoading(true);
 
     try {
+      // Generate anonymous username if joining feedback group
+      let anonymousUsername = null;
+      if (joinFeedbackGroup) {
+        const { data: usernameData, error: usernameError } = await supabase
+          .rpc('generate_anonymous_username', { user_type_param: userType });
+        
+        if (usernameError) {
+          console.error('Error generating username:', usernameError);
+        } else {
+          anonymousUsername = usernameData;
+        }
+      }
+
       const signupData = {
         email,
         user_type: userType,
+        join_feedback_group: joinFeedbackGroup,
+        anonymous_username: anonymousUsername,
         ...(userType === 'field-rep' && { primary_state: primaryState }),
         ...(userType === 'vendor' && {
           company_name: companyName,
@@ -101,11 +118,31 @@ const Index = () => {
           throw error;
         }
       } else {
+        // Send feedback welcome email if user joined feedback group
+        if (joinFeedbackGroup && anonymousUsername) {
+          try {
+            await supabase.functions.invoke('send-feedback-welcome', {
+              body: { 
+                email,
+                anonymousUsername
+              }
+            });
+          } catch (emailError) {
+            console.error('Error sending feedback welcome email:', emailError);
+            // Don't fail the signup if email fails
+          }
+        }
+
         setIsSubmitted(true);
         setEmailCount(prev => prev + 1);
+        
+        const successMessage = joinFeedbackGroup 
+          ? "You've been added to our launch list and feedback group! Check your email for access instructions."
+          : "You've been added to our launch notification list.";
+          
         toast({
           title: "Success!",
-          description: "You've been added to our launch notification list."
+          description: successMessage
         });
       }
     } catch (error) {
@@ -321,6 +358,27 @@ const Index = () => {
                   </div>
                 )}
                 
+                {/* Feedback Group Checkbox */}
+                <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border">
+                  <Checkbox 
+                    id="feedback-group"
+                    checked={joinFeedbackGroup}
+                    onCheckedChange={(checked) => setJoinFeedbackGroup(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1">
+                    <Label 
+                      htmlFor="feedback-group" 
+                      className="text-sm font-medium cursor-pointer text-foreground"
+                    >
+                      I'd like to join the anonymous ClearMarket Feedback Group
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Help shape our features and get early access to our feedback community. Your identity will remain anonymous.
+                    </p>
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <div className="pt-4">
                   <Button 
@@ -631,12 +689,8 @@ const Index = () => {
           <Card className="bg-background text-foreground p-8">
             <h3 className="text-xl font-semibold mb-4">Want to Influence Development?</h3>
             <p className="text-muted-foreground mb-6">
-              Join our feedback group and help shape ClearMarket's features, pricing, and user experience.
+              Sign up above and check the feedback group option to help shape ClearMarket's features, pricing, and user experience.
             </p>
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
-              <Mail className="h-4 w-4 mr-2" />
-              Join Feedback Group
-            </Button>
           </Card>
         </div>
       </section>

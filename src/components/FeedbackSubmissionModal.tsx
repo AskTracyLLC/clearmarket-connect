@@ -10,28 +10,25 @@ import { FeedbackPost } from '@/data/mockFeedbackData';
 interface FeedbackSubmissionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (post: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => void;
+  onSubmit: (post: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments' | 'author'>) => void;
 }
 
 export const FeedbackSubmissionModal = ({ isOpen, onClose, onSubmit }: FeedbackSubmissionModalProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<'bug-report' | 'feature-request'>('feature-request');
-  const [author, setAuthor] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title && description && author) {
+    if (title && description) {
       onSubmit({
         title,
         description,
         category,
-        status: 'under-review',
-        author
+        status: 'under-review'
       });
       setTitle('');
       setDescription('');
-      setAuthor('');
       setCategory('feature-request');
       onClose();
     }
@@ -80,15 +77,10 @@ export const FeedbackSubmissionModal = ({ isOpen, onClose, onSubmit }: FeedbackS
             />
           </div>
 
-          <div>
-            <Label htmlFor="author">Your Name</Label>
-            <Input
-              id="author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder="How should we credit you?"
-              required
-            />
+          <div className="bg-muted/50 p-3 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Your feedback will be submitted anonymously. Posts are automatically attributed to your anonymous username to maintain privacy.
+            </p>
           </div>
 
           <div className="flex gap-2 pt-4">

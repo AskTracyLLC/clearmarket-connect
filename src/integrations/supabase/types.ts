@@ -778,6 +778,36 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_sessions: {
+        Row: {
+          access_token: string
+          anonymous_username: string
+          created_at: string
+          expires_at: string
+          id: string
+          last_accessed: string | null
+          user_email: string
+        }
+        Insert: {
+          access_token: string
+          anonymous_username: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_accessed?: string | null
+          user_email: string
+        }
+        Update: {
+          access_token?: string
+          anonymous_username?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string | null
+          user_email?: string
+        }
+        Relationships: []
+      }
       flags: {
         Row: {
           created_at: string | null
@@ -947,33 +977,45 @@ export type Database = {
       }
       pre_launch_signups: {
         Row: {
+          anonymous_username: string | null
           company_name: string | null
           company_website: string | null
           created_at: string
           email: string
+          feedback_access_token: string | null
+          feedback_token_expires_at: string | null
           id: string
+          join_feedback_group: boolean | null
           primary_state: string | null
           states_covered: string[] | null
           updated_at: string
           user_type: string
         }
         Insert: {
+          anonymous_username?: string | null
           company_name?: string | null
           company_website?: string | null
           created_at?: string
           email: string
+          feedback_access_token?: string | null
+          feedback_token_expires_at?: string | null
           id?: string
+          join_feedback_group?: boolean | null
           primary_state?: string | null
           states_covered?: string[] | null
           updated_at?: string
           user_type: string
         }
         Update: {
+          anonymous_username?: string | null
           company_name?: string | null
           company_website?: string | null
           created_at?: string
           email?: string
+          feedback_access_token?: string | null
+          feedback_token_expires_at?: string | null
           id?: string
+          join_feedback_group?: boolean | null
           primary_state?: string | null
           states_covered?: string[] | null
           updated_at?: string
@@ -1708,6 +1750,10 @@ export type Database = {
       ensure_admin_exists: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      generate_anonymous_username: {
+        Args: { user_type_param: string }
+        Returns: string
       }
       get_or_create_user_preferences: {
         Args: { target_user_id: string }

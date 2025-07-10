@@ -8,6 +8,16 @@ import { FeedbackPost, mockFeedbackPosts } from '@/data/mockFeedbackData';
 import { FeedbackSubmissionModal } from './FeedbackSubmissionModal';
 import { FeedbackDetailModal } from './FeedbackDetailModal';
 
+interface FeedbackUser {
+  email: string;
+  anonymousUsername: string;
+  accessToken: string;
+}
+
+interface FeedbackBoardProps {
+  currentUser?: FeedbackUser;
+}
+
 const statusColors = {
   'under-review': 'bg-yellow-100 text-yellow-800 border-yellow-200',
   'planned': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -21,7 +31,7 @@ const categoryLabels = {
   'feature-request': 'Feature Request'
 };
 
-export const FeedbackBoard = () => {
+export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
   const [posts, setPosts] = useState<FeedbackPost[]>(mockFeedbackPosts);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -48,10 +58,11 @@ export const FeedbackBoard = () => {
     ));
   };
 
-  const handleSubmitFeedback = (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => {
+  const handleSubmitFeedback = (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments' | 'author'>) => {
     const post: FeedbackPost = {
       ...newPost,
       id: Date.now().toString(),
+      author: currentUser?.anonymousUsername || 'Anonymous',
       upvotes: 0,
       userHasUpvoted: false,
       userIsFollowing: true,
@@ -77,10 +88,12 @@ export const FeedbackBoard = () => {
           <h1 className="text-3xl font-bold mb-2">Community Feedback</h1>
           <p className="text-muted-foreground">Help us improve ClearMarket by sharing your ideas and reporting issues</p>
         </div>
-        <Button onClick={() => setIsSubmissionModalOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Submit Feedback
-        </Button>
+        {currentUser && (
+          <Button onClick={() => setIsSubmissionModalOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Submit Feedback
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
