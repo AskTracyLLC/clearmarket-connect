@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ThumbsUp, MessageSquare, Bell, BellOff, Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useFeedbackPosts, FeedbackPost } from '@/hooks/useFeedbackPosts';
 import { FeedbackSubmissionModal } from './FeedbackSubmissionModal';
 import { FeedbackDetailModal } from './FeedbackDetailModal';
-import { useFeedbackPosts, FeedbackPost } from '@/hooks/useFeedbackPosts';
-
-interface FeedbackBoardProps {
-  currentUser?: any;
-}
 
 const statusColors = {
   'under-review': 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -26,36 +21,58 @@ const categoryLabels = {
   'feature-request': 'Feature Request'
 };
 
-export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
-  const { posts, loading, createPost } = useFeedbackPosts();
+export const FeedbackBoard = () => {
+  console.log('🚀 NEW FeedbackBoard component rendering');
+  
+  const { posts, loading, error, createPost } = useFeedbackPosts();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<FeedbackPost | null>(null);
-  const { toast } = useToast();
 
-  // Debug logging
-  console.log('FeedbackBoard render:', posts.length, 'posts');
+  console.log('📊 Posts data:', { count: posts.length, loading, error });
 
-  const handleUpvote = async (postId: string) => {
-    toast({
-      title: "Vote recorded",
-      description: "Thank you for your feedback!",
-    });
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-8">Community Feedback</h1>
+          <p>Loading feedback posts...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-8">Community Feedback</h1>
+          <p className="text-red-500">Error loading posts: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSubmitFeedback = async (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => {
+    console.log('📝 Submitting feedback:', newPost);
+    try {
+      const feedbackUser = { username: 'TestUser#1' }; // Mock user for now
+      await createPost(newPost, feedbackUser);
+      console.log('✅ Feedback submitted successfully');
+    } catch (error) {
+      console.error('❌ Error submitting feedback:', error);
+    }
+  };
+
+  const handleUpvote = (postId: string) => {
+    console.log('👍 Upvote clicked for post:', postId);
+    // TODO: Implement upvote functionality
   };
 
   const handleFollow = (postId: string) => {
-    toast({
-      title: "Notification settings updated",
-      description: "You'll be notified of updates to this post.",
-    });
-  };
-
-  const handleSubmitFeedback = async (newPost: { title: string; description: string; category: string }) => {
-    const success = await createPost(newPost, currentUser);
-    if (success) {
-      setIsSubmissionModalOpen(false);
-    }
+    console.log('🔔 Follow clicked for post:', postId);
+    // TODO: Implement follow functionality
   };
 
   const filteredAndSortedPosts = posts
@@ -66,17 +83,6 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -121,15 +127,17 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
       {/* Posts */}
       <div className="space-y-4">
         {filteredAndSortedPosts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No feedback posts yet</p>
-          </div>
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground text-lg">
+              {posts.length === 0 ? 'No feedback posts yet. Be the first to share your ideas!' : 'No posts match your current filters.'}
+            </p>
+          </Card>
         ) : (
           filteredAndSortedPosts.map((post) => (
-            <Card key={post.id} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1" onClick={() => setSelectedPost(post)}>
+            <Card key={post.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline" className={statusColors[post.status]}>
                         {post.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -138,16 +146,19 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
                         {categoryLabels[post.category]}
                       </Badge>
                     </div>
-                    <h3 className="text-lg font-semibold mb-1">{post.title}</h3>
-                    <p className="text-muted-foreground text-sm line-clamp-2">{post.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span>by {post.author}</span>
-                      <span>{post.createdAt}</span>
-                    </div>
+                    <h3 className="text-lg font-semibold mb-2 cursor-pointer hover:text-primary" 
+                        onClick={() => setSelectedPost(post)}>
+                      {post.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                      {post.description}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      by {post.author} • {post.createdAt}
+                    </p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
+                
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <Button
@@ -166,7 +177,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
                       className="gap-2"
                     >
                       <MessageSquare className="h-4 w-4" />
-                      0
+                      {post.comments?.length || 0}
                     </Button>
                   </div>
                   <Button
