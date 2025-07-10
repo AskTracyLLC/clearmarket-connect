@@ -177,21 +177,13 @@ const Index = () => {
       const signupData = {
         email,
         user_type: userType,
-        wants_progress_reports: wantsProgressReports,
-        agreed_to_analytics: agreedToAnalytics,
-        current_challenges: currentChallenges || null,
-        interested_features: interestedFeatures.length > 0 ? interestedFeatures : null,
         ...(userType === 'field-rep' && { 
-          primary_state: primaryState,
-          field_rep_name: fieldRepName,
-          work_types: workTypes.length > 0 ? workTypes : null,
-          experience_level: experienceLevel || null
+          primary_state: primaryState
         }),
         ...(userType === 'vendor' && {
           company_name: companyName,
           company_website: companyWebsite || null,
-          states_covered: statesCovered,
-          primary_service: primaryService || null
+          states_covered: statesCovered
         })
       };
 
