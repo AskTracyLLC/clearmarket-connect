@@ -10,6 +10,7 @@ import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
 import CreditExplainerModal from "@/components/CreditExplainerModal";
 import { fieldRepSchema, type FieldRepFormData, type CoverageArea } from "./types";
 import { PersonalInfo } from "./PersonalInfo";
+import { LocationInfo } from "./LocationInfo";
 import { DisplayIdentity } from "./DisplayIdentity";
 import { ContactVerification } from "./ContactVerification";
 import { BackgroundCheck } from "./BackgroundCheck";
@@ -40,6 +41,9 @@ const FieldRepProfile = () => {
       displayUsername: "",
       phone: "",
       email: "",
+      city: "",
+      state: "",
+      zipCode: "",
       aspenGroveId: "",
       platforms: [],
       otherPlatform: "",
@@ -124,6 +128,7 @@ const FieldRepProfile = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               
               <PersonalInfo form={form} />
+              <LocationInfo form={form} />
               <ContactVerification form={form} />
               <DisplayIdentity form={form} />
               <CoverageAreas 

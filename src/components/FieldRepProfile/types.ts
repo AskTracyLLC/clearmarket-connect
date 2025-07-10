@@ -7,6 +7,10 @@ export const fieldRepSchema = z.object({
   displayUsername: z.string().min(3, "Username must be at least 3 characters"),
   phone: z.string().regex(/^\(\d{3}\) \d{3}-\d{4}$/, "Please enter a valid phone number"),
   email: z.string().email("Please enter a valid email address"),
+  // Location fields
+  city: z.string().min(2, "City must be at least 2 characters"),
+  state: z.string().min(2, "Please select a state"),
+  zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"),
   aspenGroveId: z.string().optional(),
   aspenGroveExpiration: z.date().optional(),
   platforms: z.array(z.string()),
