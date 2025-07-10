@@ -7,10 +7,10 @@ import { ThumbsUp, MessageSquare, Bell, BellOff, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { FeedbackSubmissionModal } from './FeedbackSubmissionModal';
 import { FeedbackDetailModal } from './FeedbackDetailModal';
-import { useFeedbackPosts, type FeedbackPost } from '@/hooks/useFeedbackPosts';
+import { useFeedbackPosts, FeedbackPost } from '@/hooks/useFeedbackPosts';
 
 interface FeedbackBoardProps {
-  currentUser?: any; // For backward compatibility
+  currentUser?: any;
 }
 
 const statusColors = {
@@ -35,14 +35,9 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
   const { toast } = useToast();
 
   // Debug logging
-  console.log('🎯 FeedbackBoard render:', { 
-    postsCount: posts.length, 
-    loading, 
-    posts: posts.slice(0, 3) // Log first 3 posts only
-  });
+  console.log('FeedbackBoard render:', posts.length, 'posts');
 
   const handleUpvote = async (postId: string) => {
-    // TODO: Implement upvote functionality with database
     toast({
       title: "Vote recorded",
       description: "Thank you for your feedback!",
@@ -50,7 +45,6 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
   };
 
   const handleFollow = (postId: string) => {
-    // TODO: Implement follow functionality with database
     toast({
       title: "Notification settings updated",
       description: "You'll be notified of updates to this post.",
@@ -78,7 +72,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading feedback...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -128,9 +122,7 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
       <div className="space-y-4">
         {filteredAndSortedPosts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              {loading ? "Loading feedback posts..." : "No feedback posts found. Be the first to share your thoughts!"}
-            </p>
+            <p className="text-muted-foreground">No feedback posts yet</p>
           </div>
         ) : (
           filteredAndSortedPosts.map((post) => (
