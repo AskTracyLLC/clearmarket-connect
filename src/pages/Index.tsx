@@ -178,13 +178,29 @@ const Index = () => {
       // Generate anonymous username if joining feedback group
       let anonymousUsername = null;
       if (joinFeedbackGroup) {
-        const { data: usernameData, error: usernameError } = await supabase
-          .rpc('generate_anonymous_username', { user_type_param: userType });
-        
-        if (usernameError) {
-          console.error('Error generating username:', usernameError);
-        } else {
-          anonymousUsername = usernameData;
+        try {
+          const { data: usernameData, error: usernameError } = await supabase
+            .rpc('generate_anonymous_username', { user_type_param: userType });
+          
+          if (usernameError) {
+            console.error('Error generating username:', usernameError);
+            toast({
+              title: "Username Generation Failed",
+              description: "Could not generate anonymous username. Please try again.",
+              variant: "destructive"
+            });
+            return;
+          } else {
+            anonymousUsername = usernameData;
+          }
+        } catch (usernameErr) {
+          console.error('Username generation error:', usernameErr);
+          toast({
+            title: "Username Generation Failed", 
+            description: "Could not generate anonymous username. Please try again.",
+            variant: "destructive"
+          });
+          return;
         }
       }
 
