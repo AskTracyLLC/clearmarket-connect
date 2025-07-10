@@ -126,7 +126,7 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
         {selectedState && (
           <div className="space-y-2">
             <Label>County Selection</Label>
-            <div className="border border-border rounded-lg p-3 max-h-60 overflow-y-auto">
+            <div className="border border-border rounded-lg p-3 max-h-96 overflow-y-auto">
               {/* Select All Counties - Always First */}
               <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-border">
                 <Checkbox
