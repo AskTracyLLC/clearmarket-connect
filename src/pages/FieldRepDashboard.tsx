@@ -32,7 +32,7 @@ const FieldRepDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingOpportunities, setLoadingOpportunities] = useState<Set<number>>(new Set());
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -89,7 +89,7 @@ const FieldRepDashboard = () => {
   };
 
   const handleApplyToOpportunity = async (opportunityId) => {
-    setIsLoading(true);
+    setLoadingOpportunities(prev => new Set(prev).add(opportunityId));
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -104,7 +104,11 @@ const FieldRepDashboard = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setLoadingOpportunities(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(opportunityId);
+        return newSet;
+      });
     }
   };
 
@@ -526,9 +530,9 @@ const FieldRepDashboard = () => {
                           </div>
                           <Button 
                             onClick={() => handleApplyToOpportunity(i)}
-                            disabled={isLoading || dashboardStats.creditBalance < 2}
+                            disabled={loadingOpportunities.has(i) || dashboardStats.creditBalance < 2}
                           >
-                            {isLoading ? 'Applying...' : dashboardStats.creditBalance < 2 ? 'Need 2 Credits' : 'Apply'}
+                            {loadingOpportunities.has(i) ? 'Applying...' : dashboardStats.creditBalance < 2 ? 'Need 2 Credits' : 'Apply'}
                           </Button>
                         </div>
                       </CardContent>
