@@ -1,3 +1,5 @@
+console.log('🚨 FEEDBACK BOARD NEW FILE IS LOADING');
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +24,7 @@ const categoryLabels = {
 };
 
 export const FeedbackBoardNew = () => {
-  console.log('🚀 NEW FeedbackBoard component rendering');
+  console.log('🔥 Component starting...');
   
   const { posts, loading, createPost } = useFeedbackPosts();
   const [statusFilter, setStatusFilter] = useState<string>('all');
