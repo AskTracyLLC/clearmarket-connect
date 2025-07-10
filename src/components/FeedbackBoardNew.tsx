@@ -48,7 +48,7 @@ export const FeedbackBoardNew = () => {
   const handleSubmitFeedback = async (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => {
     console.log('📝 Submitting feedback:', newPost);
     try {
-      feedbackUser.anonymousUsername || feedbackUser.email  // ✅ Correct properties
+      const { user: feedbackUser } = useFeedbackAuth(); // Use real authenticated user
       await createPost(newPost, feedbackUser);
       console.log('✅ Feedback submitted successfully');
     } catch (error) {
