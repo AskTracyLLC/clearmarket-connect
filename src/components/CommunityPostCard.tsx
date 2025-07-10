@@ -112,54 +112,33 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
 
   return (
     <Card 
-      className={`group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer border-l-4 ${
-        post.type === 'question' ? 'border-l-blue-500' : 
-        post.type === 'vendor-alert' ? 'border-l-orange-500' : 
-        post.type === 'field-update' ? 'border-l-green-500' : 
-        'border-l-gray-300'
-      } ${post.isFlagged ? 'opacity-50 bg-muted/30' : ''}`}
+      className={`hover:shadow-lg transition-all duration-300 cursor-pointer ${
+        post.isFlagged ? 'opacity-50 bg-muted/30' : ''
+      }`}
       onClick={onClick}
     >
-      <CardContent className="p-6">
-        {/* Add subtle background pattern for trending posts */}
-        {post.isTrending && (
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-50 to-transparent opacity-50 rounded-lg pointer-events-none" />
-        )}
-        
-        <div className="space-y-4 relative">
+      <CardContent className="p-4">
+        <div className="space-y-3">
           {/* Header */}
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  post.type === 'question' ? 'bg-blue-100' : 
-                  post.type === 'vendor-alert' ? 'bg-orange-100' : 
-                  'bg-green-100'
-                }`}>
-                  <span className="font-semibold text-sm">
-                    {post.isAnonymous ? "?" : post.authorInitials}
-                  </span>
-                </div>
-                {/* Online status indicator */}
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full" />
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="font-semibold text-primary text-sm">
+                  {post.isAnonymous ? "?" : post.authorInitials}
+                </span>
               </div>
               
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <Badge 
-                    variant="outline" 
-                    className={`${getPostTypeColor(post.type)} font-medium`}
-                  >
-                    {post.type.replace('-', ' ').toUpperCase()}
+              <div className="flex flex-col min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline" className={getPostTypeColor(post.type)}>
+                    {post.type}
                   </Badge>
-                  
                   {post.isTrending && (
-                    <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse">
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                       <Flame className="h-3 w-3 mr-1" />
-                      HOT
+                      Trending
                     </Badge>
                   )}
-                  
                   {post.isFollowed && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                       Following
@@ -182,20 +161,19 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
                     </Badge>
                   )}
                 </div>
-                
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{formatDistanceToNow(post.timePosted, { addSuffix: true })}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(post.timePosted, { addSuffix: true })}
+                  </span>
                   {post.communityScore && (
-                    <>
-                      <span>•</span>
-                      <span className="font-medium">Trust Score: {post.communityScore}</span>
-                    </>
+                    <span className="text-xs text-muted-foreground">
+                      • Score: {post.communityScore}
+                    </span>
                   )}
                 </div>
-                
                 {/* User Badges */}
                 {post.authorBadges && post.authorBadges.length > 0 && !post.isAnonymous && (
-                  <div className="flex gap-1 mt-1">
+                  <div className="flex gap-1 mt-1 flex-wrap">
                     {post.authorBadges.map((badge, index) => (
                       <UserBadge key={index} badge={badge} size="sm" />
                     ))}
@@ -206,11 +184,11 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
           </div>
 
           {/* Content */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-foreground line-clamp-2 text-lg">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-foreground break-words">
               {post.title}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+            <p className="text-sm text-muted-foreground break-words">
               {post.content}
             </p>
             
@@ -227,7 +205,7 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
             
             {/* Screenshots Preview */}
             {post.screenshots && post.screenshots.length > 0 && (
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
                 <Camera className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">
                   {post.screenshots.length} screenshot{post.screenshots.length !== 1 ? 's' : ''}
@@ -238,7 +216,7 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
                       key={index}
                       src={screenshot}
                       alt={`Screenshot ${index + 1}`}
-                      className="w-8 h-8 object-cover rounded border hover:scale-110 transition-transform cursor-pointer"
+                      className="w-8 h-8 object-cover rounded border"
                     />
                   ))}
                 </div>
@@ -246,9 +224,9 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
             )}
           </div>
 
-          {/* Enhanced Interaction buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/50">
-            <div className="flex items-center gap-2">
+          {/* Interaction buttons - Mobile responsive */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 border-t gap-3">
+            <div className="flex items-center gap-1 flex-wrap">
               <HelpfulVoteButton
                 targetId={post.id.toString()}
                 targetType="post"
@@ -256,82 +234,70 @@ const CommunityPostCard = ({ post, onClick, onVote, onFlag, onFollow, onSave }: 
                 onVoteChange={(newCount) => {
                   post.helpfulVotes = newCount;
                 }}
-                className="h-9"
+                className="h-8"
               />
               
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-9 gap-2 transition-all duration-200 hover:scale-105 ${
-                  isVoting ? 'opacity-50' : ''
-                }`}
+                className="h-8 gap-1"
                 disabled={isVoting}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleVote('not-helpful');
                 }}
               >
-                <ThumbsDown className="h-4 w-4" />
-                <span className="text-sm font-medium">Not Helpful</span>
-                <Badge variant="secondary" className="ml-1 h-5 px-2 text-xs">
-                  {post.notHelpfulVotes}
-                </Badge>
+                <ThumbsDown className="h-3 w-3" />
+                <span className="text-xs">{post.notHelpfulVotes}</span>
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-9 gap-2 transition-all duration-200 hover:scale-105 ${
-                  isFlagging ? 'opacity-50' : ''
-                }`}
+                className="h-8 gap-1"
                 disabled={isFlagging}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleFlag();
                 }}
               >
-                <Flag className="h-4 w-4" />
-                <span className="text-sm font-medium">Flag</span>
+                <Flag className="h-3 w-3" />
+                <span className="text-xs">Flag</span>
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-9 gap-2 transition-all duration-200 hover:scale-105 ${
-                  post.isFollowed ? 'bg-primary/10 text-primary border-primary/20' : ''
-                } ${isFollowing ? 'opacity-50' : ''}`}
+                className="h-8 gap-1"
                 disabled={isFollowing}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleFollow();
                 }}
               >
-                <Star className={`h-4 w-4 ${post.isFollowed ? 'fill-current' : ''}`} />
-                <span className="text-sm font-medium">Follow</span>
+                <Star className={`h-3 w-3 ${post.isFollowed ? 'fill-current' : ''}`} />
+                <span className="text-xs">Follow</span>
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-9 gap-2 transition-all duration-200 hover:scale-105 ${
-                  post.isSaved ? 'bg-primary/10 text-primary border-primary/20' : ''
-                } ${isSaving ? 'opacity-50' : ''}`}
+                className="h-8 gap-1"
                 disabled={isSaving}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSave();
                 }}
               >
-                <Bookmark className={`h-4 w-4 ${post.isSaved ? 'fill-current' : ''}`} />
-                <span className="text-sm font-medium">Save</span>
+                <Bookmark className={`h-3 w-3 ${post.isSaved ? 'fill-current' : ''}`} />
+                <span className="text-xs">Save</span>
               </Button>
             </div>
 
             {post.replies.length > 0 && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span className="font-medium">{post.replies.length}</span>
-                <span>{post.replies.length === 1 ? 'reply' : 'replies'}</span>
-              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {post.replies.length} {post.replies.length === 1 ? 'reply' : 'replies'}
+              </span>
             )}
           </div>
         </div>
