@@ -92,3 +92,20 @@ export const parseCSV = (csvText: string): ParsedData => {
 
   return { valid, errors };
 };
+
+export const filterData = (
+  data: ZipCountyClassification[],
+  searchZip: string,
+  searchCounty: string,
+  filterState: string,
+  filterRuralUrban: string
+): ZipCountyClassification[] => {
+  return data.filter(item => {
+    const matchesZip = !searchZip || item.zip_code.includes(searchZip);
+    const matchesCounty = !searchCounty || item.county_name.toLowerCase().includes(searchCounty.toLowerCase());
+    const matchesState = !filterState || item.state === filterState;
+    const matchesRuralUrban = !filterRuralUrban || item.rural_urban_designation === filterRuralUrban;
+    
+    return matchesZip && matchesCounty && matchesState && matchesRuralUrban;
+  });
+};
