@@ -96,7 +96,7 @@ const FeedbackPage = () => {
           </div>
         </div>
       </div>
-      <FeedbackBoard currentUser={user} />
+      <FeedbackBoard />
       <Footer />
     </div>
   );
