@@ -3,12 +3,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Plus, Search, ArrowLeft, Zoom, Loader } from 'lucide-react';
+import { MapPin, Plus, Search, ArrowLeft, ZoomIn, Loader } from 'lucide-react';
 import { useStates } from '@/hooks/useLocationData';
 import { useRealCoverageData } from '@/hooks/useRealCoverageData';
 import { useAuth } from '@/contexts/AuthContext';
 import USMap from './USMap';
 import DatabaseStateCountyMap from '../DatabaseStateCountyMap';
+
+// TypeScript interfaces
+interface StateData {
+  name: string;
+  repCount: number;
+}
+
+interface CoverageSummary {
+  states_with_coverage: number;
+  total_field_reps: number;
+  total_counties: number;
+  states_needing_coverage: number;
+}
 
 const VendorCoverageMap = () => {
   const { states } = useStates();
@@ -22,7 +35,12 @@ const VendorCoverageMap = () => {
     coverageSummary,
     loading,
     error,
-  } = useRealCoverageData(user?.id);
+  } = useRealCoverageData(user?.id) as {
+    statesWithCoverage: Record<string, StateData>;
+    coverageSummary: CoverageSummary | null;
+    loading: boolean;
+    error: string | null;
+  };
 
   const handleStateSelect = (stateCode: string) => {
     setSelectedState(stateCode);
@@ -254,7 +272,7 @@ const VendorCoverageMap = () => {
                       <CardTitle className="text-lg flex items-center justify-between">
                         {states?.find(s => s.code === selectedState)?.name} Coverage
                         <Button variant="outline" size="sm" onClick={() => handleStateSelect(selectedState)}>
-                          <Zoom className="h-4 w-4 mr-2" />
+                          <ZoomIn className="h-4 w-4 mr-2" />
                           View County Map
                         </Button>
                       </CardTitle>
@@ -266,7 +284,7 @@ const VendorCoverageMap = () => {
                           with real county data from your database.
                         </p>
                         <Button className="w-full" onClick={() => handleStateSelect(selectedState)}>
-                          <Zoom className="h-4 w-4 mr-2" />
+                          <ZoomIn className="h-4 w-4 mr-2" />
                           View All Counties in {states?.find(s => s.code === selectedState)?.name}
                         </Button>
                       </div>
