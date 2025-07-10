@@ -46,7 +46,7 @@ serve(async (req) => {
 
     // Generate invitation token
     const invitationToken = crypto.randomUUID();
-    const invitationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('https://', 'https://34544cc9-f36f-4fa8-8a05-17348470ccfc.lovableproject.com')}/auth?invitation=${invitationToken}`;
+    const invitationUrl = `https://useclearmarket.io/auth?invitation=${invitationToken}`;
 
     // Store invitation in database
     const { error: inviteError } = await supabaseService
