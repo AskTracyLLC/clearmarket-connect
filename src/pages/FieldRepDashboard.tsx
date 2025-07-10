@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import CreditExplainerModal from '@/components/CreditExplainerModal';
 import SendFieldRepNetworkAlert from '@/components/FieldRepDashboard/SendFieldRepNetworkAlert';
 import { 
@@ -17,7 +18,11 @@ import {
   TrendingUp,
   MessageSquare,
   Calendar,
-  Settings
+  Settings,
+  Award,
+  ThumbsUp,
+  UserCheck,
+  Coins
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -37,8 +42,34 @@ const FieldRepDashboard = () => {
     totalReviews: 15,
     creditBalance: 12,
     profileComplete: 85,
-    trustScore: 75
+    trustScore: 75,          // Based on vendor reviews
+    communityScore: 68,      // Based on peer engagement
+    helpfulPosts: 23,
+    communityRank: 'Bronze',
+    monthlyHelpfulVotes: 3,  // For monthly challenge tracking
+    monthlyTarget: 5,        // Monthly challenge target
+    responseRate: 89,        // For professional excellence tracking
+    streakWeeks: 2          // Weekly response streak
   };
+
+  // Credit earning activities with completion tracking
+  const creditActivities = [
+    { action: 'Complete profile (100%)', credits: 5, completed: dashboardStats.profileComplete === 100 },
+    { action: 'First vendor review', credits: 10, completed: dashboardStats.totalReviews > 0 },
+    { action: 'Help community member', credits: 2, completed: false },
+    { action: 'Post helpful content', credits: 3, completed: false },
+    { action: 'Reach 80+ Trust Score', credits: 15, completed: dashboardStats.trustScore >= 80 },
+    { action: 'Monthly active member (5+ votes)', credits: 5, completed: dashboardStats.monthlyHelpfulVotes >= 5 },
+    { action: 'Reach Bronze rank', credits: 5, completed: dashboardStats.communityRank === 'Bronze' }
+  ];
+
+  // Community engagement metrics
+  const communityMetrics = [
+    { label: 'Helpful Votes Received', value: 47, icon: ThumbsUp },
+    { label: 'Community Posts', value: 12, icon: MessageSquare },
+    { label: 'Peer Endorsements', value: 8, icon: UserCheck },
+    { label: 'Knowledge Sharing', value: 15, icon: Award }
+  ];
 
   // Handler functions for button interactions
   const handleViewAnalytics = () => {
@@ -85,6 +116,33 @@ const FieldRepDashboard = () => {
 
   const handleNetworkAlert = () => {
     setNetworkAlertOpen(true);
+  };
+
+  const handleEarnCredits = () => {
+    navigate('/community');
+    toast({
+      title: "Start Earning Credits!",
+      description: "Engage with the community to boost your score and earn credits.",
+    });
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-orange-600';
+  };
+
+  const getScoreLabel = (score) => {
+    if (score >= 80) return 'Excellent';
+    if (score >= 60) return 'Good';
+    if (score >= 40) return 'Fair';
+    return 'Needs Improvement';
+  };
+
+  const getCommunityRankInfo = (score) => {
+    if (score >= 80) return { next: 'Gold', credits: 20, current: 'Silver' };
+    if (score >= 60) return { next: 'Silver', credits: 10, current: 'Bronze' };
+    return { next: 'Bronze', credits: 5, current: 'Unranked' };
   };
 
   return (
@@ -162,7 +220,7 @@ const FieldRepDashboard = () => {
                   Trust Score
                 </Badge>
                 <div className="text-2xl font-bold">{dashboardStats.trustScore}</div>
-                <div className="text-xs text-muted-foreground">Trust Rating</div>
+                <div className="text-xs text-muted-foreground">Vendor Reviews</div>
               </CardContent>
             </Card>
           </div>
@@ -232,42 +290,146 @@ const FieldRepDashboard = () => {
                   <CardHeader>
                     <CardTitle>Performance Metrics</CardTitle>
                     <CardDescription>
-                      Track your growth and engagement
+                      Track your professional growth and community engagement
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Profile Completeness</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-2 bg-muted rounded-full">
-                            <div 
-                              className="h-full bg-primary rounded-full" 
-                              style={{ width: `${dashboardStats.profileComplete}%` }}
-                            />
-                          </div>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Profile Completeness</span>
                           <span className="text-sm font-medium">{dashboardStats.profileComplete}%</span>
                         </div>
+                        <Progress value={dashboardStats.profileComplete} className="h-2" />
+                        <p className="text-xs text-muted-foreground">
+                          {dashboardStats.profileComplete === 100 ? 
+                            "Complete! +5 credit bonus earned" : 
+                            "Complete for +5 credit bonus"
+                          }
+                        </p>
                       </div>
                       
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Trust Score</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 h-2 bg-muted rounded-full">
-                            <div 
-                              className="h-full bg-primary rounded-full" 
-                              style={{ width: `${dashboardStats.trustScore}%` }}
-                            />
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Trust Score</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${getScoreColor(dashboardStats.trustScore)}`}>
+                              {dashboardStats.trustScore}/100
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {getScoreLabel(dashboardStats.trustScore)}
+                            </Badge>
                           </div>
-                          <span className="text-sm font-medium">{dashboardStats.trustScore}/100</span>
                         </div>
+                        <Progress value={dashboardStats.trustScore} className="h-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Based on vendor reviews • {dashboardStats.trustScore >= 80 ? 
+                            "Milestone achieved! +15 credits earned" : 
+                            `${80 - dashboardStats.trustScore} points to +15 credit milestone`
+                          }
+                        </p>
                       </div>
 
-                      <div className="pt-4 border-t">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Community Score</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${getScoreColor(dashboardStats.communityScore)}`}>
+                              {dashboardStats.communityScore}/100
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {dashboardStats.communityRank}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Progress value={dashboardStats.communityScore} className="h-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Based on peer engagement • Next rank: {getCommunityRankInfo(dashboardStats.communityScore).next} (+{getCommunityRankInfo(dashboardStats.communityScore).credits} credits)
+                        </p>
+                      </div>
+
+                      {/* Monthly Challenge Progress */}
+                      <div className="space-y-2 pt-2 border-t">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Monthly Challenge</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {dashboardStats.monthlyHelpfulVotes}/{dashboardStats.monthlyTarget} helpful votes
+                          </Badge>
+                        </div>
+                        <Progress value={(dashboardStats.monthlyHelpfulVotes / dashboardStats.monthlyTarget) * 100} className="h-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Give {dashboardStats.monthlyTarget - dashboardStats.monthlyHelpfulVotes} more helpful votes this month for +5 credit bonus
+                        </p>
+                      </div>
+
+                      <div className="pt-4 border-t space-y-2">
                         <Button variant="outline" className="w-full" onClick={handleViewAnalytics}>
                           View Detailed Analytics
                         </Button>
+                        <Button className="w-full" onClick={handleEarnCredits}>
+                          <Coins className="h-4 w-4 mr-2" />
+                          Earn More Credits
+                        </Button>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Community Engagement Metrics */}
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Community Engagement</CardTitle>
+                    <CardDescription>
+                      Your contributions to the Field Rep community
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-4 gap-4">
+                      {communityMetrics.map((metric, index) => {
+                        const Icon = metric.icon;
+                        return (
+                          <div key={index} className="text-center p-4 rounded-lg bg-muted/30">
+                            <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                            <div className="text-2xl font-bold">{metric.value}</div>
+                            <div className="text-xs text-muted-foreground">{metric.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Credit Earning Opportunities */}
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Earn Credits</CardTitle>
+                    <CardDescription>
+                      Complete these activities to earn credits and unlock premium features
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {creditActivities.map((activity, index) => (
+                        <div key={index} className={`flex items-center justify-between p-3 rounded-lg border ${
+                          activity.completed ? 'bg-green-50 border-green-200' : 'bg-muted/30'
+                        }`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              activity.completed ? 'bg-green-500 text-white' : 'bg-muted'
+                            }`}>
+                              {activity.completed ? '✓' : '○'}
+                            </div>
+                            <span className="font-medium">{activity.action}</span>
+                          </div>
+                          <Badge variant={activity.completed ? "default" : "secondary"}>
+                            +{activity.credits} credits
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -320,7 +482,11 @@ const FieldRepDashboard = () => {
                       </div>
                       <div className="flex justify-between">
                         <span>Response Rate</span>
-                        <span className="font-semibold">89%</span>
+                        <span className="font-semibold">{dashboardStats.responseRate}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Weekly Streak</span>
+                        <span className="font-semibold">{dashboardStats.streakWeeks} weeks</span>
                       </div>
                       <Button className="w-full" onClick={handleFindVendors}>
                         Find New Vendors
@@ -353,13 +519,14 @@ const FieldRepDashboard = () => {
                             <div className="flex gap-2">
                               <Badge variant="secondary">Chicago</Badge>
                               <Badge variant="outline">$50/visit</Badge>
+                              <Badge variant="outline">2 credits required</Badge>
                             </div>
                           </div>
                           <Button 
                             onClick={() => handleApplyToOpportunity(i)}
-                            disabled={isLoading}
+                            disabled={isLoading || dashboardStats.creditBalance < 2}
                           >
-                            {isLoading ? 'Applying...' : 'Apply'}
+                            {isLoading ? 'Applying...' : dashboardStats.creditBalance < 2 ? 'Need 2 Credits' : 'Apply'}
                           </Button>
                         </div>
                       </CardContent>
