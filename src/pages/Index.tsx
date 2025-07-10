@@ -1023,7 +1023,12 @@ const Index = () => {
             </p>
             <p className="text-sm text-muted-foreground">
               © 2025 ClearMarket. All rights reserved. | 
-              <a href="mailto:hello@useclearmarket.io" className="text-primary hover:underline ml-1">
+              <a 
+                href="mailto:hello@useclearmarket.io" 
+                className="text-primary hover:underline ml-1"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 hello@useclearmarket.io
               </a>
             </p>
