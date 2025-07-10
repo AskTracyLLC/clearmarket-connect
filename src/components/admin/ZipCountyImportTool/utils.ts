@@ -60,9 +60,9 @@ export const parseCSV = (csvText: string): ParsedData => {
       rowErrors.push("County name is required");
     }
 
-    // Validate rural/urban designation
+    // FIXED: Complete the rural/urban validation
     if (!ruralUrban || !["Rural", "Urban"].includes(ruralUrban)) {
-      rowErrors.push("Rural/Urban designation must be 'Rural' or 'Urban'");
+      rowErrors.push("Rural/Urban designation must be either 'Rural' or 'Urban'");
     }
 
     if (rowErrors.length > 0) {
@@ -78,36 +78,4 @@ export const parseCSV = (csvText: string): ParsedData => {
   }
 
   return { valid, errors };
-};
-
-export const filterData = (
-  data: ZipCountyClassification[],
-  searchZip: string,
-  searchCounty: string,
-  filterState: string,
-  filterRuralUrban: string
-): ZipCountyClassification[] => {
-  let filtered = [...data];
-
-  if (searchZip) {
-    filtered = filtered.filter(item => 
-      item.zip_code.includes(searchZip)
-    );
-  }
-
-  if (searchCounty) {
-    filtered = filtered.filter(item => 
-      item.county_name.toLowerCase().includes(searchCounty.toLowerCase())
-    );
-  }
-
-  if (filterState && filterState !== "all") {
-    filtered = filtered.filter(item => item.state === filterState);
-  }
-
-  if (filterRuralUrban && filterRuralUrban !== "all") {
-    filtered = filtered.filter(item => item.rural_urban_designation === filterRuralUrban);
-  }
-
-  return filtered;
 };
