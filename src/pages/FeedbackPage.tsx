@@ -21,62 +21,63 @@ const FeedbackPage = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-16 max-w-2xl">
-          <Card className="text-center">
-            <CardHeader>
-              <div className="mx-auto mb-4 w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                <Shield className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <CardTitle className="text-2xl mb-2">Feedback Group Access Required</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                This is a private feedback community for ClearMarket members. Access is restricted to prevent spam and maintain quality discussions.
-              </p>
-              
-              <div className="bg-muted/50 p-4 rounded-lg text-left">
-                <h3 className="font-semibold text-sm text-foreground mb-2">How to get access:</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <span className="text-primary">1.</span>
-                    <span>Sign up for ClearMarket launch notifications on our homepage</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-primary">2.</span>
-                    <span>Check the "Join Feedback Group" option during signup</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-primary">3.</span>
-                    <span>Check your email for a secure access link</span>
-                  </div>
-                </div>
-              </div>
+  // Temporarily bypass auth check for testing
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen bg-background">
+  //       <Header />
+  //       <div className="container mx-auto px-4 py-16 max-w-2xl">
+  //         <Card className="text-center">
+  //           <CardHeader>
+  //             <div className="mx-auto mb-4 w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+  //               <Shield className="h-6 w-6 text-muted-foreground" />
+  //             </div>
+  //             <CardTitle className="text-2xl mb-2">Feedback Group Access Required</CardTitle>
+  //           </CardHeader>
+  //           <CardContent className="space-y-4">
+  //             <p className="text-muted-foreground">
+  //               This is a private feedback community for ClearMarket members. Access is restricted to prevent spam and maintain quality discussions.
+  //             </p>
+  //             
+  //             <div className="bg-muted/50 p-4 rounded-lg text-left">
+  //               <h3 className="font-semibold text-sm text-foreground mb-2">How to get access:</h3>
+  //               <div className="space-y-2 text-sm text-muted-foreground">
+  //                 <div className="flex items-start gap-2">
+  //                   <span className="text-primary">1.</span>
+  //                   <span>Sign up for ClearMarket launch notifications on our homepage</span>
+  //                 </div>
+  //                 <div className="flex items-start gap-2">
+  //                   <span className="text-primary">2.</span>
+  //                   <span>Check the "Join Feedback Group" option during signup</span>
+  //                 </div>
+  //                 <div className="flex items-start gap-2">
+  //                   <span className="text-primary">3.</span>
+  //                   <span>Check your email for a secure access link</span>
+  //                 </div>
+  //               </div>
+  //             </div>
 
-              <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <span>Access links expire after 24 hours for security</span>
-              </div>
+  //             <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+  //               <AlertCircle className="h-4 w-4 flex-shrink-0" />
+  //               <span>Access links expire after 24 hours for security</span>
+  //             </div>
 
-              <FeedbackSignInForm />
+  //             <FeedbackSignInForm />
 
-              <div className="text-center text-sm text-muted-foreground">
-                Don't have access yet?
-              </div>
+  //             <div className="text-center text-sm text-muted-foreground">
+  //               Don't have access yet?
+  //             </div>
 
-              <Button variant="outline" className="w-full" onClick={() => window.location.href = '/'}>
-                Sign Up for Access
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  //             <Button variant="outline" className="w-full" onClick={() => window.location.href = '/'}>
+  //               Sign Up for Access
+  //             </Button>
+  //           </CardContent>
+  //         </Card>
+  //       </div>
+  //       <Footer />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-background">
