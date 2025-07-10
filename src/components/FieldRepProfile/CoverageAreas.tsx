@@ -142,6 +142,13 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     // Mock user data - in real app this would come from auth context
     const fieldRepName = "John Smith"; // This should come from user profile/auth
     
+    // Get today's date in MMDDYY format
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const year = String(today.getFullYear()).slice(-2);
+    const dateString = `${month}${day}${year}`;
+    
     const headers = [
       "Field Rep Name",
       "State",
@@ -172,7 +179,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     const url = URL.createObjectURL(blob);
     
     link.setAttribute("href", url);
-    link.setAttribute("download", `${fieldRepName.replace(/\s+/g, '_')}_Coverage_Areas.csv`);
+    link.setAttribute("download", `${fieldRepName.replace(/\s+/g, '_')}_Coverage_Areas_asof${dateString}.csv`);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);
