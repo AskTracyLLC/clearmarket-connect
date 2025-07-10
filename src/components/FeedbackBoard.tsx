@@ -70,42 +70,26 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('community_posts')
-        .select(`
-          id,
-          content,
-          created_at,
-          helpful_votes,
-          flagged,
-          users:user_id (
-            display_name
-          )
-        `)
+        .from('feedback_posts')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Transform database posts to feedback format
-      const transformedPosts: FeedbackPost[] = (data || []).map((post: DatabasePost) => {
-        // Extract title and description from content
-        const lines = post.content.split('\n');
-        const title = lines[0] || 'Untitled';
-        const description = lines.slice(1).join('\n') || post.content;
-
-        return {
-          id: post.id,
-          title,
-          description,
-          category: 'feature-request', // Default category
-          status: 'under-review', // Default status
-          upvotes: post.helpful_votes || 0,
-          userHasUpvoted: false, // We'll implement this later
-          userIsFollowing: false, // We'll implement this later
-          author: post.users?.display_name || currentUser?.anonymousUsername || 'Anonymous',
-          createdAt: new Date(post.created_at).toISOString().split('T')[0],
-          comments: []
-        };
-      });
+      const transformedPosts: FeedbackPost[] = (data || []).map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        category: post.category as 'bug-report' | 'feature-request',
+        status: post.status as 'under-review' | 'planned' | 'in-progress' | 'completed' | 'closed',
+        upvotes: post.helpful_votes || 0,
+        userHasUpvoted: false, // We'll implement this later
+        userIsFollowing: false, // We'll implement this later
+        author: post.author_username,
+        createdAt: new Date(post.created_at).toISOString().split('T')[0],
+        comments: []
+      }));
 
       setPosts(transformedPosts);
     } catch (error: any) {
@@ -183,17 +167,15 @@ export const FeedbackBoard = ({ currentUser }: FeedbackBoardProps = {}) => {
     }
 
     try {
-      // Create a fake user ID for the feedback submission
-      const tempUserId = 'feedback-user';
-      
-      // Combine title and description for the content field
-      const content = `${newPost.title}\n${newPost.description}`;
-
       const { error } = await supabase
-        .from('community_posts')
+        .from('feedback_posts')
         .insert({
-          content,
-          user_id: tempUserId // We'll need to handle this properly with auth later
+          title: newPost.title,
+          description: newPost.description,
+          category: newPost.category,
+          author_username: currentUser.anonymousUsername,
+          author_email: currentUser.email,
+          access_token: currentUser.accessToken
         });
 
       if (error) throw error;

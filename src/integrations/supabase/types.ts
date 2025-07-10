@@ -778,6 +778,51 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_posts: {
+        Row: {
+          access_token: string
+          author_email: string
+          author_username: string
+          category: string
+          created_at: string
+          description: string
+          flagged: boolean
+          helpful_votes: number
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          author_email: string
+          author_username: string
+          category?: string
+          created_at?: string
+          description: string
+          flagged?: boolean
+          helpful_votes?: number
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          author_email?: string
+          author_username?: string
+          category?: string
+          created_at?: string
+          description?: string
+          flagged?: boolean
+          helpful_votes?: number
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback_sessions: {
         Row: {
           access_token: string
