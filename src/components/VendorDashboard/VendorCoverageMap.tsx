@@ -235,8 +235,13 @@ const VendorCoverageMap = () => {
                 </div>
                 
                 <div className="relative flex justify-center">
-                  <USMap 
-                    statesWithCoverage={statesWithCoverage}
+                 <USMap 
+                    statesWithCoverage={Object.fromEntries(
+                      Object.entries(statesWithCoverage).map(([key, value]) => [
+                        key, 
+                        { name: value.name, repCount: value.repCount, counties: [] }
+                      ])
+                    )}
                     onStateClick={handleStateSelect}
                     selectedState={selectedState}
                   />
