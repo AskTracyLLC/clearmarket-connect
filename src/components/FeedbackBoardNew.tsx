@@ -1,6 +1,5 @@
 console.log('🚨 FEEDBACK BOARD NEW FILE IS LOADING');
 
-import { useFeedbackAuth } from '@/hooks/useFeedbackAuth';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,11 +45,19 @@ export const FeedbackBoardNew = () => {
     );
   }
 
+  // ✅ CORRECT: Call hook at component level
+const FeedbackBoardNew = () => {
+  const { user: feedbackUser } = useFeedbackAuth(); // Move this to top level
+  const { posts, loading, createPost, upvotePost, followPost } = useFeedbackPosts();
+  // ... other state variables
+
+  // ✅ CORRECT: Use the user from component level
   const handleSubmitFeedback = async (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => {
     console.log('📝 Submitting feedback:', newPost);
+    console.log('👤 Using feedbackUser:', feedbackUser); // Debug log
+    
     try {
-      const { user: feedbackUser } = useFeedbackAuth(); // Use real authenticated user
-      await createPost(newPost, feedbackUser);
+      await createPost(newPost, feedbackUser); // Use the user from component level
       console.log('✅ Feedback submitted successfully');
     } catch (error) {
       console.error('❌ Error submitting feedback:', error);
