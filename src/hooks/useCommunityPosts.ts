@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "./useRealtimeSubscription";
 
 export interface CommunityPost {
   id: string;
@@ -265,28 +266,15 @@ export const useCommunityPosts = () => {
     }
   };
 
+  // Set up real-time subscription for posts
+  const handleRealtimeUpdate = useCallback(() => {
+    fetchPosts();
+  }, []);
+
+  useRealtimeSubscription('community_posts', handleRealtimeUpdate);
+
   useEffect(() => {
     fetchPosts();
-    
-    // Set up real-time subscription for new posts
-    const channel = supabase
-      .channel('community_posts_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'community_posts'
-        },
-        () => {
-          fetchPosts();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [user]);
 
   return {
