@@ -48,7 +48,7 @@ export const FeedbackBoardNew = () => {
   const handleSubmitFeedback = async (newPost: Omit<FeedbackPost, 'id' | 'upvotes' | 'userHasUpvoted' | 'userIsFollowing' | 'createdAt' | 'comments'>) => {
     console.log('📝 Submitting feedback:', newPost);
     try {
-      const feedbackUser = { username: 'TestUser#1' }; // Mock user for now
+      feedbackUser.anonymousUsername || feedbackUser.email  // ✅ Correct properties
       await createPost(newPost, feedbackUser);
       console.log('✅ Feedback submitted successfully');
     } catch (error) {
