@@ -67,7 +67,7 @@ serve(async (req) => {
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
-      from: "ClearMarket <noreply@clearmarket.io>",
+      from: "ClearMarket <noreply@useclearmarket.io>",
       to: [toEmail],
       subject: subject,
       html: htmlContent,

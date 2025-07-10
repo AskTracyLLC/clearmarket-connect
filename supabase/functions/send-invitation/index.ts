@@ -64,7 +64,7 @@ serve(async (req) => {
 
     // Send invitation email
     const emailResponse = await resend.emails.send({
-      from: "ClearMarket <noreply@clearmarket.io>",
+      from: "ClearMarket <noreply@useclearmarket.io>",
       to: [email],
       subject: `You're invited to join ClearMarket as ${role}`,
       html: `
