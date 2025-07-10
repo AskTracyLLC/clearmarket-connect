@@ -337,8 +337,8 @@ const Index = () => {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl text-center">
-          <Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20">
-            🚀 Currently in Development
+          <Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
+            🚀 Pre-Launch • Early Access Available
           </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
@@ -360,6 +360,11 @@ const Index = () => {
             <div className="text-center">
               <div className="text-2xl font-bold text-secondary">3,143</div>
               <div className="text-sm text-muted-foreground">Counties Mapped</div>
+            </div>
+            <div className="w-px h-12 bg-border"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">{emailCount}+</div>
+              <div className="text-sm text-muted-foreground">Early Signups</div>
             </div>
           </div>
 
@@ -969,7 +974,7 @@ const Index = () => {
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/80">
             We're creating a platform that truly serves the field inspection community. 
-            Your input helps us build exactly what you need.
+            Join our founding members and help us build exactly what you need.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8 mb-12">
