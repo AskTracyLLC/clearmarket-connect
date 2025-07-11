@@ -355,9 +355,11 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img 
+                src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
+                alt="ClearMarket" 
+                className="w-8 h-8 rounded-lg"
+              />
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
             <div className="flex items-center space-x-3">
