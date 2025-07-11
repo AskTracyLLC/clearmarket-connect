@@ -319,7 +319,7 @@ const Index = () => {
     {
       icon: <Star className="h-8 w-8 text-trust" />,
       title: "Credit-Based Economy",
-      description: "Earn credits through community participation and use them to unlock premium opportunities."
+      description: "Earn credits through community participation and use them to unlock premium features."
     },
     {
       icon: <MessageSquare className="h-8 w-8 text-secondary" />,
@@ -332,7 +332,7 @@ const Index = () => {
     fieldRep: [
       "Get discovered by quality vendors seeking coverage",
       "Build your professional reputation with verified reviews",
-      "Access exclusive job opportunities in your coverage areas",
+      "Access exclusive job features in your coverage areas",
       "Communicate with all your vendors in one private message",
       "Connect with industry peers and share knowledge"
     ],
@@ -341,7 +341,7 @@ const Index = () => {
       "Verify credentials and track performance history",
       "Communicate with all field reps regardless of platform used",
       "Manage your coverage network efficiently",
-      "Post opportunities to qualified professionals only"
+      "Post features to qualified professionals only"
     ]
   };
 
@@ -419,7 +419,7 @@ const Index = () => {
                     <UserCheck className="h-6 w-6" />
                     <div>
                       <div className="font-semibold">I'm a Field Rep</div>
-                      <div className="text-sm opacity-75">Looking for work opportunities</div>
+                      <div className="text-sm opacity-75">Looking for work features</div>
                     </div>
                   </Button>
                   
