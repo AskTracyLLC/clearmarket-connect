@@ -713,13 +713,13 @@ const Index = () => {
                         className="mt-0.5"
                       />
                       <div className="flex-1">
-                        <Label 
-                          htmlFor="progress-reports" 
-                          className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
-                        >
-                          <BarChart3 className="h-4 w-4 text-primary" />
-                          Send me development progress updates
-                        </Label>
+                         <Label 
+                           htmlFor="progress-reports" 
+                           className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
+                         >
+                           <BarChart3 className="h-4 w-4 text-primary" />
+                           Send me development progress updates <span className="text-muted-foreground">(Optional)</span>
+                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
                           Get occasional emails about new features as we build them
                         </p>
