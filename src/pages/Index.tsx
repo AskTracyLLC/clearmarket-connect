@@ -375,7 +375,7 @@ const Index = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
-            🚀 Pre-Launch • Early Access Available
+            Pre-Launch • Help Shape What's Coming
           </Badge>
           
           <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
