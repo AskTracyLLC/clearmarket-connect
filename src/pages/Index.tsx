@@ -37,6 +37,7 @@ const Index = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
+  const [userPosition, setUserPosition] = useState({ type: '', number: 0 });
   const [states, setStates] = useState([]);
   
   // New research fields
@@ -211,6 +212,18 @@ const Index = () => {
 
         if (error) throw error;
       }
+
+      // Calculate user position based on type
+      const tableName = userType === 'field-rep' ? 'field_rep_signups' : 'vendor_signups';
+      const { count } = await supabase
+        .from(tableName)
+        .select('*', { count: 'exact', head: true });
+      
+      const userTypeLabel = userType === 'field-rep' ? 'FieldRep' : 'Vendor';
+      setUserPosition({ 
+        type: userTypeLabel, 
+        number: (count || 0) 
+      });
 
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
@@ -665,7 +678,7 @@ const Index = () => {
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
                 <Badge className="bg-accent/20 text-accent">
-                  Position #{emailCount} to join
+                  {userPosition.type}#{userPosition.number} to join
                 </Badge>
               </div>
             </Card>
