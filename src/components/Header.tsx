@@ -1,40 +1,62 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import MobileNav from "@/components/ui/mobile-nav";
-import { ChevronDown, UserPlus, Building, MessageSquare, Settings, Calendar, LogOut, User, Home } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Menu, 
+  Home, 
+  MessageSquare, 
+  Calendar, 
+  Settings,
+  Shield // Add Shield icon for admin indication
+} from "lucide-react";
 
 const Header = () => {
   const { user, signOut } = useAuth();
-  const { accountData } = useUserProfile();
-
-  const getDashboardPath = () => {
-    const role = accountData?.role || "field_rep";
-    return role === "vendor" ? "/vendor/dashboard" : "/fieldrep/dashboard";
-  };
+  const navigate = useNavigate();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
+    navigate("/");
+    setIsSheetOpen(false);
+  };
+
+  const getDashboardPath = () => {
+    // This would need to be implemented based on user role
+    return "/fieldrep/dashboard";
+  };
+
+  // Hidden admin access function
+  const handleFaviconClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Navigate to admin login with a special query parameter
+    navigate("/auth?admin=true");
   };
 
   return (
-    <header className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MobileNav />
-            <img 
-              src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
-              alt="ClearMarket" 
-              className="w-8 h-8 rounded-lg"
-            />
+          {/* Logo/Brand */}
+          <Link to="/" className="flex items-center space-x-2">
+            {/* Clickable Favicon for Admin Access */}
+            <div 
+              className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg"
+              onClick={handleFaviconClick}
+              title="ClearMarket" // Normal title, no hint about admin access
+            >
+              <span className="text-primary-foreground font-bold text-lg">C</span>
+            </div>
             <span className="text-xl font-bold text-foreground">ClearMarket</span>
-          </div>
-          
+          </Link>
+
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
             {user ? (
               <>
@@ -83,67 +105,6 @@ const Header = () => {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-3">
               {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <User className="mr-2 h-4 w-4" />
-                      Account
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-background border border-border">
-                    <DropdownMenuItem asChild>
-                      <Link to="/vendor/profile" className="flex items-center cursor-pointer">
-                        <Building className="mr-2 h-4 w-4" />
-                        Vendor Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/fieldrep/profile" className="flex items-center cursor-pointer">
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Field Rep Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSignOut} className="flex items-center cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/auth">Sign In</Link>
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="hero" size="sm">
-                        Create Profile
-                        <ChevronDown className="ml-1 h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 bg-background border border-border">
-                      <DropdownMenuItem asChild>
-                        <Link to="/vendor/profile" className="flex items-center cursor-pointer">
-                          <Building className="mr-2 h-4 w-4" />
-                          Vendor Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/fieldrep/profile" className="flex items-center cursor-pointer">
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Field Rep Profile
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Actions */}
-            <div className="flex md:hidden">
-              {user ? (
                 <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   Sign Out
                 </Button>
@@ -153,6 +114,106 @@ const Header = () => {
                 </Button>
               )}
             </div>
+
+            {/* Mobile Menu */}
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="sm">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <nav className="flex flex-col gap-4">
+                  {user ? (
+                    <>
+                      <Link 
+                        to={getDashboardPath()} 
+                        className="flex items-center gap-2 text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        <Home className="h-5 w-5" />
+                        Dashboard
+                      </Link>
+                      <Link 
+                        to="/vendor/search" 
+                        className="text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        Find Coverage
+                      </Link>
+                      <Link 
+                        to="/community" 
+                        className="text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        Community
+                      </Link>
+                      <Link 
+                        to="/messages" 
+                        className="flex items-center gap-2 text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        <MessageSquare className="h-5 w-5" />
+                        Messages
+                        <Badge variant="destructive" className="text-xs">2</Badge>
+                      </Link>
+                      <Link 
+                        to="/calendar" 
+                        className="flex items-center gap-2 text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        <Calendar className="h-5 w-5" />
+                        Calendar
+                      </Link>
+                      <Link 
+                        to="/settings" 
+                        className="flex items-center gap-2 text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        <Settings className="h-5 w-5" />
+                        Settings
+                      </Link>
+                      <div className="border-t pt-4 mt-4">
+                        <Button variant="ghost" className="w-full" onClick={handleSignOut}>
+                          Sign Out
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Link 
+                        to="/#how-it-works" 
+                        className="text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        How It Works
+                      </Link>
+                      <Link 
+                        to="/vendor/search" 
+                        className="text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        Find Coverage
+                      </Link>
+                      <Link 
+                        to="/#pricing" 
+                        className="text-lg font-medium"
+                        onClick={() => setIsSheetOpen(false)}
+                      >
+                        Pricing
+                      </Link>
+                      <div className="border-t pt-4 mt-4">
+                        <Button variant="hero" className="w-full" asChild>
+                          <Link to="/auth" onClick={() => setIsSheetOpen(false)}>
+                            Join
+                          </Link>
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
