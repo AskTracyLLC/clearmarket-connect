@@ -42,6 +42,8 @@ const Index = () => {
   
   // New research fields
   const [primaryService, setPrimaryService] = useState('');
+  const [primaryServices, setPrimaryServices] = useState([]);
+  const [otherService, setOtherService] = useState('');
   const [fieldRepName, setFieldRepName] = useState('');
   const [workTypes, setWorkTypes] = useState([]);
   const [otherWorkType, setOtherWorkType] = useState('');
@@ -131,6 +133,14 @@ const Index = () => {
       prev.includes(workType) 
         ? prev.filter(w => w !== workType)
         : [...prev, workType]
+    );
+  };
+
+  const handleServiceToggle = (service) => {
+    setPrimaryServices(prev => 
+      prev.includes(service) 
+        ? prev.filter(s => s !== service)
+        : [...prev, service]
     );
   };
 
@@ -233,12 +243,17 @@ const Index = () => {
           return;
         }
 
+        // Include the custom service type if "other" was selected
+        const finalServices = primaryServices.includes('other') && otherService 
+          ? [...primaryServices.filter(s => s !== 'other'), otherService]
+          : primaryServices;
+
         const signupData = {
           email,
           company_name: companyName,
           company_website: companyWebsite || null,
           states_covered: statesCovered,
-          primary_service: primaryService,
+          primary_service: finalServices,
           current_challenges: currentChallenges,
           interested_features: interestedFeatures,
           wants_progress_reports: wantsProgressReports,
@@ -564,22 +579,45 @@ const Index = () => {
                           </div>
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium">Primary Service Type</Label>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                            {serviceTypes.map((service) => (
-                              <Button
-                                key={service.value}
-                                type="button"
-                                variant={primaryService === service.value ? 'default' : 'outline'}
-                                className="text-sm"
-                                onClick={() => setPrimaryService(service.value)}
-                              >
-                                {service.label}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
+                         <div>
+                           <Label className="text-sm font-medium">Primary Service Types</Label>
+                           <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
+                           <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                               {serviceTypes.map((service) => (
+                                 <div key={service.value} className="flex items-center space-x-2">
+                                   <Checkbox
+                                     id={service.value}
+                                     checked={primaryServices.includes(service.value)}
+                                     onCheckedChange={() => handleServiceToggle(service.value)}
+                                   />
+                                   <Label htmlFor={service.value} className="text-sm cursor-pointer">
+                                     {service.label}
+                                   </Label>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                           {primaryServices.includes('other') && (
+                             <div className="mt-3">
+                               <Label htmlFor="other-service" className="text-sm font-medium">
+                                 Specify Other Service Type
+                               </Label>
+                               <Input
+                                 id="other-service"
+                                 value={otherService}
+                                 onChange={(e) => setOtherService(e.target.value)}
+                                 placeholder="Enter your specific service type"
+                                 className="mt-1"
+                               />
+                             </div>
+                           )}
+                           {primaryServices.length > 0 && (
+                             <p className="text-xs text-muted-foreground mt-1">
+                               Selected: {primaryServices.length} service type{primaryServices.length !== 1 ? 's' : ''}
+                             </p>
+                           )}
+                         </div>
 
                         <div>
                           <Label className="text-sm font-medium">States Where You Need Coverage</Label>
