@@ -283,6 +283,9 @@ const Index = () => {
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
       
+      // Scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       toast({
         title: "Success!",
         description: "You've been added to our launch notification list."
