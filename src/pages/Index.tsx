@@ -174,42 +174,51 @@ const Index = () => {
     setIsLoading(true);
 
     try {
-      const signupData = {
-        email,
-        user_type: userType,
-        ...(userType === 'field-rep' && { 
-          primary_state: primaryState
-        }),
-        ...(userType === 'vendor' && {
+      if (userType === 'field-rep') {
+        const signupData = {
+          email,
+          primary_state: primaryState,
+          field_rep_name: fieldRepName,
+          work_types: workTypes,
+          experience_level: experienceLevel,
+          current_challenges: currentChallenges,
+          interested_features: interestedFeatures,
+          wants_progress_reports: wantsProgressReports,
+          agreed_to_analytics: agreedToAnalytics
+        };
+
+        const { error } = await supabase
+          .from('field_rep_signups')
+          .insert([signupData]);
+
+        if (error) throw error;
+      } else {
+        const signupData = {
+          email,
           company_name: companyName,
           company_website: companyWebsite || null,
-          states_covered: statesCovered
-        })
-      };
+          states_covered: statesCovered,
+          primary_service: primaryService,
+          current_challenges: currentChallenges,
+          interested_features: interestedFeatures,
+          wants_progress_reports: wantsProgressReports,
+          agreed_to_analytics: agreedToAnalytics
+        };
 
-      const { error } = await supabase
-        .from('pre_launch_signups')
-        .insert([signupData]);
+        const { error } = await supabase
+          .from('vendor_signups')
+          .insert([signupData]);
 
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          toast({
-            title: "Email Already Registered",
-            description: "This email address is already on our waiting list.",
-            variant: "destructive"
-          });
-        } else {
-          throw error;
-        }
-      } else {
-        setIsSubmitted(true);
-        setEmailCount(prev => prev + 1);
-        
-        toast({
-          title: "Success!",
-          description: "You've been added to our launch notification list."
-        });
+        if (error) throw error;
       }
+
+      setIsSubmitted(true);
+      setEmailCount(prev => prev + 1);
+      
+      toast({
+        title: "Success!",
+        description: "You've been added to our launch notification list."
+      });
     } catch (error) {
       toast({
         title: "Error",

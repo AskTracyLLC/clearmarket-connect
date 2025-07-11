@@ -49,12 +49,11 @@ export const TestingDashboard = () => {
     updateTestResult('Pre-launch Signup', 'pending', 'Testing signup with feedback group...');
     
     try {
-      // Test signup
+      // Test signup for vendor
       const { error: signupError } = await supabase
-        .from('pre_launch_signups')
+        .from('vendor_signups')
         .insert({
           email: testEmail,
-          user_type: 'vendor',
           company_name: 'Test Company',
           join_feedback_group: true,
           anonymous_username: generatedUsername || 'TestUser#999'

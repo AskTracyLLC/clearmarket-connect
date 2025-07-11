@@ -847,6 +847,63 @@ export type Database = {
         }
         Relationships: []
       }
+      field_rep_signups: {
+        Row: {
+          agreed_to_analytics: boolean | null
+          anonymous_username: string | null
+          created_at: string
+          current_challenges: string | null
+          email: string
+          experience_level: string | null
+          feedback_access_token: string | null
+          feedback_token_expires_at: string | null
+          field_rep_name: string | null
+          id: string
+          interested_features: string[] | null
+          join_feedback_group: boolean | null
+          primary_state: string | null
+          updated_at: string
+          wants_progress_reports: boolean | null
+          work_types: string[] | null
+        }
+        Insert: {
+          agreed_to_analytics?: boolean | null
+          anonymous_username?: string | null
+          created_at?: string
+          current_challenges?: string | null
+          email: string
+          experience_level?: string | null
+          feedback_access_token?: string | null
+          feedback_token_expires_at?: string | null
+          field_rep_name?: string | null
+          id?: string
+          interested_features?: string[] | null
+          join_feedback_group?: boolean | null
+          primary_state?: string | null
+          updated_at?: string
+          wants_progress_reports?: boolean | null
+          work_types?: string[] | null
+        }
+        Update: {
+          agreed_to_analytics?: boolean | null
+          anonymous_username?: string | null
+          created_at?: string
+          current_challenges?: string | null
+          email?: string
+          experience_level?: string | null
+          feedback_access_token?: string | null
+          feedback_token_expires_at?: string | null
+          field_rep_name?: string | null
+          id?: string
+          interested_features?: string[] | null
+          join_feedback_group?: boolean | null
+          primary_state?: string | null
+          updated_at?: string
+          wants_progress_reports?: boolean | null
+          work_types?: string[] | null
+        }
+        Relationships: []
+      }
       flags: {
         Row: {
           created_at: string | null
@@ -1111,54 +1168,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      pre_launch_signups: {
-        Row: {
-          anonymous_username: string | null
-          company_name: string | null
-          company_website: string | null
-          created_at: string
-          email: string
-          feedback_access_token: string | null
-          feedback_token_expires_at: string | null
-          id: string
-          join_feedback_group: boolean | null
-          primary_state: string | null
-          states_covered: string[] | null
-          updated_at: string
-          user_type: string
-        }
-        Insert: {
-          anonymous_username?: string | null
-          company_name?: string | null
-          company_website?: string | null
-          created_at?: string
-          email: string
-          feedback_access_token?: string | null
-          feedback_token_expires_at?: string | null
-          id?: string
-          join_feedback_group?: boolean | null
-          primary_state?: string | null
-          states_covered?: string[] | null
-          updated_at?: string
-          user_type: string
-        }
-        Update: {
-          anonymous_username?: string | null
-          company_name?: string | null
-          company_website?: string | null
-          created_at?: string
-          email?: string
-          feedback_access_token?: string | null
-          feedback_token_expires_at?: string | null
-          id?: string
-          join_feedback_group?: boolean | null
-          primary_state?: string | null
-          states_covered?: string[] | null
-          updated_at?: string
-          user_type?: string
-        }
-        Relationships: []
       }
       referrals: {
         Row: {
@@ -1789,6 +1798,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vendor_signups: {
+        Row: {
+          agreed_to_analytics: boolean | null
+          anonymous_username: string | null
+          company_name: string | null
+          company_website: string | null
+          created_at: string
+          current_challenges: string | null
+          email: string
+          feedback_access_token: string | null
+          feedback_token_expires_at: string | null
+          id: string
+          interested_features: string[] | null
+          join_feedback_group: boolean | null
+          primary_service: string | null
+          states_covered: string[] | null
+          updated_at: string
+          wants_progress_reports: boolean | null
+        }
+        Insert: {
+          agreed_to_analytics?: boolean | null
+          anonymous_username?: string | null
+          company_name?: string | null
+          company_website?: string | null
+          created_at?: string
+          current_challenges?: string | null
+          email: string
+          feedback_access_token?: string | null
+          feedback_token_expires_at?: string | null
+          id?: string
+          interested_features?: string[] | null
+          join_feedback_group?: boolean | null
+          primary_service?: string | null
+          states_covered?: string[] | null
+          updated_at?: string
+          wants_progress_reports?: boolean | null
+        }
+        Update: {
+          agreed_to_analytics?: boolean | null
+          anonymous_username?: string | null
+          company_name?: string | null
+          company_website?: string | null
+          created_at?: string
+          current_challenges?: string | null
+          email?: string
+          feedback_access_token?: string | null
+          feedback_token_expires_at?: string | null
+          id?: string
+          interested_features?: string[] | null
+          join_feedback_group?: boolean | null
+          primary_service?: string | null
+          states_covered?: string[] | null
+          updated_at?: string
+          wants_progress_reports?: boolean | null
+        }
+        Relationships: []
       }
       zip_codes: {
         Row: {
