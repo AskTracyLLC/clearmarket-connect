@@ -1,3 +1,4 @@
+import EmailTemplateManager from '@/components/admin/EmailTemplateManager';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -15,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, Database, Settings, Coins } from "lucide-react";
+import { Shield, Users, Database, Settings, Coins, Mail } from "lucide-react";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -116,7 +117,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="moderation" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="moderation" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Moderation
@@ -136,6 +137,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="zip-county" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
               ZIP/County Data
+            </TabsTrigger>
+            <TabsTrigger value="email-templates" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email Templates
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -164,6 +169,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="zip-county" className="mt-6">
             <ZipCountyImportTool />
+          </TabsContent>
+
+          <TabsContent value="email-templates" className="mt-6">
+            <EmailTemplateManager />
           </TabsContent>
 
           <TabsContent value="reports" className="mt-6">
