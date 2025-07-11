@@ -93,7 +93,6 @@ const Index = () => {
     { value: 'communication-tools', label: 'Communication Tools' },
     { value: 'scheduling', label: 'Scheduling & Calendar' },
     { value: 'reporting', label: 'Reporting & Analytics' },
-    { value: 'mobile-app', label: 'Mobile App' },
     { value: 'other', label: 'Other' }
   ];
 
