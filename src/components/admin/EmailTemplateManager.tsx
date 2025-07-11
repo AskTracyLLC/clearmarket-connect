@@ -44,6 +44,24 @@ const EmailTemplateManager = () => {
   const [testVariables, setTestVariables] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
+  // Safe function to parse variables
+  const parseVariables = (variablesData: any): string[] => {
+    if (!variablesData) return [];
+    
+    try {
+      if (Array.isArray(variablesData)) {
+        return variablesData;
+      }
+      if (typeof variablesData === 'string') {
+        return JSON.parse(variablesData);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error parsing variables:', error);
+      return [];
+    }
+  };
+
   const fetchTemplates = async () => {
     try {
       setLoading(true);
@@ -57,9 +75,7 @@ const EmailTemplateManager = () => {
 
       const formattedTemplates = data?.map(template => ({
         ...template,
-        variables: Array.isArray(template.variables) 
-          ? template.variables 
-          : (template.variables ? JSON.parse(template.variables) : [])
+        variables: parseVariables(template.variables)
       })) || [];
 
       setTemplates(formattedTemplates);
@@ -81,6 +97,10 @@ const EmailTemplateManager = () => {
 
   const handleCreateTemplate = async (formData: any) => {
     try {
+      const variablesArray = formData.variables
+        ? formData.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v.length > 0)
+        : [];
+
       const { data, error } = await supabase
         .from('system_templates')
         .insert([{
@@ -89,7 +109,7 @@ const EmailTemplateManager = () => {
           subject: formData.subject,
           html_content: formData.html_content,
           text_content: formData.text_content,
-          variables: JSON.stringify(formData.variables.split(',').map((v: string) => v.trim())),
+          variables: JSON.stringify(variablesArray),
           is_active: formData.is_active
         }])
         .select()
@@ -116,13 +136,15 @@ const EmailTemplateManager = () => {
 
   const handleUpdateTemplate = async (templateId: string, updates: any) => {
     try {
+      const variablesArray = typeof updates.variables === 'string'
+        ? updates.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v.length > 0)
+        : updates.variables || [];
+
       const { error } = await supabase
         .from('system_templates')
         .update({
           ...updates,
-          variables: typeof updates.variables === 'string' 
-            ? JSON.stringify(updates.variables.split(',').map((v: string) => v.trim()))
-            : JSON.stringify(updates.variables),
+          variables: JSON.stringify(variablesArray),
           updated_at: new Date().toISOString()
         })
         .eq('id', templateId);
@@ -147,6 +169,8 @@ const EmailTemplateManager = () => {
   };
 
   const handleDeleteTemplate = async (templateId: string) => {
+    if (!confirm('Are you sure you want to delete this template?')) return;
+
     try {
       const { error } = await supabase
         .from('system_templates')
@@ -577,11 +601,7 @@ const EmailTemplateManager = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this template?')) {
-                              handleDeleteTemplate(template.id);
-                            }
-                          }}
+                          onClick={() => handleDeleteTemplate(template.id)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
