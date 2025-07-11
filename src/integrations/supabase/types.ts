@@ -1813,7 +1813,7 @@ export type Database = {
           id: string
           interested_features: string[] | null
           join_feedback_group: boolean | null
-          primary_service: string | null
+          primary_service: string[] | null
           states_covered: string[] | null
           updated_at: string
           wants_progress_reports: boolean | null
@@ -1831,7 +1831,7 @@ export type Database = {
           id?: string
           interested_features?: string[] | null
           join_feedback_group?: boolean | null
-          primary_service?: string | null
+          primary_service?: string[] | null
           states_covered?: string[] | null
           updated_at?: string
           wants_progress_reports?: boolean | null
@@ -1849,7 +1849,7 @@ export type Database = {
           id?: string
           interested_features?: string[] | null
           join_feedback_group?: boolean | null
-          primary_service?: string | null
+          primary_service?: string[] | null
           states_covered?: string[] | null
           updated_at?: string
           wants_progress_reports?: boolean | null
