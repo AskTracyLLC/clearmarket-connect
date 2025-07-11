@@ -341,7 +341,7 @@ const Index = () => {
       "Verify credentials and track performance history",
       "Communicate with all field reps regardless of platform used",
       "Manage your coverage network efficiently",
-      "Post features to qualified professionals only"
+      "Post coverage requests to qualified professionals only"
     ]
   };
 
