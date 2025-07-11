@@ -273,7 +273,7 @@ const EmailTemplateManager = () => {
                 placeholder="user_name, company_name, activation_link"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Use {{variable_name}} in your template content
+                Use {"{"}{"{"}"variable_name"{"}"} in your template content
               </p>
             </div>
 
