@@ -205,6 +205,12 @@ const Index = () => {
           ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature]
           : interestedFeatures;
 
+        // Generate anonymous username for field rep
+        const { data: anonymousUsername, error: usernameError } = await supabase
+          .rpc('generate_anonymous_username', { user_type_param: 'field-rep' });
+
+        if (usernameError) throw usernameError;
+
         const signupData = {
           email,
           primary_state: primaryState,
@@ -214,7 +220,8 @@ const Index = () => {
           current_challenges: currentChallenges,
           interested_features: finalFeatures,
           wants_progress_reports: wantsProgressReports,
-          agreed_to_analytics: agreedToAnalytics
+          agreed_to_analytics: agreedToAnalytics,
+          anonymous_username: anonymousUsername
         };
 
         const { error } = await supabase
@@ -249,6 +256,12 @@ const Index = () => {
           ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature]
           : interestedFeatures;
 
+        // Generate anonymous username for vendor
+        const { data: anonymousUsername, error: usernameError } = await supabase
+          .rpc('generate_anonymous_username', { user_type_param: 'vendor' });
+
+        if (usernameError) throw usernameError;
+
         const signupData = {
           email,
           company_name: companyName,
@@ -258,7 +271,8 @@ const Index = () => {
           current_challenges: currentChallenges,
           interested_features: finalFeatures,
           wants_progress_reports: wantsProgressReports,
-          agreed_to_analytics: agreedToAnalytics
+          agreed_to_analytics: agreedToAnalytics,
+          anonymous_username: anonymousUsername
         };
 
         const { error } = await supabase
