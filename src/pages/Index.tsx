@@ -1080,9 +1080,11 @@ const Index = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <Users className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <img 
+                src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
+                alt="ClearMarket" 
+                className="w-6 h-6 rounded"
+              />
               <span className="text-lg font-bold text-foreground">ClearMarket</span>
             </div>
             <p className="text-muted-foreground mb-4">
