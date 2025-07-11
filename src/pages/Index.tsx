@@ -50,6 +50,7 @@ const Index = () => {
   const [experienceLevel, setExperienceLevel] = useState('');
   const [currentChallenges, setCurrentChallenges] = useState('');
   const [interestedFeatures, setInterestedFeatures] = useState([]);
+  const [otherFeature, setOtherFeature] = useState('');
   const [wantsProgressReports, setWantsProgressReports] = useState(false);
   const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
   
@@ -57,29 +58,21 @@ const Index = () => {
 
   // Service types for vendors
   const serviceTypes = [
-    { value: 'bpo', label: 'BPO Services' },
     { value: 'inspections', label: 'Property Inspections' },
     { value: 'preservation', label: 'Property Preservation' },
-    { value: 'reo', label: 'REO Services' },
-    { value: 'valuation', label: 'Property Valuation' },
     { value: 'maintenance', label: 'Property Maintenance' },
     { value: 'other', label: 'Other Services' }
   ];
 
   // Work types for field reps
   const fieldRepWorkTypes = [
-    { value: 'interior-inspections', label: 'Interior Inspections' },
-    { value: 'exterior-inspections', label: 'Exterior Inspections' },
-    { value: 'occupancy-checks', label: 'Occupancy Checks' },
-    { value: 'property-preservation', label: 'Property Preservation' },
-    { value: 'winterizations', label: 'Winterizations' },
-    { value: 'lawn-maintenance', label: 'Lawn Maintenance' },
-    { value: 'lock-changes', label: 'Lock Changes' },
-    { value: 'debris-removal', label: 'Debris Removal' },
-    { value: 'photography', label: 'Photography Services' },
-    { value: 'violations', label: 'Violation Monitoring' },
-    { value: 'evictions', label: 'Eviction Services' },
-    { value: 'cash-for-keys', label: 'Cash for Keys' },
+    { value: 'interior-exterior', label: 'Interior/Exterior' },
+    { value: 'occupancy-check', label: 'Occupancy Check' },
+    { value: 'insurance-loss', label: 'Insurance Loss' },
+    { value: 'preservation', label: 'Preservation' },
+    { value: 'photography-services', label: 'Photography Services' },
+    { value: 'notary-services', label: 'Notary Services' },
+    { value: 'commercial', label: 'Commercial' },
     { value: 'other', label: 'Other' }
   ];
 
@@ -101,7 +94,8 @@ const Index = () => {
     { value: 'scheduling', label: 'Scheduling & Calendar' },
     { value: 'payment-processing', label: 'Payment Processing' },
     { value: 'reporting', label: 'Reporting & Analytics' },
-    { value: 'mobile-app', label: 'Mobile App' }
+    { value: 'mobile-app', label: 'Mobile App' },
+    { value: 'other', label: 'Other' }
   ];
 
   const fieldRepFeatureOptions = [
@@ -110,9 +104,8 @@ const Index = () => {
     { value: 'vendor-ratings', label: 'Vendor Rating System' },
     { value: 'quick-communication', label: 'Quick Communication' },
     { value: 'schedule-management', label: 'Schedule Management' },
-    { value: 'payment-tracking', label: 'Payment Tracking' },
     { value: 'performance-analytics', label: 'Performance Reports' },
-    { value: 'mobile-first', label: 'Mobile-First Design' }
+    { value: 'other', label: 'Other' }
   ];
 
   // Load states on component mount
@@ -209,6 +202,11 @@ const Index = () => {
           ? [...workTypes.filter(w => w !== 'other'), otherWorkType]
           : workTypes;
 
+        // Include the custom feature if "other" was selected
+        const finalFeatures = interestedFeatures.includes('other') && otherFeature 
+          ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature]
+          : interestedFeatures;
+
         const signupData = {
           email,
           primary_state: primaryState,
@@ -216,7 +214,7 @@ const Index = () => {
           work_types: finalWorkTypes,
           experience_level: experienceLevel,
           current_challenges: currentChallenges,
-          interested_features: interestedFeatures,
+          interested_features: finalFeatures,
           wants_progress_reports: wantsProgressReports,
           agreed_to_analytics: agreedToAnalytics
         };
@@ -248,6 +246,11 @@ const Index = () => {
           ? [...primaryServices.filter(s => s !== 'other'), otherService]
           : primaryServices;
 
+        // Include the custom feature if "other" was selected
+        const finalFeatures = interestedFeatures.includes('other') && otherFeature 
+          ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature]
+          : interestedFeatures;
+
         const signupData = {
           email,
           company_name: companyName,
@@ -255,7 +258,7 @@ const Index = () => {
           states_covered: statesCovered,
           primary_service: finalServices,
           current_challenges: currentChallenges,
-          interested_features: interestedFeatures,
+          interested_features: finalFeatures,
           wants_progress_reports: wantsProgressReports,
           agreed_to_analytics: agreedToAnalytics
         };
@@ -666,26 +669,40 @@ const Index = () => {
                       />
                     </div>
 
-                    <div>
-                      <Label className="text-sm font-medium">Most Interested Features</Label>
-                      <p className="text-xs text-muted-foreground mb-2">Select features you'd find most valuable</p>
-                      <div className="max-h-32 overflow-y-auto border rounded-md p-3">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                          {(userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map((feature) => (
-                            <div key={feature.value} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={feature.value}
-                                checked={interestedFeatures.includes(feature.value)}
-                                onCheckedChange={() => handleFeatureToggle(feature.value)}
-                              />
-                              <Label htmlFor={feature.value} className="text-sm cursor-pointer">
-                                {feature.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                     <div>
+                       <Label className="text-sm font-medium">Most Interested Features</Label>
+                       <p className="text-xs text-muted-foreground mb-2">Select features you'd find most valuable</p>
+                       <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                           {(userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map((feature) => (
+                             <div key={feature.value} className="flex items-center space-x-2">
+                               <Checkbox
+                                 id={feature.value}
+                                 checked={interestedFeatures.includes(feature.value)}
+                                 onCheckedChange={() => handleFeatureToggle(feature.value)}
+                               />
+                               <Label htmlFor={feature.value} className="text-sm cursor-pointer">
+                                 {feature.label}
+                               </Label>
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                       {interestedFeatures.includes('other') && (
+                         <div className="mt-3">
+                           <Label htmlFor="other-feature" className="text-sm font-medium">
+                             Specify Other Feature
+                           </Label>
+                           <Input
+                             id="other-feature"
+                             value={otherFeature}
+                             onChange={(e) => setOtherFeature(e.target.value)}
+                             placeholder="Enter your specific feature interest"
+                             className="mt-1"
+                           />
+                         </div>
+                       )}
+                     </div>
 
                     {/* Progress Reports */}
                     <div className="flex items-start space-x-3 p-4 bg-primary/5 rounded-lg border">
