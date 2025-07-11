@@ -44,6 +44,7 @@ const Index = () => {
   const [primaryService, setPrimaryService] = useState('');
   const [fieldRepName, setFieldRepName] = useState('');
   const [workTypes, setWorkTypes] = useState([]);
+  const [otherWorkType, setOtherWorkType] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [currentChallenges, setCurrentChallenges] = useState('');
   const [interestedFeatures, setInterestedFeatures] = useState([]);
@@ -76,7 +77,8 @@ const Index = () => {
     { value: 'photography', label: 'Photography Services' },
     { value: 'violations', label: 'Violation Monitoring' },
     { value: 'evictions', label: 'Eviction Services' },
-    { value: 'cash-for-keys', label: 'Cash for Keys' }
+    { value: 'cash-for-keys', label: 'Cash for Keys' },
+    { value: 'other', label: 'Other' }
   ];
 
   // Experience levels
@@ -192,11 +194,16 @@ const Index = () => {
           return;
         }
 
+        // Include the custom work type if "other" was selected
+        const finalWorkTypes = workTypes.includes('other') && otherWorkType 
+          ? [...workTypes.filter(w => w !== 'other'), otherWorkType]
+          : workTypes;
+
         const signupData = {
           email,
           primary_state: primaryState,
           field_rep_name: fieldRepName,
-          work_types: workTypes,
+          work_types: finalWorkTypes,
           experience_level: experienceLevel,
           current_challenges: currentChallenges,
           interested_features: interestedFeatures,
@@ -484,31 +491,45 @@ const Index = () => {
                           </div>
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium">Types of Work You Do</Label>
-                          <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
-                          <div className="max-h-32 overflow-y-auto border rounded-md p-3">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                              {fieldRepWorkTypes.map((workType) => (
-                                <div key={workType.value} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={workType.value}
-                                    checked={workTypes.includes(workType.value)}
-                                    onCheckedChange={() => handleWorkTypeToggle(workType.value)}
-                                  />
-                                  <Label htmlFor={workType.value} className="text-sm cursor-pointer">
-                                    {workType.label}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          {workTypes.length > 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Selected: {workTypes.length} work type{workTypes.length !== 1 ? 's' : ''}
-                            </p>
-                          )}
-                        </div>
+                         <div>
+                           <Label className="text-sm font-medium">Types of Work You Do</Label>
+                           <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
+                           <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                               {fieldRepWorkTypes.map((workType) => (
+                                 <div key={workType.value} className="flex items-center space-x-2">
+                                   <Checkbox
+                                     id={workType.value}
+                                     checked={workTypes.includes(workType.value)}
+                                     onCheckedChange={() => handleWorkTypeToggle(workType.value)}
+                                   />
+                                   <Label htmlFor={workType.value} className="text-sm cursor-pointer">
+                                     {workType.label}
+                                   </Label>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                           {workTypes.includes('other') && (
+                             <div className="mt-3">
+                               <Label htmlFor="other-work-type" className="text-sm font-medium">
+                                 Specify Other Work Type
+                               </Label>
+                               <Input
+                                 id="other-work-type"
+                                 value={otherWorkType}
+                                 onChange={(e) => setOtherWorkType(e.target.value)}
+                                 placeholder="Enter your specific work type"
+                                 className="mt-1"
+                               />
+                             </div>
+                           )}
+                           {workTypes.length > 0 && (
+                             <p className="text-xs text-muted-foreground mt-1">
+                               Selected: {workTypes.length} work type{workTypes.length !== 1 ? 's' : ''}
+                             </p>
+                           )}
+                         </div>
                       </div>
                     )}
 
