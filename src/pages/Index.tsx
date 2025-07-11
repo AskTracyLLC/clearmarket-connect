@@ -176,6 +176,22 @@ const Index = () => {
 
     try {
       if (userType === 'field-rep') {
+        // Check if email already exists
+        const { data: existing } = await supabase
+          .from('field_rep_signups')
+          .select('email')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (existing) {
+          toast({
+            title: "Already registered",
+            description: "This email is already registered for field rep updates. You'll be notified when we launch!",
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const signupData = {
           email,
           primary_state: primaryState,
@@ -194,6 +210,22 @@ const Index = () => {
 
         if (error) throw error;
       } else {
+        // Check if email already exists
+        const { data: existing } = await supabase
+          .from('vendor_signups')
+          .select('email')
+          .eq('email', email)
+          .maybeSingle();
+
+        if (existing) {
+          toast({
+            title: "Already registered",
+            description: "This email is already registered for vendor updates. You'll be notified when we launch!",
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const signupData = {
           email,
           company_name: companyName,
