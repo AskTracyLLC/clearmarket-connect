@@ -27,9 +27,11 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <MobileNav />
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">C</span>
-            </div>
+            <img 
+              src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
+              alt="ClearMarket" 
+              className="w-8 h-8 rounded-lg"
+            />
             <span className="text-xl font-bold text-foreground">ClearMarket</span>
           </div>
           
