@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageSquare } from "lucide-react";
+import { Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,15 +30,20 @@ const HelpfulVoteButton = ({
     const checkVoteStatus = async () => {
       if (!user) return;
 
-      const { data } = await supabase
-        .from('helpful_votes')
-        .select('id')
-        .eq('voter_id', user.id)
-        .eq('target_id', targetId)
-        .eq('target_type', targetType)
-        .maybeSingle();
+      try {
+        const { data } = await supabase
+          .from('helpful_votes')
+          .select('id')
+          .eq('voter_id', user.id)
+          .eq('target_id', targetId)
+          .eq('target_type', targetType)
+          .maybeSingle();
 
-      setHasVoted(!!data);
+        setHasVoted(!!data);
+      } catch (error) {
+        console.error('Error checking vote status:', error);
+        // Fail silently for now
+      }
     };
 
     checkVoteStatus();
@@ -116,45 +121,14 @@ const HelpfulVoteButton = ({
 
         if (updateError) throw updateError;
 
-        // Award credits to the voter (for marking others' content as helpful)
-        await supabase.rpc('award_credits', {
-          target_user_id: user.id,
-          rule_name_param: 'mark_helpful',
-          reference_id_param: targetId,
-          reference_type_param: targetType
-        });
-
-        // Award credits to the content author (for receiving helpful votes)
-        // First get the author ID
-        const { data: authorData } = await supabase
-          .from(table)
-          .select('user_id')
-          .eq('id', targetId)
-          .single();
-
-        if (authorData) {
-          // Determine which helpful rule to use based on current vote count
-          let ruleName = 'helpful_click_first';
-          if (currentVotes === 1) {
-            ruleName = 'helpful_click_second';
-          } else if (currentVotes >= 2) {
-            ruleName = 'helpful_click_third';
-          }
-
-          await supabase.rpc('award_credits', {
-            target_user_id: authorData.user_id,
-            rule_name_param: ruleName,
-            reference_id_param: targetId,
-            reference_type_param: targetType
-          });
-        }
-
+        // NOTE: Credit system temporarily disabled - will add back later
+        
         setHasVoted(true);
         onVoteChange(currentVotes + 1);
         
         toast({
           title: "Marked as Helpful",
-          description: "Thanks for your feedback! You've earned 1 credit.",
+          description: "Thanks for your feedback!",
         });
       }
 
