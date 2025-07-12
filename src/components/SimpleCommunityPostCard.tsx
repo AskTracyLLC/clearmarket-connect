@@ -10,11 +10,12 @@ import { getPostTypeColor } from "@/utils/postTypeColors";
 interface SimpleCommunityPostCardProps {
   post: CommunityPost;
   onClick: () => void;
+  onReply: () => void;
   onVote: (postId: string, type: 'helpful' | 'not-helpful') => void;
   onFlag: (postId: string) => void;
 }
 
-const SimpleCommunityPostCard = ({ post, onClick, onVote, onFlag }: SimpleCommunityPostCardProps) => {
+const SimpleCommunityPostCard = ({ post, onClick, onReply, onVote, onFlag }: SimpleCommunityPostCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
 
   const handleVote = async () => {
@@ -132,7 +133,10 @@ const SimpleCommunityPostCard = ({ post, onClick, onVote, onFlag }: SimpleCommun
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReply();
+                  }}
                   className="flex items-center gap-1 text-muted-foreground hover:text-primary"
                 >
                   <MessageSquare className="h-4 w-4" />
@@ -144,7 +148,10 @@ const SimpleCommunityPostCard = ({ post, onClick, onVote, onFlag }: SimpleCommun
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleFlag}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFlag();
+                  }}
                   className="text-muted-foreground hover:text-destructive"
                 >
                   <Flag className="h-4 w-4" />

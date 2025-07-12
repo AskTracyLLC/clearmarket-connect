@@ -1,0 +1,246 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ThumbsUp, Flag, Send, Image, Smile } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { CommunityPost } from "@/hooks/useCommunityPosts";
+import { getPostTypeColor } from "@/utils/postTypeColors";
+
+interface PostDetailModalProps {
+  post: CommunityPost | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onVote: (postId: string, type: 'helpful' | 'not-helpful') => void;
+  onFlag: (postId: string) => void;
+}
+
+const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailModalProps) => {
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+
+  if (!post) return null;
+
+  const handleVote = async () => {
+    await onVote(post.id, 'helpful');
+  };
+
+  const handleFlag = async () => {
+    await onFlag(post.id);
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!comment.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      // TODO: Implement comment submission
+      console.log('Submitting comment:', comment);
+      setComment("");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const addGif = (gifUrl: string) => {
+    setComment(prev => prev + `\n![gif](${gifUrl})\n`);
+    setShowGifPicker(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Post Details</DialogTitle>
+        </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex gap-4 mb-6">
+            {/* Author info - Left side */}
+            <div className="flex flex-col items-center gap-2 min-w-[80px]">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-medium">
+                {post.is_anonymous ? "A" : (post.author_display_name?.charAt(0)?.toUpperCase() || post.author_anonymous_username?.charAt(0)?.toUpperCase() || "U")}
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-medium leading-tight">
+                  {post.is_anonymous 
+                    ? "Anonymous" 
+                    : (post.author_display_name || post.author_anonymous_username || "Community Member")
+                  }
+                </div>
+                {!post.is_anonymous && (
+                  <div className="flex flex-col gap-1 mt-1">
+                    {post.author_role && (
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {post.author_role.replace('_', ' ')}
+                      </Badge>
+                    )}
+                    <div className="flex flex-col text-xs text-muted-foreground">
+                      {post.author_trust_score !== null && (
+                        <span>Trust: {post.author_trust_score}</span>
+                      )}
+                      {post.author_community_score !== null && (
+                        <span>Community: {post.author_community_score}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Post content */}
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant="outline" 
+                    className={`${getPostTypeColor(post.post_type)} text-xs`}
+                  >
+                    {post.post_type.replace('-', ' ')}
+                  </Badge>
+                  {post.flagged && (
+                    <Badge variant="destructive" className="text-xs">
+                      Flagged
+                    </Badge>
+                  )}
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                </span>
+              </div>
+
+              {post.title && (
+                <h2 className="font-bold text-xl mb-4">
+                  {post.title}
+                </h2>
+              )}
+              
+              <div className="text-foreground mb-6 whitespace-pre-wrap leading-relaxed">
+                {post.content}
+              </div>
+
+              {/* Tags */}
+              {(post.user_tags?.length > 0 || post.system_tags?.length > 0) && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {post.user_tags?.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {post.system_tags?.map((tag) => (
+                    <Badge key={tag} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-4 pb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleVote}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                >
+                  <ThumbsUp className="h-4 w-4" />
+                  <span>{post.helpful_votes}</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFlag}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Flag className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Comments section */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Comments</h3>
+            
+            {/* Comment form */}
+            <div className="space-y-3">
+              <Textarea
+                placeholder="Add a comment... (GIF support: ![gif](url))"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowGifPicker(!showGifPicker)}
+                    className="flex items-center gap-2"
+                  >
+                    <Image className="h-4 w-4" />
+                    Add GIF
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Smile className="h-4 w-4" />
+                    Emoji
+                  </Button>
+                </div>
+                
+                <Button 
+                  onClick={handleCommentSubmit}
+                  disabled={!comment.trim() || isSubmitting}
+                  className="flex items-center gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  {isSubmitting ? "Posting..." : "Post Comment"}
+                </Button>
+              </div>
+              
+              {showGifPicker && (
+                <div className="border rounded-lg p-4 bg-muted">
+                  <p className="text-sm text-muted-foreground mb-3">Popular GIFs:</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Sample GIF placeholders */}
+                    {[
+                      "https://media.giphy.com/media/3o7aCRloybJlXpNjSU/giphy.gif",
+                      "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif",
+                      "https://media.giphy.com/media/3oz8xBwn8AU6Bp1hKM/giphy.gif"
+                    ].map((gifUrl, index) => (
+                      <button
+                        key={index}
+                        onClick={() => addGif(gifUrl)}
+                        className="aspect-square bg-muted-foreground/10 rounded border-2 border-transparent hover:border-primary transition-colors flex items-center justify-center text-xs"
+                      >
+                        GIF {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Comments list placeholder */}
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No comments yet. Be the first to comment!</p>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default PostDetailModal;

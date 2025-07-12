@@ -110,7 +110,6 @@ const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
       ) : (
         <SimpleCommunityPostsList 
           posts={filteredPosts} 
-          onPostClick={() => {}}
           onVote={handleVote}
           onFlag={handleFlag}
         />
