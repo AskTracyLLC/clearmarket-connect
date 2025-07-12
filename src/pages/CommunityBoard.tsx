@@ -138,7 +138,7 @@ const CommunityBoard = () => {
     return "";
   };
 
-  const handleCreatePost = (post: {
+  const handleCreatePost = async (post: {
     type: string;
     title: string;
     content: string;
@@ -156,21 +156,58 @@ const CommunityBoard = () => {
       return;
     }
 
-    // Handle post creation based on active tab
-    console.log("Creating post for:", activeTab, post);
-    setShowCreateModal(false);
-    
-    const postTypeText = activeTab === "vendor-bulletin" ? "announcement" : "post";
-    
-    toast({
-      title: "Post Created",
-      description: `Your ${postTypeText} has been posted successfully.`,
-    });
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to create a post.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // Refresh trending tags after creating a post
-    setTimeout(() => {
-      refetchTags();
-    }, 1000);
+      // Create the post in the database with proper board_type
+      const { data, error } = await supabase
+        .from('community_posts')
+        .insert({
+          user_id: user.id,
+          title: post.title || null,
+          content: post.content,
+          board_type: activeTab as 'field-rep-forum' | 'vendor-bulletin',
+          priority: activeTab === 'vendor-bulletin' ? 'medium' : 'low',
+          helpful_votes: 0,
+          flagged: false
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log("Post created successfully:", data);
+      setShowCreateModal(false);
+      
+      const postTypeText = activeTab === "vendor-bulletin" ? "announcement" : "post";
+      
+      toast({
+        title: "Post Created",
+        description: `Your ${postTypeText} has been posted successfully.`,
+      });
+
+      // Refresh trending tags after creating a post
+      setTimeout(() => {
+        refetchTags();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create post. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSupportCenterClick = () => {
@@ -396,7 +433,7 @@ const CommunityBoard = () => {
               </CardContent>
             </Card>
 
-{/* Posts Feed */}
+            {/* Posts Feed */}
             <ConnectionAwareCommunityFeed 
               boardType="field-rep-forum"
               searchKeyword={searchKeyword}
@@ -469,7 +506,7 @@ const CommunityBoard = () => {
               </CardContent>
             </Card>
 
-{/* Vendor Posts Feed */}
+            {/* Vendor Posts Feed */}
             <ConnectionAwareCommunityFeed 
               boardType="vendor-bulletin"
               searchKeyword={searchKeyword}
