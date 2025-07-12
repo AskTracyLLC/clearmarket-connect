@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog } from "@/components/ui/dialog";
 import { 
   MessageSquare, 
   Megaphone, 
@@ -17,45 +18,51 @@ import {
   Search,
   TrendingUp,
   Tag,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
 import CommunityFeed from "@/components/CommunityFeed";
 import PostCreationModal from "@/components/PostCreationModal";
 import { useToast } from "@/components/ui/use-toast";
+import { useTrendingTags, useSavedPosts, useTagSearch } from "@/hooks/useTrendingTags";
 
 const CommunityBoard = () => {
   const [activeTab, setActiveTab] = useState("field-rep-forum");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Mock trending tags - will come from database later
-  const trendingTags = [
-    { name: "inspection-tips", count: 45 },
-    { name: "payment-issues", count: 32 },
-    { name: "new-vendor", count: 28 },
-    { name: "background-check", count: 24 },
-    { name: "scheduling", count: 19 }
-  ];
+  // Real data hooks
+  const { 
+    trendingTags, 
+    loading: tagsLoading, 
+    error: tagsError, 
+    refetch: refetchTags 
+  } = useTrendingTags({
+    section: activeTab === "field-rep-forum" ? "field-rep-forum" : null,
+    tagLimit: 5,
+    daysBack: 30
+  });
 
-  // Mock saved posts - will come from database later
-  const savedPosts = [
-    {
-      id: 1,
-      title: "Best practices for REO inspections",
-      originalSection: "Field Rep Forum",
-      savedDate: "2 days ago",
-      type: "question"
-    },
-    {
-      id: 2,
-      title: "New coverage opportunity in Texas",
-      originalSection: "Vendor Bulletin", 
-      savedDate: "1 week ago",
-      type: "vendor-alert"
-    }
-  ];
+  const { 
+    savedPosts, 
+    loading: savedLoading, 
+    toggleSavePost, 
+    isPostSaved 
+  } = useSavedPosts();
+
+  const {
+    searchResults,
+    loading: searchLoading
+  } = useTagSearch({
+    tags: selectedTags,
+    section: activeTab === "field-rep-forum" ? "field-rep-forum" : 
+             activeTab === "vendor-bulletin" ? "vendor-bulletin" : null,
+    enabled: selectedTags.length > 0
+  });
 
   const handleCreatePost = (post: {
     type: string;
@@ -63,6 +70,7 @@ const CommunityBoard = () => {
     content: string;
     isAnonymous: boolean;
     systemTags: string[];
+    userTags?: string[];
   }) => {
     // Handle post creation based on active tab
     console.log("Creating post for:", activeTab, post);
@@ -72,6 +80,11 @@ const CommunityBoard = () => {
       title: "Post Created",
       description: `Your ${post.type} has been posted successfully.`,
     });
+
+    // Refresh trending tags after creating a post
+    setTimeout(() => {
+      refetchTags();
+    }, 1000);
   };
 
   const handleSupportCenterClick = () => {
@@ -79,8 +92,30 @@ const CommunityBoard = () => {
   };
 
   const handleTagClick = (tagName: string) => {
-    setSearchKeyword(tagName);
-    // Filter posts by tag
+    // Toggle tag selection for filtering
+    setSelectedTags(prev => {
+      if (prev.includes(tagName)) {
+        return prev.filter(tag => tag !== tagName);
+      } else {
+        return [...prev, tagName];
+      }
+    });
+  };
+
+  const clearTagFilters = () => {
+    setSelectedTags([]);
+  };
+
+  const formatSavedDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return "1 day ago";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    return `${Math.ceil(diffDays / 30)} months ago`;
   };
 
   return (
@@ -138,27 +173,79 @@ const CommunityBoard = () => {
               <CardContent className="space-y-4">
                 {/* Trending Tags Section */}
                 <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                    <h3 className="font-medium">Trending Tags</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <h3 className="font-medium">Trending Tags</h3>
+                      {tagsLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={refetchTags}
+                      disabled={tagsLoading}
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </Button>
                   </div>
+                  
+                  {tagsError && (
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Showing sample tags (database connection issue)
+                    </p>
+                  )}
+                  
                   <div className="flex flex-wrap gap-2">
-                    {trendingTags.map((tag) => (
-                      <Button
-                        key={tag.name}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleTagClick(tag.name)}
-                        className="h-7 text-xs"
-                      >
-                        <Tag className="h-3 w-3 mr-1" />
-                        {tag.name}
-                        <Badge variant="secondary" className="ml-1 h-4 text-xs">
-                          {tag.count}
-                        </Badge>
-                      </Button>
-                    ))}
+                    {trendingTags.length > 0 ? (
+                      trendingTags.map((tag) => (
+                        <Button
+                          key={tag.tag_name}
+                          variant={selectedTags.includes(tag.tag_name) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleTagClick(tag.tag_name)}
+                          className="h-7 text-xs"
+                        >
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag.tag_name}
+                          <Badge variant="secondary" className="ml-1 h-4 text-xs">
+                            {tag.tag_count}
+                          </Badge>
+                        </Button>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No trending tags yet. Be the first to create posts with tags!
+                      </p>
+                    )}
                   </div>
+                  
+                  {selectedTags.length > 0 && (
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-medium">Active filters:</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearTagFilters}
+                          className="h-6 text-xs"
+                        >
+                          Clear all
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedTags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="default"
+                            className="cursor-pointer text-xs"
+                            onClick={() => handleTagClick(tag)}
+                          >
+                            {tag} ✕
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Search and Filters */}
@@ -189,10 +276,7 @@ const CommunityBoard = () => {
             </Card>
 
             {/* Posts Feed */}
-            <CommunityFeed 
-              filterType="field-rep"
-              searchKeyword={searchKeyword}
-            />
+            <CommunityFeed />
           </TabsContent>
 
           {/* Vendor Bulletin */}
@@ -237,10 +321,7 @@ const CommunityBoard = () => {
             </Card>
 
             {/* Vendor Posts Feed */}
-            <CommunityFeed 
-              filterType="vendor"
-              searchKeyword={searchKeyword}
-            />
+            <CommunityFeed />
           </TabsContent>
 
           {/* My Saved */}
@@ -253,7 +334,12 @@ const CommunityBoard = () => {
                 </p>
               </CardHeader>
               <CardContent>
-                {savedPosts.length === 0 ? (
+                {savedLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    <span className="text-muted-foreground">Loading saved posts...</span>
+                  </div>
+                ) : savedPosts.length === 0 ? (
                   <div className="text-center py-8">
                     <Bookmark className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-medium text-lg mb-2">No saved posts yet</h3>
@@ -267,19 +353,26 @@ const CommunityBoard = () => {
                 ) : (
                   <div className="space-y-4">
                     {savedPosts.map((post) => (
-                      <div key={post.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
+                      <div key={post.post_id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium mb-1">{post.title}</h4>
+                            <h4 className="font-medium mb-1">{post.title || "Untitled Post"}</h4>
+                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                              {post.content}
+                            </p>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Badge variant="outline" className="text-xs">
-                                {post.originalSection}
+                                {post.section === 'field-rep-forum' ? 'Field Rep Forum' : 'Vendor Bulletin'}
                               </Badge>
                               <span>•</span>
-                              <span>Saved {post.savedDate}</span>
+                              <span>Saved {formatSavedDate(post.saved_at)}</span>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => toggleSavePost(post.post_id)}
+                          >
                             <Bookmark className="h-4 w-4 fill-current" />
                           </Button>
                         </div>
@@ -298,12 +391,14 @@ const CommunityBoard = () => {
         </Tabs>
 
         {/* Post Creation Modal */}
-        <PostCreationModal
-          open={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreatePost}
-          postType={activeTab === "vendor-bulletin" ? "vendor-alert" : "question"}
-        />
+        {showCreateModal && (
+          <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+            <PostCreationModal
+              onCreatePost={handleCreatePost}
+              onClose={() => setShowCreateModal(false)}
+            />
+          </Dialog>
+        )}
       </main>
       
       <Footer />

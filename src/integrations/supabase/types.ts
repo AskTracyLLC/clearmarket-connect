@@ -275,8 +275,15 @@ export type Database = {
           flagged: boolean | null
           helpful_votes: number | null
           id: string
+          is_anonymous: boolean | null
+          post_type: string
+          screenshots: string[] | null
+          section: string
+          system_tags: string[] | null
+          title: string | null
           updated_at: string | null
           user_id: string
+          user_tags: string[] | null
         }
         Insert: {
           content: string
@@ -284,8 +291,15 @@ export type Database = {
           flagged?: boolean | null
           helpful_votes?: number | null
           id?: string
+          is_anonymous?: boolean | null
+          post_type?: string
+          screenshots?: string[] | null
+          section?: string
+          system_tags?: string[] | null
+          title?: string | null
           updated_at?: string | null
           user_id: string
+          user_tags?: string[] | null
         }
         Update: {
           content?: string
@@ -293,8 +307,15 @@ export type Database = {
           flagged?: boolean | null
           helpful_votes?: number | null
           id?: string
+          is_anonymous?: boolean | null
+          post_type?: string
+          screenshots?: string[] | null
+          section?: string
+          system_tags?: string[] | null
+          title?: string | null
           updated_at?: string | null
           user_id?: string
+          user_tags?: string[] | null
         }
         Relationships: [
           {
@@ -1275,6 +1296,42 @@ export type Database = {
           },
         ]
       }
+      saved_posts: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sent_emails: {
         Row: {
           email_type: string
@@ -1985,13 +2042,54 @@ export type Database = {
           user_id: string
         }
       }
+      get_trending_tags: {
+        Args: {
+          days_back?: number
+          tag_limit?: number
+          section_filter?: string
+        }
+        Returns: {
+          tag_name: string
+          tag_count: number
+        }[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      get_user_saved_posts: {
+        Args: { target_user_id: string }
+        Returns: {
+          post_id: string
+          title: string
+          content: string
+          post_type: string
+          section: string
+          saved_at: string
+          post_created_at: string
+        }[]
+      }
       populate_location_data_from_csv: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      search_posts_by_tags: {
+        Args: {
+          search_tags: string[]
+          section_filter?: string
+          limit_count?: number
+        }
+        Returns: {
+          id: string
+          title: string
+          content: string
+          post_type: string
+          user_tags: string[]
+          system_tags: string[]
+          helpful_votes: number
+          created_at: string
+          user_id: string
+        }[]
       }
       setup_test_user: {
         Args: {
@@ -2021,6 +2119,10 @@ export type Database = {
       update_trust_score: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      validate_tag_length: {
+        Args: { tags: string[] }
+        Returns: boolean
       }
     }
     Enums: {
