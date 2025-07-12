@@ -1,4 +1,4 @@
-import { CommunityPost } from "@/data/mockCommunityPosts";
+import { CommunityPost } from "@/hooks/useCommunityPosts";
 
 export type SortOption = "helpful" | "newest" | "post-type";
 
@@ -8,9 +8,9 @@ export const filterPosts = (
   searchKeyword: string
 ) => {
   return posts.filter(post => {
-    const categoryMatch = selectedCategory === "all" || post.type === selectedCategory;
+    const categoryMatch = selectedCategory === "all" || post.post_type === selectedCategory;
     const searchMatch = searchKeyword === "" || 
-      post.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      (post.title && post.title.toLowerCase().includes(searchKeyword.toLowerCase())) ||
       post.content.toLowerCase().includes(searchKeyword.toLowerCase());
     return categoryMatch && searchMatch;
   });
@@ -20,11 +20,11 @@ export const sortPosts = (posts: CommunityPost[], sortBy: SortOption) => {
   return [...posts].sort((a, b) => {
     switch (sortBy) {
       case "helpful":
-        return (b.helpfulVotes - b.notHelpfulVotes) - (a.helpfulVotes - a.notHelpfulVotes);
+        return b.helpful_votes - a.helpful_votes;
       case "newest":
-        return b.timePosted.getTime() - a.timePosted.getTime();
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       case "post-type":
-        return a.type.localeCompare(b.type);
+        return a.post_type.localeCompare(b.post_type);
       default:
         return 0;
     }
@@ -32,10 +32,9 @@ export const sortPosts = (posts: CommunityPost[], sortBy: SortOption) => {
 };
 
 export const calculateTrending = (post: CommunityPost) => {
-  const hoursOld = (Date.now() - post.timePosted.getTime()) / (1000 * 60 * 60);
-  const totalVotes = post.helpfulVotes + post.notHelpfulVotes;
-  const replyCount = post.replies.length;
-  const activityScore = totalVotes + (replyCount * 2) + (post.isFollowed ? 1 : 0) + (post.isSaved ? 1 : 0);
+  const hoursOld = (Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60);
+  const totalVotes = post.helpful_votes;
+  const activityScore = totalVotes;
   
   // Trending if high activity within last 24 hours
   return hoursOld <= 24 && activityScore >= 8;

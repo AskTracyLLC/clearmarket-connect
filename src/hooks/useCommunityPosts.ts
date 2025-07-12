@@ -1,176 +1,100 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { useRealtimeSubscription } from "./useRealtimeSubscription";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface CommunityPost {
   id: string;
+  title?: string;
   content: string;
-  created_at: string;
-  updated_at: string;
+  post_type: string;
+  section: string;
+  user_id: string;
+  is_anonymous: boolean;
   helpful_votes: number;
   flagged: boolean;
-  user_id: string;
-  users: {
-    display_name: string;
-    role: string;
-  };
-  hasUserVoted?: boolean;
+  created_at: string;
+  updated_at: string;
+  user_tags: string[];
+  system_tags: string[];
+  screenshots?: string[];
 }
 
-export const useCommunityPosts = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
+export const useCommunityPosts = (section?: string) => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchPosts = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('community_posts')
-        .select(`
-          *,
-          users:user_id (
-            display_name,
-            role
-          )
-        `)
-        .eq('flagged', false)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      // Check if current user has voted on each post
-      let postsWithVoteStatus = data || [];
-      if (user) {
-        const postIds = data?.map(post => post.id) || [];
-        if (postIds.length > 0) {
-          const { data: userVotes } = await supabase
-            .from('helpful_votes')
-            .select('target_id')
-            .eq('voter_id', user.id)
-            .eq('target_type', 'post')
-            .in('target_id', postIds);
-
-          const votedPostIds = new Set(userVotes?.map(vote => vote.target_id) || []);
-          
-          postsWithVoteStatus = (data || []).map(post => ({
-            ...post,
-            hasUserVoted: votedPostIds.has(post.id)
-          }));
-        }
+      if (section) {
+        query = query.eq('section', section);
       }
 
-      setPosts(postsWithVoteStatus);
-    } catch (error: any) {
-      console.error('Error loading posts:', error);
-      toast({
-        title: "Error loading posts",
-        description: error.message,
-        variant: "destructive",
-      });
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) {
+        throw new Error(fetchError.message);
+      }
+
+      setPosts(data || []);
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error fetching posts:', err);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const createPost = async (content: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to create a post.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
+  const handleVote = async (postId: string, type: 'helpful' | 'not-helpful') => {
     try {
-      const { error } = await supabase
-        .from('community_posts')
-        .insert({
-          content: content.trim(),
-          user_id: user.id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to vote on posts",
+          variant: "destructive"
         });
+        return;
+      }
 
-      if (error) throw error;
-
-      toast({
-        title: "Post created",
-        description: "Your post has been shared with the community!",
-      });
-
-      // Refresh posts
-      await fetchPosts();
-      return true;
-    } catch (error: any) {
-      console.error('Error creating post:', error);
-      toast({
-        title: "Error creating post",
-        description: error.message,
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const voteOnPost = async (postId: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to vote on posts.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
       // Check if user already voted
       const { data: existingVote } = await supabase
         .from('helpful_votes')
-        .select('*')
+        .select('id')
         .eq('target_id', postId)
         .eq('target_type', 'post')
         .eq('voter_id', user.id)
-        .maybeSingle();
+        .single();
 
       if (existingVote) {
-        // Remove vote
-        const { error: deleteError } = await supabase
+        // Remove existing vote
+        await supabase
           .from('helpful_votes')
           .delete()
-          .eq('target_id', postId)
-          .eq('target_type', 'post')
-          .eq('voter_id', user.id);
+          .eq('id', existingVote.id);
 
-        if (deleteError) throw deleteError;
-
-        // Decrement helpful_votes count on the post
-        const { data: currentPost } = await supabase
-          .from('community_posts')
-          .select('helpful_votes')
-          .eq('id', postId)
-          .single();
-
-        if (currentPost) {
-          const { error: updateError } = await supabase
+        // Update post helpful_votes count
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          await supabase
             .from('community_posts')
-            .update({
-              helpful_votes: Math.max(0, (currentPost.helpful_votes || 0) - 1)
-            })
+            .update({ helpful_votes: Math.max(0, post.helpful_votes - 1) })
             .eq('id', postId);
-
-          if (updateError) throw updateError;
         }
-
-        toast({
-          title: "Vote removed",
-          description: "Your vote has been removed from this post.",
-        });
-      } else {
-        // Add vote
-        const { error: insertError } = await supabase
+      } else if (type === 'helpful') {
+        // Add new helpful vote
+        await supabase
           .from('helpful_votes')
           .insert({
             target_id: postId,
@@ -178,111 +102,132 @@ export const useCommunityPosts = () => {
             voter_id: user.id
           });
 
-        if (insertError) throw insertError;
-
-        // Get current post to increment votes
-        const { data: currentPost } = await supabase
-          .from('community_posts')
-          .select('helpful_votes')
-          .eq('id', postId)
-          .single();
-
-        if (currentPost) {
-          const { error: updateError } = await supabase
+        // Update post helpful_votes count
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          await supabase
             .from('community_posts')
-            .update({
-              helpful_votes: (currentPost.helpful_votes || 0) + 1
-            })
+            .update({ helpful_votes: post.helpful_votes + 1 })
             .eq('id', postId);
-
-          if (updateError) throw updateError;
         }
-
-        toast({
-          title: "Vote recorded",
-          description: "Thank you for your feedback!",
-        });
       }
 
       // Refresh posts
-      await fetchPosts();
-    } catch (error: any) {
-      console.error('Error voting on post:', error);
+      fetchPosts();
+    } catch (err: any) {
+      console.error('Error voting:', err);
       toast({
-        title: "Error voting",
-        description: error.message,
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to vote on post",
+        variant: "destructive"
       });
     }
   };
 
-  const flagPost = async (postId: string, reason?: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to report posts.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleFlag = async (postId: string) => {
     try {
-      // Check if user can create flags (rate limiting)
-      const { data: canFlag } = await supabase
-        .rpc('can_create_flag', { user_id: user.id });
-
-      if (!canFlag) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         toast({
-          title: "Rate limit exceeded",
-          description: "You can only report 5 items per day.",
-          variant: "destructive",
+          title: "Authentication required",
+          description: "Please sign in to flag posts",
+          variant: "destructive"
         });
         return;
       }
 
-      // Create flag
-      const { error } = await supabase
+      await supabase
         .from('flags')
         .insert({
           target_id: postId,
           target_type: 'post',
           flagged_by: user.id,
-          reason: reason || 'Inappropriate content'
+          reason: 'User reported content'
         });
 
-      if (error) throw error;
-
       toast({
-        title: "Post reported",
-        description: "Thank you for helping keep our community safe. This post has been reported for review.",
+        title: "Post flagged",
+        description: "Thank you for helping keep our community safe"
       });
-    } catch (error: any) {
-      console.error('Error flagging post:', error);
+    } catch (err: any) {
+      console.error('Error flagging post:', err);
       toast({
-        title: "Error reporting post",
-        description: error.message,
-        variant: "destructive",
+        title: "Error",
+        description: "Failed to flag post",
+        variant: "destructive"
       });
     }
   };
 
-  // Set up real-time subscription for posts
-  const handleRealtimeUpdate = useCallback(() => {
-    fetchPosts();
-  }, []);
+  const handleCreatePost = async (newPost: {
+    type: string;
+    title: string;
+    content: string;
+    isAnonymous: boolean;
+    systemTags: string[];
+    userTags: string[];
+    section: string;
+  }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to create posts",
+          variant: "destructive"
+        });
+        return;
+      }
 
-  useRealtimeSubscription('community_posts', handleRealtimeUpdate);
+      const { data, error } = await supabase
+        .from('community_posts')
+        .insert({
+          title: newPost.title,
+          content: newPost.content,
+          post_type: newPost.type,
+          section: newPost.section,
+          user_id: user.id,
+          is_anonymous: newPost.isAnonymous,
+          system_tags: newPost.systemTags,
+          user_tags: newPost.userTags
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      toast({
+        title: "Post created",
+        description: "Your post has been published successfully"
+      });
+
+      // Refresh posts
+      fetchPosts();
+    } catch (err: any) {
+      console.error('Error creating post:', err);
+      toast({
+        title: "Error",
+        description: "Failed to create post",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     fetchPosts();
-  }, [user]);
+  }, [section]);
 
   return {
     posts,
+    selectedPost,
+    setSelectedPost,
     loading,
-    createPost,
-    voteOnPost,
-    flagPost,
+    error,
+    handleVote,
+    handleFlag,
+    handleCreatePost,
     refetch: fetchPosts
   };
 };

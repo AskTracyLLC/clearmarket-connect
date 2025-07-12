@@ -1,126 +1,134 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import SimpleUserBadge from "./SimpleUserBadge";
-import { 
-  ThumbsUp,
-  MessageSquare, 
-  Share2, 
-  Flag, 
-  MoreHorizontal
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ThumbsUp, Flag, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/hooks/useCommunityPosts";
+import { getPostTypeColor } from "@/utils/postTypeColors";
 
 interface SimpleCommunityPostCardProps {
   post: CommunityPost;
-  onVote: (postId: string) => void;
-  onFlag: (postId: string, reason?: string) => void;
+  onClick: () => void;
+  onVote: (postId: string, type: 'helpful' | 'not-helpful') => void;
+  onFlag: (postId: string) => void;
 }
 
-export const SimpleCommunityPostCard = ({ post, onVote, onFlag }: SimpleCommunityPostCardProps) => {
-  const [shared, setShared] = useState(false);
+const SimpleCommunityPostCard = ({ post, onClick, onVote, onFlag }: SimpleCommunityPostCardProps) => {
+  const [isVoting, setIsVoting] = useState(false);
 
-  const handleVote = () => {
-    onVote(post.id);
+  const handleVote = async () => {
+    setIsVoting(true);
+    try {
+      await onVote(post.id, 'helpful');
+    } finally {
+      setIsVoting(false);
+    }
   };
 
-  const handleFlag = (reason?: string) => {
-    onFlag(post.id, reason);
-  };
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setShared(true);
-    setTimeout(() => setShared(false), 2000);
+  const handleFlag = async () => {
+    await onFlag(post.id);
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <SimpleUserBadge 
-              name={post.users?.display_name || 'Anonymous'}
-              role={post.users?.role || 'user'}
-              showTrustScore={false}
-            />
-            <span className="text-sm text-muted-foreground">
-              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-            </span>
-          </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleFlag('Spam')}>
-                <Flag className="h-4 w-4 mr-2" />
-                Report as Spam
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleFlag('Inappropriate')}>
-                <Flag className="h-4 w-4 mr-2" />
-                Report as Inappropriate
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <div className="flex flex-wrap gap-2 mb-3">
-          {post.flagged && (
-            <Badge variant="destructive" className="text-xs">
-              Under Review
+    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant="outline" 
+              className={`${getPostTypeColor(post.post_type)} text-xs`}
+            >
+              {post.post_type.replace('-', ' ')}
             </Badge>
-          )}
+            {post.flagged && (
+              <Badge variant="destructive" className="text-xs">
+                Flagged
+              </Badge>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+          </span>
         </div>
-        
-        <p className="text-sm leading-relaxed">{post.content}</p>
-        
+
+        <div onClick={onClick}>
+          {post.title && (
+            <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+              {post.title}
+            </h3>
+          )}
+          
+          <p className="text-muted-foreground mb-4 line-clamp-3">
+            {post.content}
+          </p>
+        </div>
+
+        {/* Tags */}
+        {(post.user_tags?.length > 0 || post.system_tags?.length > 0) && (
+          <div className="flex flex-wrap gap-1 mb-4">
+            {post.user_tags?.map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+            {post.system_tags?.map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleVote}
-              className={`flex items-center gap-2 ${post.hasUserVoted ? 'text-primary' : ''}`}
+              disabled={isVoting}
+              className="flex items-center gap-1 text-muted-foreground hover:text-primary"
             >
-              <ThumbsUp className={`h-4 w-4 ${post.hasUserVoted ? 'fill-current' : ''}`} />
-              <span>{post.helpful_votes || 0}</span>
+              <ThumbsUp className="h-4 w-4" />
+              <span>{post.helpful_votes}</span>
             </Button>
-            
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClick}
+              className="flex items-center gap-1 text-muted-foreground hover:text-primary"
+            >
               <MessageSquare className="h-4 w-4" />
               <span>Reply</span>
             </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleShare}
-              className="flex items-center gap-2"
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleFlag}
+              className="text-muted-foreground hover:text-destructive"
             >
-              <Share2 className="h-4 w-4" />
-              <span>{shared ? 'Copied!' : 'Share'}</span>
+              <Flag className="h-4 w-4" />
             </Button>
           </div>
-          
-          <div className="text-sm text-muted-foreground">
-            Post #{post.id.slice(-6)}
+        </div>
+
+        {/* Author info */}
+        <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
+            {post.is_anonymous ? "A" : "U"}
           </div>
+          <span className="text-sm text-muted-foreground">
+            {post.is_anonymous ? "Anonymous" : "Community Member"}
+          </span>
         </div>
       </CardContent>
     </Card>
   );
 };
+
+export default SimpleCommunityPostCard;

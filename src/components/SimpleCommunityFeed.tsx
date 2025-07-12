@@ -6,26 +6,31 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog } from "@/components/ui/dialog";
 import { MessageSquare, Users, TrendingUp, Plus, Search, Filter } from "lucide-react";
-import { SimpleCommunityPostsList } from "./SimpleCommunityPostsList";
+import SimpleCommunityPostsList from "./SimpleCommunityPostsList";
 import SimplePostCreationModal from "./SimplePostCreationModal";
 import { useCommunityPosts } from "@/hooks/useCommunityPosts";
 
 const SimpleCommunityFeed = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { posts, loading, createPost, voteOnPost, flagPost } = useCommunityPosts();
+  const { posts, loading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts();
 
-  const handleCreatePost = async (content: string) => {
-    const success = await createPost(content);
-    if (success) {
-      setIsPostModalOpen(false);
-    }
+  const handleCreatePostSubmit = async (content: string) => {
+    await handleCreatePost({
+      type: 'question',
+      title: '',
+      content,
+      isAnonymous: false,
+      systemTags: [],
+      userTags: [],
+      section: 'field-rep-forum'
+    });
+    setIsPostModalOpen(false);
   };
 
   // Filter posts based on search term
   const filteredPosts = posts.filter(post => 
-    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.users?.display_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    post.content.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -94,19 +99,25 @@ const SimpleCommunityFeed = () => {
       <Separator />
 
       {/* Posts List */}
-      <SimpleCommunityPostsList 
-        posts={filteredPosts} 
-        loading={loading}
-        onVote={voteOnPost}
-        onFlag={flagPost}
-      />
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading posts...</p>
+        </div>
+      ) : (
+        <SimpleCommunityPostsList 
+          posts={filteredPosts} 
+          onPostClick={() => {}}
+          onVote={handleVote}
+          onFlag={handleFlag}
+        />
+      )}
 
       {/* Post Creation Modal */}
       <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
         <SimplePostCreationModal
           isOpen={isPostModalOpen}
           onClose={() => setIsPostModalOpen(false)}
-          onSubmit={handleCreatePost}
+          onSubmit={handleCreatePostSubmit}
         />
       </Dialog>
     </div>
