@@ -10,10 +10,14 @@ import SimpleCommunityPostsList from "./SimpleCommunityPostsList";
 import SimplePostCreationModal from "./SimplePostCreationModal";
 import { useCommunityPosts } from "@/hooks/useCommunityPosts";
 
-const SimpleCommunityFeed = () => {
+interface SimpleCommunityFeedProps {
+  section?: string;
+}
+
+const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { posts, loading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts();
+  const { posts, loading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts(section);
 
   const handleCreatePostSubmit = async (content: string) => {
     await handleCreatePost({
@@ -23,7 +27,7 @@ const SimpleCommunityFeed = () => {
       isAnonymous: false,
       systemTags: [],
       userTags: [],
-      section: 'field-rep-forum'
+      section: section || 'field-rep-forum'
     });
     setIsPostModalOpen(false);
   };
