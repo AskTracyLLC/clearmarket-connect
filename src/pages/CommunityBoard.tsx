@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   MessageSquare, 
   Megaphone, 
@@ -20,20 +21,60 @@ import {
   Tag,
   ExternalLink,
   RefreshCw,
-  Loader2
+  Loader2,
+  Eye,
+  AlertCircle
 } from "lucide-react";
 import CommunityFeed from "@/components/CommunityFeed";
 import PostCreationModal from "@/components/PostCreationModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useTrendingTags, useSavedPosts, useTagSearch } from "@/hooks/useTrendingTags";
+import { supabase } from "@/integrations/supabase/client";
 
 const CommunityBoard = () => {
   const [activeTab, setActiveTab] = useState("field-rep-forum");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'newest' | 'helpful' | 'trending' | 'priority'>('newest');
+  const [userRole, setUserRole] = useState<'field_rep' | 'vendor' | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Get user role on component mount
+  useEffect(() => {
+    const getCurrentUserRole = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching user role:', error);
+            toast({
+              title: "Error",
+              description: "Failed to load user information",
+              variant: "destructive",
+            });
+          } else {
+            setUserRole(userData?.role || null);
+          }
+        }
+      } catch (error) {
+        console.error('Error getting user role:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getCurrentUserRole();
+  }, [toast]);
 
   // Real data hooks
   const { 
@@ -64,6 +105,39 @@ const CommunityBoard = () => {
     enabled: selectedTags.length > 0
   });
 
+  // Check if user can post in current tab
+  const canPostInCurrentTab = () => {
+    if (!userRole) return false;
+    
+    if (activeTab === "field-rep-forum") {
+      return userRole === "field_rep";
+    } else if (activeTab === "vendor-bulletin") {
+      return userRole === "vendor";
+    }
+    
+    return false;
+  };
+
+  // Get appropriate button text for current tab
+  const getCreateButtonText = () => {
+    if (activeTab === "field-rep-forum") {
+      return "Create Post";
+    } else if (activeTab === "vendor-bulletin") {
+      return "Post Announcement";
+    }
+    return "Create Post";
+  };
+
+  // Get view-only message for restricted users
+  const getViewOnlyMessage = () => {
+    if (activeTab === "field-rep-forum" && userRole === "vendor") {
+      return "You can view and comment on posts, but only Field Reps can create new posts in this forum.";
+    } else if (activeTab === "vendor-bulletin" && userRole === "field_rep") {
+      return "You can view and acknowledge announcements, but only Vendors can post announcements here.";
+    }
+    return "";
+  };
+
   const handleCreatePost = (post: {
     type: string;
     title: string;
@@ -72,13 +146,25 @@ const CommunityBoard = () => {
     systemTags: string[];
     userTags?: string[];
   }) => {
+    // Validate user can post in current tab
+    if (!canPostInCurrentTab()) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to post in this section.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Handle post creation based on active tab
     console.log("Creating post for:", activeTab, post);
     setShowCreateModal(false);
     
+    const postTypeText = activeTab === "vendor-bulletin" ? "announcement" : "post";
+    
     toast({
       title: "Post Created",
-      description: `Your ${post.type} has been posted successfully.`,
+      description: `Your ${postTypeText} has been posted successfully.`,
     });
 
     // Refresh trending tags after creating a post
@@ -117,6 +203,22 @@ const CommunityBoard = () => {
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
     return `${Math.ceil(diffDays / 30)} months ago`;
   };
+
+  // Show loading spinner while getting user role
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mr-3" />
+            <span className="text-lg">Loading community board...</span>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,14 +263,33 @@ const CommunityBoard = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl font-semibold">Field Rep Forum</CardTitle>
-                  <Button onClick={() => setShowCreateModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Post
-                  </Button>
+                  
+                  {/* Role-based Create Post Button */}
+                  {canPostInCurrentTab() ? (
+                    <Button onClick={() => setShowCreateModal(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      {getCreateButtonText()}
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span className="text-sm font-medium">View Only</span>
+                    </div>
+                  )}
                 </div>
                 <p className="text-muted-foreground">
                   Share best practices, ask questions, and connect with fellow field representatives
                 </p>
+                
+                {/* View-only alert for restricted users */}
+                {!canPostInCurrentTab() && getViewOnlyMessage() && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {getViewOnlyMessage()}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Trending Tags Section */}
@@ -261,7 +382,7 @@ const CommunityBoard = () => {
                       />
                     </div>
                   </div>
-                  <Select defaultValue="newest">
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'newest' | 'helpful' | 'trending' | 'priority')}>
                     <SelectTrigger className="w-full sm:w-40">
                       <SelectValue />
                     </SelectTrigger>
@@ -285,14 +406,36 @@ const CommunityBoard = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl font-semibold">Vendor Bulletin</CardTitle>
-                  <Button onClick={() => setShowCreateModal(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Post Announcement
-                  </Button>
+                  
+                  {/* Role-based Post Announcement Button */}
+                  {canPostInCurrentTab() ? (
+                    <Button onClick={() => setShowCreateModal(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      {getCreateButtonText()}
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span className="text-sm font-medium">View Only</span>
+                    </div>
+                  )}
                 </div>
                 <p className="text-muted-foreground">
-                  Network-wide announcements and updates from vendors
+                  {userRole === "field_rep" 
+                    ? "Announcements and updates from vendors in your network"
+                    : "Network-wide announcements and updates from vendors"
+                  }
                 </p>
+                
+                {/* View-only alert for Field Reps */}
+                {!canPostInCurrentTab() && getViewOnlyMessage() && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {getViewOnlyMessage()}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardHeader>
               <CardContent>
                 {/* Search for Vendor Bulletin */}
@@ -306,14 +449,14 @@ const CommunityBoard = () => {
                       />
                     </div>
                   </div>
-                  <Select defaultValue="newest">
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'newest' | 'helpful' | 'trending' | 'priority')}>
                     <SelectTrigger className="w-full sm:w-40">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="newest">Newest</SelectItem>
                       <SelectItem value="priority">Priority</SelectItem>
-                      <SelectItem value="coverage">Coverage</SelectItem>
+                      <SelectItem value="helpful">Most Helpful</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
