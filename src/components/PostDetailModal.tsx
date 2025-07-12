@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ThumbsUp, Flag, Send, Image, Smile } from "lucide-react";
+import { ThumbsUp, Flag, Send, Image, Smile, Bookmark, Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/hooks/useCommunityPosts";
 import { getPostTypeColor } from "@/utils/postTypeColors";
+import { useSavedPosts } from "@/hooks/useTrendingTags";
+import { useToast } from "@/hooks/use-toast";
 
 interface PostDetailModalProps {
   post: CommunityPost | null;
@@ -21,6 +23,9 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const { savedPosts, toggleSavePost, isPostSaved } = useSavedPosts();
+  const { toast } = useToast();
 
   if (!post) return null;
 
@@ -39,15 +44,48 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
     try {
       // TODO: Implement comment submission
       console.log('Submitting comment:', comment);
+      toast({
+        title: "Comment posted!",
+        description: "Your comment has been added to the post.",
+      });
       setComment("");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleSave = async () => {
+    await toggleSavePost(post.id);
+  };
+
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+    toast({
+      title: isFollowing ? "Unfollowed post" : "Following post",
+      description: isFollowing 
+        ? "You'll no longer get notifications about this post." 
+        : "You'll get notified about new comments and updates.",
+    });
+  };
+
+  const popularGifs = [
+    "https://media.giphy.com/media/3o7aCRloybJlXpNjSU/giphy.gif", // thumbs up
+    "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif", // applause  
+    "https://media.giphy.com/media/3oz8xBwn8AU6Bp1hKM/giphy.gif", // party
+    "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif", // thinking
+    "https://media.giphy.com/media/26gspjl5bxzhSdJtK/giphy.gif", // nod
+    "https://media.giphy.com/media/3o72FfM5HJydzafgUE/giphy.gif"  // perfect
+  ];
+
+  const popularEmojis = ["👍", "👏", "🎉", "🤔", "💯", "🔥", "❤️", "😂", "👌", "🙌"];
+
   const addGif = (gifUrl: string) => {
-    setComment(prev => prev + `\n![gif](${gifUrl})\n`);
+    setComment(prev => prev + ` ![gif](${gifUrl}) `);
     setShowGifPicker(false);
+  };
+
+  const addEmoji = (emoji: string) => {
+    setComment(prev => prev + emoji);
   };
 
   return (
@@ -139,25 +177,55 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
               )}
 
               {/* Actions */}
-              <div className="flex items-center gap-4 pb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleVote}
-                  className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                  <span>{post.helpful_votes}</span>
-                </Button>
+              <div className="flex items-center justify-between pb-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleVote}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                  >
+                    <ThumbsUp className="h-4 w-4" />
+                    <span>{post.helpful_votes}</span>
+                  </Button>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFlag}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Flag className="h-4 w-4" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSave}
+                    className={`flex items-center gap-2 ${
+                      isPostSaved(post.id) 
+                        ? "text-primary" 
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    <Bookmark className={`h-4 w-4 ${isPostSaved(post.id) ? "fill-current" : ""}`} />
+                    <span>{isPostSaved(post.id) ? "Saved" : "Save"}</span>
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleFollow}
+                    className={`flex items-center gap-2 ${
+                      isFollowing 
+                        ? "text-primary" 
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    <Bell className={`h-4 w-4 ${isFollowing ? "fill-current" : ""}`} />
+                    <span>{isFollowing ? "Following" : "Follow"}</span>
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleFlag}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Flag className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -171,11 +239,12 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
             {/* Comment form */}
             <div className="space-y-3">
               <Textarea
-                placeholder="Add a comment... (GIF support: ![gif](url))"
+                placeholder="Add a comment... (GIF support: ![gif](url) or click Add GIF)"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={3}
                 className="resize-none"
+                maxLength={1000}
               />
               
               <div className="flex items-center justify-between">
@@ -189,14 +258,19 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
                     <Image className="h-4 w-4" />
                     Add GIF
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Smile className="h-4 w-4" />
-                    Emoji
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {popularEmojis.slice(0, 6).map((emoji) => (
+                      <Button
+                        key={emoji}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => addEmoji(emoji)}
+                        className="text-lg p-1 h-8 w-8"
+                      >
+                        {emoji}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
                 
                 <Button 
@@ -212,22 +286,25 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
               {showGifPicker && (
                 <div className="border rounded-lg p-4 bg-muted">
                   <p className="text-sm text-muted-foreground mb-3">Popular GIFs:</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {/* Sample GIF placeholders */}
-                    {[
-                      "https://media.giphy.com/media/3o7aCRloybJlXpNjSU/giphy.gif",
-                      "https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif",
-                      "https://media.giphy.com/media/3oz8xBwn8AU6Bp1hKM/giphy.gif"
-                    ].map((gifUrl, index) => (
+                  <div className="grid grid-cols-3 gap-3">
+                    {popularGifs.map((gifUrl, index) => (
                       <button
                         key={index}
                         onClick={() => addGif(gifUrl)}
-                        className="aspect-square bg-muted-foreground/10 rounded border-2 border-transparent hover:border-primary transition-colors flex items-center justify-center text-xs"
+                        className="aspect-square bg-muted-foreground/10 rounded border-2 border-transparent hover:border-primary transition-colors overflow-hidden"
                       >
-                        GIF {index + 1}
+                        <img 
+                          src={gifUrl} 
+                          alt={`GIF ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       </button>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Click a GIF to add it to your comment
+                  </p>
                 </div>
               )}
             </div>
