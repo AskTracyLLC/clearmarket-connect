@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -7,10 +8,11 @@ import { Label } from "@/components/ui/label";
 interface SimplePostCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (content: string) => Promise<void>;
+  onSubmit: (title: string, content: string) => Promise<void>;
 }
 
 const SimplePostCreationModal = ({ onClose, onSubmit }: SimplePostCreationModalProps) => {
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,7 +21,8 @@ const SimplePostCreationModal = ({ onClose, onSubmit }: SimplePostCreationModalP
     
     setIsSubmitting(true);
     try {
-      await onSubmit(content.trim());
+      await onSubmit(title.trim(), content.trim());
+      setTitle("");
       setContent("");
     } finally {
       setIsSubmitting(false);
@@ -36,7 +39,21 @@ const SimplePostCreationModal = ({ onClose, onSubmit }: SimplePostCreationModalP
       
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="content">What's on your mind?</Label>
+          <Label htmlFor="title">Title (optional)</Label>
+          <Input
+            id="title"
+            placeholder="Give your post a title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
+          />
+          <p className="text-xs text-muted-foreground">
+            {title.length}/200 characters
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="content">Content</Label>
           <Textarea
             id="content"
             placeholder="Share your thoughts, questions, or experiences with the community..."
@@ -44,6 +61,7 @@ const SimplePostCreationModal = ({ onClose, onSubmit }: SimplePostCreationModalP
             onChange={(e) => setContent(e.target.value)}
             rows={4}
             className="resize-none"
+            maxLength={1000}
           />
           <p className="text-xs text-muted-foreground">
             {content.length}/1000 characters (minimum 10)

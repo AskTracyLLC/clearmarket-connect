@@ -19,10 +19,10 @@ const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const { posts, loading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts(section);
 
-  const handleCreatePostSubmit = async (content: string) => {
+  const handleCreatePostSubmit = async (title: string, content: string) => {
     await handleCreatePost({
       type: 'question',
-      title: '',
+      title: title || undefined,
       content,
       isAnonymous: false,
       systemTags: [],
