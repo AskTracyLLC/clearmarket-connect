@@ -25,7 +25,7 @@ import {
   Eye,
   AlertCircle
 } from "lucide-react";
-import CommunityFeed from "@/components/CommunityFeed";
+import ConnectionAwareCommunityFeed from "@/components/ConnectionAwareCommunityFeed";
 import PostCreationModal from "@/components/PostCreationModal";
 import { useToast } from "@/components/ui/use-toast";
 import { useTrendingTags, useSavedPosts, useTagSearch } from "@/hooks/useTrendingTags";
@@ -396,8 +396,14 @@ const CommunityBoard = () => {
               </CardContent>
             </Card>
 
-            {/* Posts Feed */}
-            <CommunityFeed />
+{/* Posts Feed */}
+            <ConnectionAwareCommunityFeed 
+              boardType="field-rep-forum"
+              searchKeyword={searchKeyword}
+              selectedTags={selectedTags}
+              sortBy={sortBy}
+              userRole={userRole}
+            />
           </TabsContent>
 
           {/* Vendor Bulletin */}
@@ -463,8 +469,14 @@ const CommunityBoard = () => {
               </CardContent>
             </Card>
 
-            {/* Vendor Posts Feed */}
-            <CommunityFeed />
+{/* Vendor Posts Feed */}
+            <ConnectionAwareCommunityFeed 
+              boardType="vendor-bulletin"
+              searchKeyword={searchKeyword}
+              selectedTags={selectedTags}
+              sortBy={sortBy}
+              userRole={userRole}
+            />
           </TabsContent>
 
           {/* My Saved */}
