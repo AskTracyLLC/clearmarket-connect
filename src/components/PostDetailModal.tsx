@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ThumbsUp, Flag, Send, Image, Smile, Bookmark, Bell } from "lucide-react";
+import { ThumbsUp, Flag, Send, Image, Smile, Bookmark, Bell, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/hooks/useCommunityPosts";
 import { getPostTypeColor } from "@/utils/postTypeColors";
@@ -24,6 +25,9 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [gifSearch, setGifSearch] = useState("");
+  const [searchedGifs, setSearchedGifs] = useState<string[]>([]);
+  const [isSearchingGifs, setIsSearchingGifs] = useState(false);
   const { savedPosts, toggleSavePost, isPostSaved } = useSavedPosts();
   const { toast } = useToast();
 
@@ -86,6 +90,34 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
 
   const addEmoji = (emoji: string) => {
     setComment(prev => prev + emoji);
+  };
+
+  const searchGifs = async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setSearchedGifs([]);
+      return;
+    }
+
+    setIsSearchingGifs(true);
+    try {
+      // Mock search results for now - in production, use Giphy API
+      const mockResults = [
+        `https://media.giphy.com/media/3o7aCRloybJlXpNjSU/giphy.gif`,
+        `https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif`,
+        `https://media.giphy.com/media/3oz8xBwn8AU6Bp1hKM/giphy.gif`,
+        `https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif`,
+      ];
+      setSearchedGifs(mockResults);
+    } catch (error) {
+      console.error('Error searching GIFs:', error);
+      toast({
+        title: "Search failed",
+        description: "Could not search for GIFs. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearchingGifs(false);
+    }
   };
 
   return (
@@ -285,23 +317,69 @@ const PostDetailModal = ({ post, isOpen, onClose, onVote, onFlag }: PostDetailMo
               
               {showGifPicker && (
                 <div className="border rounded-lg p-4 bg-muted">
-                  <p className="text-sm text-muted-foreground mb-3">Popular GIFs:</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {popularGifs.map((gifUrl, index) => (
-                      <button
-                        key={index}
-                        onClick={() => addGif(gifUrl)}
-                        className="aspect-square bg-muted-foreground/10 rounded border-2 border-transparent hover:border-primary transition-colors overflow-hidden"
-                      >
-                        <img 
-                          src={gifUrl} 
-                          alt={`GIF ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </button>
-                    ))}
+                  <div className="flex items-center gap-2 mb-4">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search for GIFs..."
+                      value={gifSearch}
+                      onChange={(e) => {
+                        setGifSearch(e.target.value);
+                        searchGifs(e.target.value);
+                      }}
+                      className="flex-1"
+                    />
                   </div>
+                  
+                  {gifSearch && searchedGifs.length > 0 && (
+                    <>
+                      <p className="text-sm text-muted-foreground mb-3">Search Results:</p>
+                      <div className="grid grid-cols-3 gap-3 mb-4">
+                        {searchedGifs.map((gifUrl, index) => (
+                          <button
+                            key={`search-${index}`}
+                            onClick={() => addGif(gifUrl)}
+                            className="aspect-square bg-muted-foreground/10 rounded border-2 border-transparent hover:border-primary transition-colors overflow-hidden"
+                          >
+                            <img 
+                              src={gifUrl} 
+                              alt={`Search GIF ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  
+                  {gifSearch && isSearchingGifs && (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">Searching for GIFs...</p>
+                    </div>
+                  )}
+                  
+                  {!gifSearch && (
+                    <>
+                      <p className="text-sm text-muted-foreground mb-3">Popular GIFs:</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        {popularGifs.map((gifUrl, index) => (
+                          <button
+                            key={index}
+                            onClick={() => addGif(gifUrl)}
+                            className="aspect-square bg-muted-foreground/10 rounded border-2 border-transparent hover:border-primary transition-colors overflow-hidden"
+                          >
+                            <img 
+                              src={gifUrl} 
+                              alt={`GIF ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  
                   <p className="text-xs text-muted-foreground mt-3">
                     Click a GIF to add it to your comment
                   </p>
