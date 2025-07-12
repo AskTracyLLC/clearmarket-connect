@@ -50,13 +50,8 @@ export const useTrendingTags = (options: UseTrendingTagsOptions = {}) => {
       setError(err.message);
       console.error('Error fetching trending tags:', err);
       
-      // Show fallback data for development
-      setTrendingTags([
-        { tag_name: 'inspection-tips', tag_count: 45 },
-        { tag_name: 'payment-issues', tag_count: 32 },
-        { tag_name: 'background-check', tag_count: 24 },
-        { tag_name: 'scheduling', tag_count: 19 }
-      ]);
+      // No fallback data - just empty array
+      setTrendingTags([]);
     } finally {
       setLoading(false);
     }

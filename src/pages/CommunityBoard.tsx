@@ -190,8 +190,8 @@ const CommunityBoard = () => {
                   </div>
                   
                   {tagsError && (
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Showing sample tags (database connection issue)
+                    <p className="text-xs text-destructive mb-2">
+                      Error loading tags: {tagsError}
                     </p>
                   )}
                   
