@@ -17,6 +17,12 @@ export interface CommunityPost {
   user_tags: string[];
   system_tags: string[];
   screenshots?: string[];
+  // Author details
+  author_display_name?: string;
+  author_anonymous_username?: string;
+  author_role?: string;
+  author_trust_score?: number;
+  author_community_score?: number;
 }
 
 export const useCommunityPosts = (section?: string) => {
@@ -33,7 +39,16 @@ export const useCommunityPosts = (section?: string) => {
     try {
       let query = supabase
         .from('community_posts')
-        .select('*')
+        .select(`
+          *,
+          users!community_posts_user_id_fkey (
+            display_name,
+            anonymous_username,
+            role,
+            trust_score,
+            community_score
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (section) {
@@ -46,7 +61,18 @@ export const useCommunityPosts = (section?: string) => {
         throw new Error(fetchError.message);
       }
 
-      setPosts(data || []);
+      // Transform data to include author details
+      const transformedPosts = (data || []).map((post: any) => ({
+        ...post,
+        author_display_name: post.users?.display_name,
+        author_anonymous_username: post.users?.anonymous_username,
+        author_role: post.users?.role,
+        author_trust_score: post.users?.trust_score,
+        author_community_score: post.users?.community_score,
+        users: undefined // Remove the nested object
+      }));
+      
+      setPosts(transformedPosts);
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching posts:', err);

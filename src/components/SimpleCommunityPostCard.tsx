@@ -118,13 +118,35 @@ const SimpleCommunityPostCard = ({ post, onClick, onVote, onFlag }: SimpleCommun
         </div>
 
         {/* Author info */}
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
-            {post.is_anonymous ? "A" : "U"}
+        <div className="flex items-center justify-between mt-4 pt-4 border-t">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+              {post.is_anonymous ? "A" : (post.author_display_name?.charAt(0)?.toUpperCase() || post.author_anonymous_username?.charAt(0)?.toUpperCase() || "U")}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">
+                {post.is_anonymous 
+                  ? "Anonymous" 
+                  : (post.author_display_name || post.author_anonymous_username || "Community Member")
+                }
+              </span>
+              {!post.is_anonymous && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  {post.author_role && (
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {post.author_role.replace('_', ' ')}
+                    </Badge>
+                  )}
+                  {post.author_trust_score !== null && (
+                    <span>Trust: {post.author_trust_score}</span>
+                  )}
+                  {post.author_community_score !== null && (
+                    <span>Community: {post.author_community_score}</span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <span className="text-sm text-muted-foreground">
-            {post.is_anonymous ? "Anonymous" : "Community Member"}
-          </span>
         </div>
       </CardContent>
     </Card>
