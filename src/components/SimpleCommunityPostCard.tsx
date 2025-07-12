@@ -94,7 +94,7 @@ const SimpleCommunityPostCard = ({ post, onClick, onVote, onFlag }: SimpleCommun
                 </h3>
               )}
               
-              <p className="text-muted-foreground mb-4 line-clamp-3">
+              <p className="text-muted-foreground mb-4 line-clamp-3 whitespace-pre-wrap">
                 {post.content}
               </p>
             </div>
