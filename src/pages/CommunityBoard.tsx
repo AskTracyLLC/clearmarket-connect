@@ -195,9 +195,9 @@ const CommunityBoard = () => {
         description: `Your ${postTypeText} has been posted successfully.`,
       });
 
-      // Refresh trending tags after creating a post
+      // Refresh the page after a short delay to show the new post
       setTimeout(() => {
-        refetchTags();
+        window.location.reload();
       }, 1000);
       
     } catch (error) {
