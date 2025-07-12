@@ -270,6 +270,7 @@ export type Database = {
       }
       community_posts: {
         Row: {
+          board_type: string
           content: string
           created_at: string | null
           flagged: boolean | null
@@ -277,6 +278,7 @@ export type Database = {
           id: string
           is_anonymous: boolean | null
           post_type: string
+          priority: string
           screenshots: string[] | null
           section: string
           system_tags: string[] | null
@@ -286,6 +288,7 @@ export type Database = {
           user_tags: string[] | null
         }
         Insert: {
+          board_type?: string
           content: string
           created_at?: string | null
           flagged?: boolean | null
@@ -293,6 +296,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean | null
           post_type?: string
+          priority?: string
           screenshots?: string[] | null
           section?: string
           system_tags?: string[] | null
@@ -302,6 +306,7 @@ export type Database = {
           user_tags?: string[] | null
         }
         Update: {
+          board_type?: string
           content?: string
           created_at?: string | null
           flagged?: boolean | null
@@ -309,6 +314,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean | null
           post_type?: string
+          priority?: string
           screenshots?: string[] | null
           section?: string
           system_tags?: string[] | null
@@ -1190,6 +1196,45 @@ export type Database = {
           },
         ]
       }
+      post_acknowledgments: {
+        Row: {
+          acknowledged_at: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_acknowledgments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_acknowledgments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           created_at: string | null
@@ -1708,8 +1753,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_role_counters: {
+        Row: {
+          counter: number
+          created_at: string | null
+          role: string
+        }
+        Insert: {
+          counter?: number
+          created_at?: string | null
+          role: string
+        }
+        Update: {
+          counter?: number
+          created_at?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
+          anonymous_username: string
           boost_expiration: string | null
           community_score: number | null
           created_at: string | null
@@ -1723,6 +1787,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          anonymous_username: string
           boost_expiration?: string | null
           community_score?: number | null
           created_at?: string | null
@@ -1736,6 +1801,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          anonymous_username?: string
           boost_expiration?: string | null
           community_score?: number | null
           created_at?: string | null
@@ -1993,10 +2059,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_new_role_type: {
+        Args: { new_role_name: string }
+        Returns: boolean
+      }
       admin_update_user_role: {
         Args: {
           target_user_id: string
           new_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
+      award_credit: {
+        Args: {
+          target_user_id: string
+          credit_amount: number
+          credit_reason: string
         }
         Returns: boolean
       }
@@ -2018,8 +2096,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      ensure_role_counter_exists: {
+        Args: { role_name: string }
+        Returns: undefined
+      }
       generate_anonymous_username: {
-        Args: { user_type_param: string }
+        Args:
+          | { user_role: string; user_id: string }
+          | { user_type_param: string }
+        Returns: string
+      }
+      generate_sequential_anonymous_username: {
+        Args: { user_role: string }
+        Returns: string
+      }
+      generate_unique_display_name: {
+        Args: { user_role_text: string }
         Returns: string
       }
       get_or_create_user_preferences: {
@@ -2042,6 +2134,14 @@ export type Database = {
           user_id: string
         }
       }
+      get_role_counters: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          role: string
+          counter: number
+          created_at: string
+        }[]
+      }
       get_trending_tags: {
         Args: {
           days_back?: number
@@ -2051,6 +2151,16 @@ export type Database = {
         Returns: {
           tag_name: string
           tag_count: number
+        }[]
+      }
+      get_user_login_analytics: {
+        Args: { target_anonymous_username: string; days_back?: number }
+        Returns: {
+          anonymous_username: string
+          display_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          last_active: string
+          days_since_last_active: number
         }[]
       }
       get_user_role: {
@@ -2072,6 +2182,10 @@ export type Database = {
       populate_location_data_from_csv: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      reset_role_counter: {
+        Args: { target_role: string; new_value?: number }
+        Returns: boolean
       }
       search_posts_by_tags: {
         Args: {

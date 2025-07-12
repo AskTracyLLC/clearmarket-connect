@@ -10,10 +10,10 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 
 const Header = () => {
   const { user, signOut } = useAuth();
-  const { accountData } = useUserProfile();
+  const { profile } = useUserProfile();
 
   const getDashboardPath = () => {
-    const role = accountData?.role || "field_rep";
+    const role = profile?.role || "field_rep";
     return role === "vendor" ? "/vendor/dashboard" : "/fieldrep/dashboard";
   };
 
