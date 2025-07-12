@@ -46,20 +46,6 @@ const CommunityFeedHeader = ({
           <CardTitle className="text-2xl font-bold text-foreground">
             Community Board
           </CardTitle>
-          
-          {/* Toggle between Community Board and Vendor Alerts */}
-          <Tabs defaultValue="community" className="w-auto">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="community" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Community
-              </TabsTrigger>
-              <TabsTrigger value="alerts" className="flex items-center gap-2" disabled>
-                <Send className="h-4 w-4" />
-                Vendor Alerts
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
