@@ -373,9 +373,10 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <img 
-                src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
-                alt="ClearMarket" 
+                src="/new-clearmarket-logo.svg" 
+                alt="ClearMarket - Professional Field Inspection Network" 
                 className="w-8 h-8 rounded-lg"
+                style={{ imageRendering: 'crisp-edges' }}
               />
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
@@ -1097,12 +1098,19 @@ const Index = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <img 
-                src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
-                alt="ClearMarket" 
-                className="w-6 h-6 rounded"
-              />
-              <span className="text-lg font-bold text-foreground">ClearMarket</span>
+              <a 
+                href="/auth"
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer"
+                aria-label="Go to ClearMarket Admin Login"
+              >
+                <img 
+                  src="/new-clearmarket-logo.svg" 
+                  alt="ClearMarket - Professional Field Inspection Network" 
+                  className="w-6 h-6 rounded"
+                  style={{ imageRendering: 'crisp-edges' }}
+                />
+                <span className="text-lg font-bold text-foreground">ClearMarket</span>
+              </a>
             </div>
             <p className="text-muted-foreground mb-4">
               The professional marketplace for field inspection services
