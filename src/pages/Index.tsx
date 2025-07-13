@@ -761,9 +761,7 @@ const Index = () => {
                   </>}
               </div>
               
-              <p className="text-sm text-muted-foreground mt-4 text-center">
-                Get exclusive early access and help shape the platform with your feedback.
-              </p>
+              <p className="text-sm text-muted-foreground mt-4 text-center"></p>
             </Card> : <Card className="max-w-2xl mx-auto p-8 shadow-elevated bg-accent/10 border-accent/20">
               <div className="text-center">
                 <CheckCircle className="h-12 w-12 text-accent mx-auto mb-4" />
