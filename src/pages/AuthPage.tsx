@@ -18,11 +18,8 @@ const AuthPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  // Only redirect if user is authenticated AND they successfully signed in
+  // Remove automatic redirect to allow users to access auth page even when logged in
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
