@@ -169,38 +169,21 @@ const AuthPage = () => {
             <TabsContent value="signup">
               <Card>
                 <CardHeader>
-                  <CardTitle>Create Account</CardTitle>
+                  <CardTitle>Coming Soon!</CardTitle>
                   <CardDescription>
-                    Sign up to join the ClearMarket community
+                    We're still under construction
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSignUp} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
+                <CardContent className="text-center space-y-4">
+                  <p className="text-muted-foreground">
+                    Sorry, we're still under construction but you can join the waitlist to be notified when we launch!
+                  </p>
+                  <Link 
+                    to="/" 
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                  >
+                    Join the Waitlist Here
+                  </Link>
                 </CardContent>
               </Card>
             </TabsContent>
