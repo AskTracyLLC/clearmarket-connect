@@ -12,31 +12,8 @@ import { Link } from 'react-router-dom';
 import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  isDisposableEmail,
-  checkRateLimit,
-  checkDuplicateEmail,
-  logSignupAttempt,
-  getClientIP,
-  validateHoneypot,
-  getAntiSpamErrorMessage
-} from '@/utils/antiSpam';
-import { 
-  Users, 
-  MapPin, 
-  Star, 
-  Shield, 
-  MessageSquare, 
-  Mail, 
-  CheckCircle,
-  ArrowRight,
-  Building,
-  UserCheck,
-  TrendingUp,
-  Clock,
-  BarChart3
-} from 'lucide-react';
-
+import { isDisposableEmail, checkRateLimit, checkDuplicateEmail, logSignupAttempt, getClientIP, validateHoneypot, getAntiSpamErrorMessage } from '@/utils/antiSpam';
+import { Users, MapPin, Star, Shield, MessageSquare, Mail, CheckCircle, ArrowRight, Building, UserCheck, TrendingUp, Clock, BarChart3 } from 'lucide-react';
 const Index = () => {
   // Existing state
   const [email, setEmail] = useState('');
@@ -48,9 +25,12 @@ const Index = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
-  const [userPosition, setUserPosition] = useState({ type: '', number: 0 });
+  const [userPosition, setUserPosition] = useState({
+    type: '',
+    number: 0
+  });
   const [states, setStates] = useState([]);
-  
+
   // New research fields
   const [primaryService, setPrimaryService] = useState('');
   const [primaryServices, setPrimaryServices] = useState([]);
@@ -64,115 +44,150 @@ const Index = () => {
   const [otherFeature, setOtherFeature] = useState('');
   const [interestedInBetaTesting, setInterestedInBetaTesting] = useState(false);
   const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
-  
+
   // Anti-spam states
   const [honeypotField, setHoneypotField] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [clientIP, setClientIP] = useState<string | undefined>(undefined);
-  
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const recaptchaRef = useRef<any>(null);
 
   // Service types for vendors
-  const serviceTypes = [
-    { value: 'inspections', label: 'Property Inspections' },
-    { value: 'preservation', label: 'Property Preservation' },
-    { value: 'maintenance', label: 'Property Maintenance' },
-    { value: 'other', label: 'Other Services' }
-  ];
+  const serviceTypes = [{
+    value: 'inspections',
+    label: 'Property Inspections'
+  }, {
+    value: 'preservation',
+    label: 'Property Preservation'
+  }, {
+    value: 'maintenance',
+    label: 'Property Maintenance'
+  }, {
+    value: 'other',
+    label: 'Other Services'
+  }];
 
   // Work types for field reps
-  const fieldRepWorkTypes = [
-    { value: 'interior-exterior', label: 'Interior/Exterior' },
-    { value: 'occupancy-check', label: 'Occupancy Check' },
-    { value: 'insurance-loss', label: 'Insurance Loss' },
-    { value: 'preservation', label: 'Preservation' },
-    { value: 'photography-services', label: 'Photography Services' },
-    { value: 'notary-services', label: 'Notary Services' },
-    { value: 'commercial', label: 'Commercial' },
-    { value: 'other', label: 'Other' }
-  ];
+  const fieldRepWorkTypes = [{
+    value: 'interior-exterior',
+    label: 'Interior/Exterior'
+  }, {
+    value: 'occupancy-check',
+    label: 'Occupancy Check'
+  }, {
+    value: 'insurance-loss',
+    label: 'Insurance Loss'
+  }, {
+    value: 'preservation',
+    label: 'Preservation'
+  }, {
+    value: 'photography-services',
+    label: 'Photography Services'
+  }, {
+    value: 'notary-services',
+    label: 'Notary Services'
+  }, {
+    value: 'commercial',
+    label: 'Commercial'
+  }, {
+    value: 'other',
+    label: 'Other'
+  }];
 
   // Experience levels
-  const experienceLevels = [
-    { value: 'new', label: 'New (Less than 1 year)' },
-    { value: 'beginner', label: 'Beginner (1-2 years)' },
-    { value: 'experienced', label: 'Experienced (3-5 years)' },
-    { value: 'expert', label: 'Expert (5+ years)' },
-    { value: 'veteran', label: 'Veteran (10+ years)' }
-  ];
+  const experienceLevels = [{
+    value: 'new',
+    label: 'New (Less than 1 year)'
+  }, {
+    value: 'beginner',
+    label: 'Beginner (1-2 years)'
+  }, {
+    value: 'experienced',
+    label: 'Experienced (3-5 years)'
+  }, {
+    value: 'expert',
+    label: 'Expert (5+ years)'
+  }, {
+    value: 'veteran',
+    label: 'Veteran (10+ years)'
+  }];
 
   // Feature options
-  const vendorFeatureOptions = [
-    { value: 'field-rep-search', label: 'Better Field Rep Search' },
-    { value: 'coverage-mapping', label: 'Coverage Area Mapping' },
-    { value: 'quality-scoring', label: 'Quality Scoring System' },
-    { value: 'communication-tools', label: 'Communication Tools' },
-    { value: 'scheduling', label: 'Scheduling & Calendar' },
-    { value: 'reporting', label: 'Reporting & Analytics' },
-    { value: 'other', label: 'Other' }
-  ];
-
-  const fieldRepFeatureOptions = [
-    { value: 'job-matching', label: 'Better Job Matching' },
-    { value: 'coverage-expansion', label: 'Coverage Area Tools' },
-    { value: 'vendor-ratings', label: 'Vendor Rating System' },
-    { value: 'quick-communication', label: 'Quick Communication' },
-    { value: 'schedule-management', label: 'Schedule Management' },
-    { value: 'performance-analytics', label: 'Performance Reports' },
-    { value: 'other', label: 'Other' }
-  ];
+  const vendorFeatureOptions = [{
+    value: 'field-rep-search',
+    label: 'Better Field Rep Search'
+  }, {
+    value: 'coverage-mapping',
+    label: 'Coverage Area Mapping'
+  }, {
+    value: 'quality-scoring',
+    label: 'Quality Scoring System'
+  }, {
+    value: 'communication-tools',
+    label: 'Communication Tools'
+  }, {
+    value: 'scheduling',
+    label: 'Scheduling & Calendar'
+  }, {
+    value: 'reporting',
+    label: 'Reporting & Analytics'
+  }, {
+    value: 'other',
+    label: 'Other'
+  }];
+  const fieldRepFeatureOptions = [{
+    value: 'job-matching',
+    label: 'Better Job Matching'
+  }, {
+    value: 'coverage-expansion',
+    label: 'Coverage Area Tools'
+  }, {
+    value: 'vendor-ratings',
+    label: 'Vendor Rating System'
+  }, {
+    value: 'quick-communication',
+    label: 'Quick Communication'
+  }, {
+    value: 'schedule-management',
+    label: 'Schedule Management'
+  }, {
+    value: 'performance-analytics',
+    label: 'Performance Reports'
+  }, {
+    value: 'other',
+    label: 'Other'
+  }];
 
   // Load states on component mount
   useEffect(() => {
     const loadStates = async () => {
-      const { data } = await supabase
-        .from('states')
-        .select('code, name')
-        .order('name');
+      const {
+        data
+      } = await supabase.from('states').select('code, name').order('name');
       if (data) setStates(data);
     };
     loadStates();
   }, []);
-
   useEffect(() => {
     // Get client IP for rate limiting
     getClientIP().then(ip => setClientIP(ip));
   }, []);
 
   // Helper functions for multi-select
-  const handleWorkTypeToggle = (workType) => {
-    setWorkTypes(prev => 
-      prev.includes(workType) 
-        ? prev.filter(w => w !== workType)
-        : [...prev, workType]
-    );
+  const handleWorkTypeToggle = workType => {
+    setWorkTypes(prev => prev.includes(workType) ? prev.filter(w => w !== workType) : [...prev, workType]);
   };
-
-  const handleServiceToggle = (service) => {
-    setPrimaryServices(prev => 
-      prev.includes(service) 
-        ? prev.filter(s => s !== service)
-        : [...prev, service]
-    );
+  const handleServiceToggle = service => {
+    setPrimaryServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
   };
-
-  const handleFeatureToggle = (feature) => {
-    setInterestedFeatures(prev => 
-      prev.includes(feature) 
-        ? prev.filter(f => f !== feature)
-        : [...prev, feature]
-    );
+  const handleFeatureToggle = feature => {
+    setInterestedFeatures(prev => prev.includes(feature) ? prev.filter(f => f !== feature) : [...prev, feature]);
   };
-
-  const handleStateToggle = (state) => {
-    setStatesCovered(prev => 
-      prev.includes(state) 
-        ? prev.filter(s => s !== state)
-        : [...prev, state]
-    );
+  const handleStateToggle = state => {
+    setStatesCovered(prev => prev.includes(state) ? prev.filter(s => s !== state) : [...prev, state]);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !userType || !agreedToAnalytics) return;
@@ -190,19 +205,17 @@ const Index = () => {
     // Vendor validation
     if (userType === 'vendor' && !companyName) {
       toast({
-        title: "Missing Information", 
+        title: "Missing Information",
         description: "Please enter your company name.",
         variant: "destructive"
       });
       return;
     }
-
     setIsLoading(true);
-
     try {
       // Anti-spam validation
       const userAgent = navigator.userAgent;
-      
+
       // 1. Validate honeypot field (should be empty)
       if (!validateHoneypot(honeypotField)) {
         await logSignupAttempt({
@@ -214,7 +227,6 @@ const Index = () => {
           failureReason: 'honeypot',
           honeypotFilled: true
         });
-        
         toast({
           title: "Error",
           description: getAntiSpamErrorMessage('honeypot'),
@@ -246,7 +258,6 @@ const Index = () => {
           failureReason: 'disposable_email',
           isDisposableEmail: true
         });
-        
         toast({
           title: "Invalid Email",
           description: getAntiSpamErrorMessage('disposable_email'),
@@ -267,7 +278,6 @@ const Index = () => {
           success: false,
           failureReason: 'rate_limit'
         });
-        
         toast({
           title: "Rate Limit Exceeded",
           description: getAntiSpamErrorMessage('rate_limit'),
@@ -287,13 +297,14 @@ const Index = () => {
           userAgent,
           success: false,
           failureReason: 'duplicate_email',
-          metadata: { existingTable: duplicateCheck.table }
+          metadata: {
+            existingTable: duplicateCheck.table
+          }
         });
-        
         const tableType = duplicateCheck.table === 'field_rep_signups' ? 'field rep' : 'vendor';
         toast({
           title: "Already registered",
-          description: `This email is already registered as a ${tableType}. You'll be notified when we launch!`,
+          description: `This email is already registered as a ${tableType}. You'll be notified when we launch!`
         });
         setIsLoading(false);
         return;
@@ -302,21 +313,19 @@ const Index = () => {
       // Proceed with signup if all validations pass
       if (userType === 'field-rep') {
         // Include the custom work type if "other" was selected
-        const finalWorkTypes = workTypes.includes('other') && otherWorkType 
-          ? [...workTypes.filter(w => w !== 'other'), otherWorkType]
-          : workTypes;
+        const finalWorkTypes = workTypes.includes('other') && otherWorkType ? [...workTypes.filter(w => w !== 'other'), otherWorkType] : workTypes;
 
         // Include the custom feature if "other" was selected
-        const finalFeatures = interestedFeatures.includes('other') && otherFeature 
-          ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature]
-          : interestedFeatures;
+        const finalFeatures = interestedFeatures.includes('other') && otherFeature ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature] : interestedFeatures;
 
         // Generate anonymous username for field rep
-        const { data: anonymousUsername, error: usernameError } = await supabase
-          .rpc('generate_anonymous_username', { user_type_param: 'field-rep' });
-
+        const {
+          data: anonymousUsername,
+          error: usernameError
+        } = await supabase.rpc('generate_anonymous_username', {
+          user_type_param: 'field-rep'
+        });
         if (usernameError) throw usernameError;
-
         const signupData = {
           email,
           primary_state: primaryState,
@@ -329,11 +338,9 @@ const Index = () => {
           agreed_to_analytics: agreedToAnalytics,
           anonymous_username: anonymousUsername
         };
-
-        const { error } = await supabase
-          .from('field_rep_signups')
-          .insert([signupData]);
-
+        const {
+          error
+        } = await supabase.from('field_rep_signups').insert([signupData]);
         if (error) throw error;
 
         // Log successful signup
@@ -347,21 +354,19 @@ const Index = () => {
         });
       } else {
         // Include the custom service type if "other" was selected
-        const finalServices = primaryServices.includes('other') && otherService 
-          ? [...primaryServices.filter(s => s !== 'other'), otherService]
-          : primaryServices;
+        const finalServices = primaryServices.includes('other') && otherService ? [...primaryServices.filter(s => s !== 'other'), otherService] : primaryServices;
 
         // Include the custom feature if "other" was selected
-        const finalFeatures = interestedFeatures.includes('other') && otherFeature 
-          ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature]
-          : interestedFeatures;
+        const finalFeatures = interestedFeatures.includes('other') && otherFeature ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature] : interestedFeatures;
 
         // Generate anonymous username for vendor
-        const { data: anonymousUsername, error: usernameError } = await supabase
-          .rpc('generate_anonymous_username', { user_type_param: 'vendor' });
-
+        const {
+          data: anonymousUsername,
+          error: usernameError
+        } = await supabase.rpc('generate_anonymous_username', {
+          user_type_param: 'vendor'
+        });
         if (usernameError) throw usernameError;
-
         const signupData = {
           email,
           company_name: companyName,
@@ -374,11 +379,9 @@ const Index = () => {
           agreed_to_analytics: agreedToAnalytics,
           anonymous_username: anonymousUsername
         };
-
-        const { error } = await supabase
-          .from('vendor_signups')
-          .insert([signupData]);
-
+        const {
+          error
+        } = await supabase.from('vendor_signups').insert([signupData]);
         if (error) throw error;
 
         // Log successful signup
@@ -394,29 +397,32 @@ const Index = () => {
 
       // Calculate user position based on type
       const tableName = userType === 'field-rep' ? 'field_rep_signups' : 'vendor_signups';
-      const { count } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true });
-      
-      const userTypeLabel = userType === 'field-rep' ? 'FieldRep' : 'Vendor';
-      setUserPosition({ 
-        type: userTypeLabel, 
-        number: (count || 0) 
+      const {
+        count
+      } = await supabase.from(tableName).select('*', {
+        count: 'exact',
+        head: true
       });
-
+      const userTypeLabel = userType === 'field-rep' ? 'FieldRep' : 'Vendor';
+      setUserPosition({
+        type: userTypeLabel,
+        number: count || 0
+      });
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
-      
+
       // Scroll to top of page
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
       toast({
         title: "Success!",
         description: "You've been added to our launch notification list."
       });
     } catch (error) {
       console.error('Signup error:', error);
-      
+
       // Log failed signup attempt
       await logSignupAttempt({
         email,
@@ -425,9 +431,10 @@ const Index = () => {
         userAgent: navigator.userAgent,
         success: false,
         failureReason: 'server_error',
-        metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+        metadata: {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
       });
-      
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -437,56 +444,34 @@ const Index = () => {
       setIsLoading(false);
     }
   };
-
   const isFormValid = () => {
     if (!email || !userType || !agreedToAnalytics || !recaptchaToken) return false;
     if (userType === 'field-rep' && (!primaryState || !fieldRepName)) return false;
     if (userType === 'vendor' && !companyName) return false;
     return true;
   };
-
-  const features = [
-    {
-      icon: <Users className="h-8 w-8 text-primary" />,
-      title: "Verified Professional Network",
-      description: "Connect with trusted field reps and vendors through our reputation-based scoring system."
-    },
-    {
-      icon: <MapPin className="h-8 w-8 text-accent" />,
-      title: "Smart Coverage Mapping",
-      description: "Visualize and manage coverage areas across all 50 states with county-level precision."
-    },
-    {
-      icon: <Star className="h-8 w-8 text-trust" />,
-      title: "Credit-Based Economy",
-      description: "Earn credits through community participation and use them to unlock premium features."
-    },
-    {
-      icon: <MessageSquare className="h-8 w-8 text-secondary" />,
-      title: "Industry Community",
-      description: "Share knowledge, ask questions, and stay updated with industry-specific discussions."
-    }
-  ];
-
+  const features = [{
+    icon: <Users className="h-8 w-8 text-primary" />,
+    title: "Verified Professional Network",
+    description: "Connect with trusted field reps and vendors through our reputation-based scoring system."
+  }, {
+    icon: <MapPin className="h-8 w-8 text-accent" />,
+    title: "Smart Coverage Mapping",
+    description: "Visualize and manage coverage areas across all 50 states with county-level precision."
+  }, {
+    icon: <Star className="h-8 w-8 text-trust" />,
+    title: "Credit-Based Economy",
+    description: "Earn credits through community participation and use them to unlock premium features."
+  }, {
+    icon: <MessageSquare className="h-8 w-8 text-secondary" />,
+    title: "Industry Community",
+    description: "Share knowledge, ask questions, and stay updated with industry-specific discussions."
+  }];
   const benefits = {
-    fieldRep: [
-      "Get discovered by quality vendors seeking coverage",
-      "Build your professional reputation with verified reviews",
-      "Access exclusive job features in your coverage areas",
-      "Communicate with all your vendors in one private message",
-      "Connect with industry peers and share knowledge"
-    ],
-    vendor: [
-      "Find reliable field reps in any county nationwide", 
-      "Verify credentials and track performance history",
-      "Communicate with all field reps regardless of platform used",
-      "Manage your coverage network efficiently",
-      "Post coverage requests to qualified professionals only"
-    ]
+    fieldRep: ["Get discovered by quality vendors seeking coverage", "Build your professional reputation with verified reviews", "Access exclusive job features in your coverage areas", "Communicate with all your vendors in one private message", "Connect with industry peers and share knowledge"],
+    vendor: ["Find reliable field reps in any county nationwide", "Verify credentials and track performance history", "Communicate with all field reps regardless of platform used", "Manage your coverage network efficiently", "Post coverage requests to qualified professionals only"]
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
       <div className="relative z-10">
@@ -496,11 +481,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
              <div className="flex items-center space-x-2">
               <Link to="/auth">
-                <img 
-                  src="/lovable-uploads/5d315367-d1a1-4352-939e-bbe0ead13db2.png" 
-                  alt="ClearMarket - Professional Field Inspection Network" 
-                  className="w-8 h-8 rounded-lg"
-                />
+                <img src="/lovable-uploads/5d315367-d1a1-4352-939e-bbe0ead13db2.png" alt="ClearMarket - Professional Field Inspection Network" className="w-8 h-8 rounded-lg" />
               </Link>
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
@@ -545,8 +526,7 @@ const Index = () => {
           </div>
 
           {/* Enhanced Email Signup Form */}
-          {!isSubmitted ? (
-            <Card className="max-w-3xl mx-auto p-8 shadow-elevated">
+          {!isSubmitted ? <Card className="max-w-3xl mx-auto p-8 shadow-elevated">
               <h3 className="text-2xl font-semibold mb-6 text-foreground">
                 Join ClearMarket - Help Shape Our Platform
               </h3>
@@ -554,12 +534,7 @@ const Index = () => {
               <div className="space-y-6">
                 {/* User Type Selection */}
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Button
-                    type="button"
-                    variant={userType === 'field-rep' ? 'default' : 'outline'}
-                    className="p-6 h-auto flex-col space-y-2"
-                    onClick={() => setUserType('field-rep')}
-                  >
+                  <Button type="button" variant={userType === 'field-rep' ? 'default' : 'outline'} className="p-6 h-auto flex-col space-y-2" onClick={() => setUserType('field-rep')}>
                     <UserCheck className="h-6 w-6" />
                     <div>
                       <div className="font-semibold">I'm a Field Rep</div>
@@ -567,12 +542,7 @@ const Index = () => {
                     </div>
                   </Button>
                   
-                  <Button
-                    type="button"
-                    variant={userType === 'vendor' ? 'default' : 'outline'}
-                    className="p-6 h-auto flex-col space-y-2"
-                    onClick={() => setUserType('vendor')}
-                  >
+                  <Button type="button" variant={userType === 'vendor' ? 'default' : 'outline'} className="p-6 h-auto flex-col space-y-2" onClick={() => setUserType('vendor')}>
                     <Building className="h-6 w-6" />
                     <div>
                       <div className="font-semibold">I'm a Vendor</div>
@@ -581,39 +551,22 @@ const Index = () => {
                   </Button>
                 </div>
                 
-                {userType && (
-                  <>
+                {userType && <>
                     {/* Email Input */}
                     <div>
                       <Label htmlFor="email" className="text-sm font-medium">
                         Professional Email *
                       </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your professional email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="mt-1 p-3"
-                        required
-                      />
+                      <Input id="email" type="email" placeholder="Enter your professional email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 p-3" required />
                     </div>
 
                     {/* Field Rep Specific Fields */}
-                    {userType === 'field-rep' && (
-                      <div className="space-y-4">
+                    {userType === 'field-rep' && <div className="space-y-4">
                         <div>
                           <Label htmlFor="field-rep-name" className="text-sm font-medium">
                             Your Name or Business Name *
                           </Label>
-                          <Input
-                            id="field-rep-name"
-                            value={fieldRepName}
-                            onChange={(e) => setFieldRepName(e.target.value)}
-                            placeholder="Enter your name or business name"
-                            className="mt-1 p-3"
-                            required
-                          />
+                          <Input id="field-rep-name" value={fieldRepName} onChange={e => setFieldRepName(e.target.value)} placeholder="Enter your name or business name" className="mt-1 p-3" required />
                         </div>
 
                         <div>
@@ -625,11 +578,9 @@ const Index = () => {
                               <SelectValue placeholder="Select your primary state" />
                             </SelectTrigger>
                             <SelectContent>
-                              {states.map((state) => (
-                                <SelectItem key={state.code} value={state.code}>
+                              {states.map(state => <SelectItem key={state.code} value={state.code}>
                                   {state.name}
-                                </SelectItem>
-                              ))}
+                                </SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -637,17 +588,9 @@ const Index = () => {
                         <div>
                           <Label className="text-sm font-medium">Experience Level</Label>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                            {experienceLevels.map((level) => (
-                              <Button
-                                key={level.value}
-                                type="button"
-                                variant={experienceLevel === level.value ? 'default' : 'outline'}
-                                className="text-left justify-start text-sm"
-                                onClick={() => setExperienceLevel(level.value)}
-                              >
+                            {experienceLevels.map(level => <Button key={level.value} type="button" variant={experienceLevel === level.value ? 'default' : 'outline'} className="text-left justify-start text-sm" onClick={() => setExperienceLevel(level.value)}>
                                 {level.label}
-                              </Button>
-                            ))}
+                              </Button>)}
                           </div>
                         </div>
 
@@ -656,71 +599,40 @@ const Index = () => {
                            <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
                            <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                               {fieldRepWorkTypes.map((workType) => (
-                                 <div key={workType.value} className="flex items-center space-x-2">
-                                   <Checkbox
-                                     id={workType.value}
-                                     checked={workTypes.includes(workType.value)}
-                                     onCheckedChange={() => handleWorkTypeToggle(workType.value)}
-                                   />
+                               {fieldRepWorkTypes.map(workType => <div key={workType.value} className="flex items-center space-x-2">
+                                   <Checkbox id={workType.value} checked={workTypes.includes(workType.value)} onCheckedChange={() => handleWorkTypeToggle(workType.value)} />
                                    <Label htmlFor={workType.value} className="text-sm cursor-pointer">
                                      {workType.label}
                                    </Label>
-                                 </div>
-                               ))}
+                                 </div>)}
                              </div>
                            </div>
-                           {workTypes.includes('other') && (
-                             <div className="mt-3">
+                           {workTypes.includes('other') && <div className="mt-3">
                                <Label htmlFor="other-work-type" className="text-sm font-medium">
                                  Specify Other Work Type
                                </Label>
-                               <Input
-                                 id="other-work-type"
-                                 value={otherWorkType}
-                                 onChange={(e) => setOtherWorkType(e.target.value)}
-                                 placeholder="Enter your specific work type"
-                                 className="mt-1"
-                               />
-                             </div>
-                           )}
-                           {workTypes.length > 0 && (
-                             <p className="text-xs text-muted-foreground mt-1">
+                               <Input id="other-work-type" value={otherWorkType} onChange={e => setOtherWorkType(e.target.value)} placeholder="Enter your specific work type" className="mt-1" />
+                             </div>}
+                           {workTypes.length > 0 && <p className="text-xs text-muted-foreground mt-1">
                                Selected: {workTypes.length} work type{workTypes.length !== 1 ? 's' : ''}
-                             </p>
-                           )}
+                             </p>}
                          </div>
-                      </div>
-                    )}
+                      </div>}
 
                     {/* Vendor Specific Fields */}
-                    {userType === 'vendor' && (
-                      <div className="space-y-4">
+                    {userType === 'vendor' && <div className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="company-name" className="text-sm font-medium">
                               Company Name *
                             </Label>
-                            <Input
-                              id="company-name"
-                              value={companyName}
-                              onChange={(e) => setCompanyName(e.target.value)}
-                              placeholder="Enter your company name"
-                              className="mt-1 p-3"
-                              required
-                            />
+                            <Input id="company-name" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Enter your company name" className="mt-1 p-3" required />
                           </div>
                           <div>
                             <Label htmlFor="company-website" className="text-sm font-medium">
                               Company Website <span className="text-muted-foreground">(Optional)</span>
                             </Label>
-                            <Input
-                              id="company-website"
-                              value={companyWebsite}
-                              onChange={(e) => setCompanyWebsite(e.target.value)}
-                              placeholder="https://yourcompany.com"
-                              className="mt-1 p-3"
-                            />
+                            <Input id="company-website" value={companyWebsite} onChange={e => setCompanyWebsite(e.target.value)} placeholder="https://yourcompany.com" className="mt-1 p-3" />
                           </div>
                         </div>
 
@@ -729,39 +641,23 @@ const Index = () => {
                            <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
                            <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                               {serviceTypes.map((service) => (
-                                 <div key={service.value} className="flex items-center space-x-2">
-                                   <Checkbox
-                                     id={service.value}
-                                     checked={primaryServices.includes(service.value)}
-                                     onCheckedChange={() => handleServiceToggle(service.value)}
-                                   />
+                               {serviceTypes.map(service => <div key={service.value} className="flex items-center space-x-2">
+                                   <Checkbox id={service.value} checked={primaryServices.includes(service.value)} onCheckedChange={() => handleServiceToggle(service.value)} />
                                    <Label htmlFor={service.value} className="text-sm cursor-pointer">
                                      {service.label}
                                    </Label>
-                                 </div>
-                               ))}
+                                 </div>)}
                              </div>
                            </div>
-                           {primaryServices.includes('other') && (
-                             <div className="mt-3">
+                           {primaryServices.includes('other') && <div className="mt-3">
                                <Label htmlFor="other-service" className="text-sm font-medium">
                                  Specify Other Service Type
                                </Label>
-                               <Input
-                                 id="other-service"
-                                 value={otherService}
-                                 onChange={(e) => setOtherService(e.target.value)}
-                                 placeholder="Enter your specific service type"
-                                 className="mt-1"
-                               />
-                             </div>
-                           )}
-                           {primaryServices.length > 0 && (
-                             <p className="text-xs text-muted-foreground mt-1">
+                               <Input id="other-service" value={otherService} onChange={e => setOtherService(e.target.value)} placeholder="Enter your specific service type" className="mt-1" />
+                             </div>}
+                           {primaryServices.length > 0 && <p className="text-xs text-muted-foreground mt-1">
                                Selected: {primaryServices.length} service type{primaryServices.length !== 1 ? 's' : ''}
-                             </p>
-                           )}
+                             </p>}
                          </div>
 
                         <div>
@@ -769,46 +665,26 @@ const Index = () => {
                           <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
                           <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-                              {states.map((state) => (
-                                <div key={state.code} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`state-${state.code}`}
-                                    checked={statesCovered.includes(state.code)}
-                                    onCheckedChange={() => handleStateToggle(state.code)}
-                                  />
+                              {states.map(state => <div key={state.code} className="flex items-center space-x-2">
+                                  <Checkbox id={`state-${state.code}`} checked={statesCovered.includes(state.code)} onCheckedChange={() => handleStateToggle(state.code)} />
                                   <Label htmlFor={`state-${state.code}`} className="text-sm cursor-pointer">
                                     {state.name}
                                   </Label>
-                                </div>
-                              ))}
+                                </div>)}
                             </div>
                           </div>
-                          {statesCovered.length > 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                          {statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
                               Selected: {statesCovered.length} state{statesCovered.length !== 1 ? 's' : ''}
-                            </p>
-                          )}
+                            </p>}
                         </div>
-                      </div>
-                    )}
+                      </div>}
 
                     {/* Common Fields */}
                     <div>
                       <Label htmlFor="challenges" className="text-sm font-medium">
                         Current Challenges <span className="text-muted-foreground">(Optional)</span>
                       </Label>
-                      <Textarea
-                        id="challenges"
-                        placeholder={
-                          userType === 'vendor'
-                            ? 'What are your biggest challenges in finding reliable field representatives?'
-                            : 'What are your biggest challenges in finding consistent work or working with vendors?'
-                        }
-                        value={currentChallenges}
-                        onChange={(e) => setCurrentChallenges(e.target.value)}
-                        className="mt-1"
-                        rows={3}
-                      />
+                      <Textarea id="challenges" placeholder={userType === 'vendor' ? 'What are your biggest challenges in finding reliable field representatives?' : 'What are your biggest challenges in finding consistent work or working with vendors?'} value={currentChallenges} onChange={e => setCurrentChallenges(e.target.value)} className="mt-1" rows={3} />
                     </div>
 
                      <div>
@@ -816,49 +692,27 @@ const Index = () => {
                        <p className="text-xs text-muted-foreground mb-2">Select features you'd find most valuable</p>
                        <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                           {(userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map((feature) => (
-                             <div key={feature.value} className="flex items-center space-x-2">
-                               <Checkbox
-                                 id={feature.value}
-                                 checked={interestedFeatures.includes(feature.value)}
-                                 onCheckedChange={() => handleFeatureToggle(feature.value)}
-                               />
+                           {(userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map(feature => <div key={feature.value} className="flex items-center space-x-2">
+                               <Checkbox id={feature.value} checked={interestedFeatures.includes(feature.value)} onCheckedChange={() => handleFeatureToggle(feature.value)} />
                                <Label htmlFor={feature.value} className="text-sm cursor-pointer">
                                  {feature.label}
                                </Label>
-                             </div>
-                           ))}
+                             </div>)}
                          </div>
                        </div>
-                       {interestedFeatures.includes('other') && (
-                         <div className="mt-3">
+                       {interestedFeatures.includes('other') && <div className="mt-3">
                            <Label htmlFor="other-feature" className="text-sm font-medium">
                              Specify Other Feature
                            </Label>
-                           <Input
-                             id="other-feature"
-                             value={otherFeature}
-                             onChange={(e) => setOtherFeature(e.target.value)}
-                             placeholder="Enter your specific feature interest"
-                             className="mt-1"
-                           />
-                         </div>
-                       )}
+                           <Input id="other-feature" value={otherFeature} onChange={e => setOtherFeature(e.target.value)} placeholder="Enter your specific feature interest" className="mt-1" />
+                         </div>}
                      </div>
 
                     {/* Progress Reports */}
                     <div className="flex items-start space-x-3 p-4 bg-primary/5 rounded-lg border">
-                      <Checkbox 
-                        id="progress-reports"
-                        checked={interestedInBetaTesting}
-                        onCheckedChange={(checked) => setInterestedInBetaTesting(checked === true)}
-                        className="mt-0.5"
-                      />
+                      <Checkbox id="progress-reports" checked={interestedInBetaTesting} onCheckedChange={checked => setInterestedInBetaTesting(checked === true)} className="mt-0.5" />
                        <div className="flex-1">
-                         <Label 
-                           htmlFor="progress-reports" 
-                           className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
-                         >
+                         <Label htmlFor="progress-reports" className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2">
                            <BarChart3 className="h-4 w-4 text-primary" />
                            I'm Interested in being a Beta Tester for Early Access <span className="text-muted-foreground">(Optional)</span>
                          </Label>
@@ -871,18 +725,9 @@ const Index = () => {
 
                     {/* Privacy Agreement */}
                     <div className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                      <Checkbox 
-                        id="analytics-agreement"
-                        checked={agreedToAnalytics}
-                        onCheckedChange={(checked) => setAgreedToAnalytics(checked === true)}
-                        className="mt-0.5"
-                        required
-                      />
+                      <Checkbox id="analytics-agreement" checked={agreedToAnalytics} onCheckedChange={checked => setAgreedToAnalytics(checked === true)} className="mt-0.5" required />
                       <div className="flex-1">
-                        <Label 
-                          htmlFor="analytics-agreement" 
-                          className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
-                        >
+                        <Label htmlFor="analytics-agreement" className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2">
                           <Shield className="h-4 w-4 text-green-600" />
                           Privacy & Analytics Agreement *
                         </Label>
@@ -893,54 +738,33 @@ const Index = () => {
                     </div>
 
                     {/* Honeypot field - hidden from users */}
-                    <input
-                      type="text"
-                      name="website"
-                      value={honeypotField}
-                      onChange={(e) => setHoneypotField(e.target.value)}
-                      style={{ display: 'none' }}
-                      tabIndex={-1}
-                      autoComplete="off"
-                    />
+                    <input type="text" name="website" value={honeypotField} onChange={e => setHoneypotField(e.target.value)} style={{
+                  display: 'none'
+                }} tabIndex={-1} autoComplete="off" />
 
                     {/* reCAPTCHA */}
                     <div className="flex justify-center">
-                      <RecaptchaWrapper
-                        onVerify={setRecaptchaToken}
-                        onExpired={() => setRecaptchaToken(null)}
-                        onError={() => setRecaptchaToken(null)}
-                        size="normal"
-                        theme="light"
-                      />
+                      <RecaptchaWrapper onVerify={setRecaptchaToken} onExpired={() => setRecaptchaToken(null)} onError={() => setRecaptchaToken(null)} size="normal" theme="light" />
                     </div>
 
                     {/* Submit Button */}
                     <div className="pt-4">
-                      <Button 
-                        onClick={handleSubmit}
-                        className="w-full py-3"
-                        disabled={!isFormValid() || isLoading}
-                      >
+                      <Button onClick={handleSubmit} className="w-full py-3" disabled={!isFormValid() || isLoading}>
                         {isLoading ? 'Joining ClearMarket...' : 'Join ClearMarket - Get Early Access'}
                         {!isLoading && <ArrowRight className="h-4 w-4 ml-2" />}
                       </Button>
                     </div>
 
-                    {!isFormValid() && (
-                      <p className="text-xs text-muted-foreground text-center">
+                    {!isFormValid() && <p className="text-xs text-muted-foreground text-center">
                         Please complete all required fields, verify reCAPTCHA, and agree to our privacy policy
-                      </p>
-                    )}
-                  </>
-                )}
+                      </p>}
+                  </>}
               </div>
               
               <p className="text-sm text-muted-foreground mt-4 text-center">
                 Get exclusive early access and help shape the platform with your feedback.
               </p>
-            </Card>
-          ) : (
-            <Card className="max-w-2xl mx-auto p-8 shadow-elevated bg-accent/10 border-accent/20">
+            </Card> : <Card className="max-w-2xl mx-auto p-8 shadow-elevated bg-accent/10 border-accent/20">
               <div className="text-center">
                 <CheckCircle className="h-12 w-12 text-accent mx-auto mb-4" />
                 <h3 className="text-2xl font-semibold text-accent mb-2">
@@ -953,8 +777,7 @@ const Index = () => {
                   {userPosition.type}#{userPosition.number} to join
                 </Badge>
               </div>
-            </Card>
-          )}
+            </Card>}
         </div>
       </section>
 
@@ -972,13 +795,11 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="p-6 text-center hover:shadow-elevated transition-shadow">
+            {features.map((feature, index) => <Card key={index} className="p-6 text-center hover:shadow-elevated transition-shadow">
                 <div className="mb-4 flex justify-center">{feature.icon}</div>
                 <h3 className="text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -1036,14 +857,14 @@ const Index = () => {
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-2">Message:</label>
                     <div className="bg-muted p-3 rounded border text-sm leading-relaxed">
-                      Good morning everyone,<br/><br/>
-                      Travel update for this week:<br/><br/>
+                      Good morning everyone,<br /><br />
+                      Travel update for this week:<br /><br />
                       TODAY: Starting in Kane County at 9 AM - have 4 REO inspections scheduled. 
-                      Will be driving through DuPage County around 2 PM if anyone has urgent same-day needs.<br/><br/>
+                      Will be driving through DuPage County around 2 PM if anyone has urgent same-day needs.<br /><br />
                       TOMORROW: Heading to Will County first thing - completely open schedule and can take on 3-4 assignments. 
-                      Also available for any overflow work in Cook County on my drive back.<br/><br/>
-                      As always, reports uploaded same day and photos geotagged.<br/><br/>
-                      Thanks,<br/>
+                      Also available for any overflow work in Cook County on my drive back.<br /><br />
+                      As always, reports uploaded same day and photos geotagged.<br /><br />
+                      Thanks,<br />
                       Mike Johnson
                     </div>
                   </div>
@@ -1167,12 +988,10 @@ const Index = () => {
                 <h3 className="text-2xl font-semibold text-foreground">For Field Representatives</h3>
               </div>
               <ul className="space-y-4">
-                {benefits.fieldRep.map((benefit, index) => (
-                  <li key={index} className="flex items-start">
+                {benefits.fieldRep.map((benefit, index) => <li key={index} className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-accent mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-muted-foreground">{benefit}</span>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </Card>
 
@@ -1183,12 +1002,10 @@ const Index = () => {
                 <h3 className="text-2xl font-semibold text-foreground">For Vendors</h3>
               </div>
               <ul className="space-y-4">
-                {benefits.vendor.map((benefit, index) => (
-                  <li key={index} className="flex items-start">
+                {benefits.vendor.map((benefit, index) => <li key={index} className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-accent mr-3 mt-0.5 flex-shrink-0" />
                     <span className="text-muted-foreground">{benefit}</span>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </Card>
           </div>
@@ -1232,9 +1049,7 @@ const Index = () => {
 
           <Card className="bg-background text-foreground p-8">
             <h3 className="text-xl font-semibold mb-4">Want to Influence Development?</h3>
-            <p className="text-muted-foreground mb-6">
-              Sign up above and check the feedback group option to help shape ClearMarket's features, pricing, and user experience.
-            </p>
+            <p className="text-muted-foreground mb-6">Sign up above and check the Beta Tester option to help shape ClearMarket's features, pricing, and user experience.</p>
           </Card>
         </div>
       </section>
@@ -1244,17 +1059,10 @@ const Index = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <Link 
-                to="/auth"
-                className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer"
-                aria-label="Go to ClearMarket Admin Login"
-              >
-                <img 
-                  src="/lovable-uploads/5d315367-d1a1-4352-939e-bbe0ead13db2.png" 
-                  alt="ClearMarket - Professional Field Inspection Network" 
-                  className="w-6 h-6 rounded"
-                  style={{ imageRendering: 'crisp-edges' }}
-                />
+              <Link to="/auth" className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer" aria-label="Go to ClearMarket Admin Login">
+                <img src="/lovable-uploads/5d315367-d1a1-4352-939e-bbe0ead13db2.png" alt="ClearMarket - Professional Field Inspection Network" className="w-6 h-6 rounded" style={{
+                  imageRendering: 'crisp-edges'
+                }} />
                 <span className="text-lg font-bold text-foreground">ClearMarket</span>
               </Link>
             </div>
@@ -1269,8 +1077,6 @@ const Index = () => {
         </div>
       </footer>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
