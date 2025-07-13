@@ -115,13 +115,13 @@ const AuthPage = () => {
 
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-              <span className="text-primary-foreground font-bold text-xl">C</span>
+            <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4">
+              <img 
+                src="/icon-192.png" 
+                alt="ClearMarket Logo" 
+                className="w-12 h-12 rounded-lg"
+               />
             </div>
-            <h1 className="text-2xl font-bold">Welcome to ClearMarket</h1>
-            <p className="text-muted-foreground">Sign in to access your account</p>
-          </div>
-
           <Tabs defaultValue="signin" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
