@@ -98,23 +98,31 @@ export const isDisposableEmail = (email: string): boolean => {
 
 /**
  * Check if IP has exceeded rate limit for signups
+ * Simplified version without database function
  */
 export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
   if (!ipAddress) return true; // Allow if no IP tracking
   
   try {
-    const { data, error } = await supabase.rpc('check_ip_rate_limit', {
-      ip_addr: ipAddress,
-      hours_window: 1,
-      max_attempts: 3
-    });
+    // Simple rate limiting based on local storage for now
+    // In production, implement server-side rate limiting
+    const now = Date.now();
+    const rateKey = `rate_limit_${ipAddress}`;
+    const attempts = JSON.parse(localStorage.getItem(rateKey) || '[]');
     
-    if (error) {
-      console.error('Rate limit check error:', error);
-      return true; // Allow on error to avoid blocking legitimate users
+    // Remove attempts older than 1 hour
+    const validAttempts = attempts.filter((timestamp: number) => now - timestamp < 3600000);
+    
+    // Check if we have exceeded 3 attempts in the last hour
+    if (validAttempts.length >= 3) {
+      return false;
     }
     
-    return data === true;
+    // Add current attempt
+    validAttempts.push(now);
+    localStorage.setItem(rateKey, JSON.stringify(validAttempts));
+    
+    return true;
   } catch (error) {
     console.error('Rate limit check failed:', error);
     return true; // Allow on error
@@ -159,6 +167,7 @@ export const checkDuplicateEmail = async (email: string): Promise<{
 
 /**
  * Log a signup attempt with all metadata
+ * Simplified version without database function
  */
 export const logSignupAttempt = async ({
   email,
@@ -184,25 +193,22 @@ export const logSignupAttempt = async ({
   isDisposableEmail?: boolean;
 }): Promise<string | null> => {
   try {
-    const { data, error } = await supabase.rpc('log_signup_attempt', {
-      p_email: email,
-      p_user_type: userType,
-      p_ip_address: ipAddress || null,
-      p_user_agent: userAgent || null,
-      p_success: success,
-      p_failure_reason: failureReason || null,
-      p_metadata: metadata ? JSON.stringify(metadata) : null,
-      p_honeypot_filled: honeypotFilled,
-      p_recaptcha_score: recaptchaScore || null,
-      p_is_disposable_email: isDisposableEmail
+    // Log to console for now - in production, you'd want to store this in a database
+    console.log('Signup attempt:', {
+      email,
+      userType,
+      ipAddress,
+      userAgent,
+      success,
+      failureReason,
+      metadata,
+      honeypotFilled,
+      recaptchaScore,
+      isDisposableEmail,
+      timestamp: new Date().toISOString()
     });
 
-    if (error) {
-      console.error('Failed to log signup attempt:', error);
-      return null;
-    }
-
-    return data;
+    return 'logged';
   } catch (error) {
     console.error('Error logging signup attempt:', error);
     return null;

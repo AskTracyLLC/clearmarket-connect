@@ -43,10 +43,8 @@ export const RecaptchaWrapper: React.FC<RecaptchaWrapperProps> = ({
     }
   }, []);
 
-  // Expose reset method to parent components
-  React.useImperativeHandle(recaptchaRef, () => ({
-    reset
-  }));
+  // Don't use useImperativeHandle here as it conflicts with the ref type
+  // The parent can access reset via recaptchaRef.current?.reset()
 
   return (
     <div className={`recaptcha-wrapper ${className}`}>
