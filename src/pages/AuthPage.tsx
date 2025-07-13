@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft } from 'lucide-react';
+import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
 
 const AuthPage = () => {
   const [email, setEmail] = useState('');
@@ -118,12 +119,8 @@ const AuthPage = () => {
 
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4">
-              <img 
-                src="/icon-192.png" 
-                alt="ClearMarket Logo" 
-                className="w-12 h-12 rounded-lg"
-              />
+            <div className="flex items-center justify-center mx-auto mb-4">
+              <ClearMarketLogo size={48} />
             </div>
             <h1 className="text-2xl font-bold">Welcome to ClearMarket</h1>
             <p className="text-muted-foreground">Sign in to access your account</p>
