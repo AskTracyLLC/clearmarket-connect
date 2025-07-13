@@ -529,7 +529,7 @@ const Index = () => {
     }
   };
   const isFormValid = () => {
-    if (!email || !userType || !agreedToAnalytics || !recaptchaToken) return false;
+    if (!email || !userType || !agreedToAnalytics) return false; // Removed reCAPTCHA requirement temporarily
     if (userType === 'field-rep' && (!primaryState || !fieldRepName)) return false;
     if (userType === 'vendor' && !companyName) return false;
     return true;
@@ -840,7 +840,7 @@ const Index = () => {
                     </div>
 
                     {!isFormValid() && <p className="text-xs text-muted-foreground text-center">
-                        Please complete all required fields, verify reCAPTCHA, and agree to our privacy policy
+                        Please complete all required fields and agree to our privacy policy
                       </p>}
                   </>}
               </div>
