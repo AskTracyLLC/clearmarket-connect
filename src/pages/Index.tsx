@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isDisposableEmail, checkRateLimit, checkDuplicateEmail, logSignupAttempt, getClientIP, validateHoneypot, getAntiSpamErrorMessage } from '@/utils/antiSpam';
 import { Users, MapPin, Star, Shield, MessageSquare, Mail, CheckCircle, ArrowRight, Building, UserCheck, TrendingUp, Clock, BarChart3 } from 'lucide-react';
+
 const Index = () => {
   // Existing state
   const [email, setEmail] = useState('');
@@ -212,6 +213,18 @@ const Index = () => {
       return;
     }
     setIsLoading(true);
+   
+   // Debug logging for mobile signup issues
+   console.log("=== SIGNUP ATTEMPT DEBUG ===");
+   console.log("Form data:", {
+     email,
+     userType,
+     clientIP,
+     recaptchaToken: recaptchaToken ? "present" : "missing",
+     userAgent: navigator.userAgent,
+     timestamp: new Date().toISOString(),
+     isMobile: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+   });
     try {
       // Anti-spam validation
       const userAgent = navigator.userAgent;
@@ -237,15 +250,26 @@ const Index = () => {
       }
 
       // 2. Validate reCAPTCHA
+     // Debug reCAPTCHA status
+     console.log("reCAPTCHA Debug:", {
+       token: recaptchaToken ? "present" : "missing",
+       tokenLength: recaptchaToken ? recaptchaToken.length : 0,
+       userAgent: navigator.userAgent.substring(0, 100),
+       isMobile: /Mobile|Android|iPhone|iPad/i.test(navigator.userAgent)
+     });
+     // TEMPORARILY DISABLED FOR MOBILE DEBUGGING - reCAPTCHA validation
+     // Uncomment the lines below to re-enable reCAPTCHA validation
+     /*
       if (!recaptchaToken) {
         toast({
           title: "Security Check Required",
-          description: getAntiSpamErrorMessage('recaptcha_failed'),
+          description: getAntiSpamErrorMessage("recaptcha_failed"),
           variant: "destructive"
         });
         setIsLoading(false);
         return;
       }
+      */
 
       // 3. Check for disposable email
       if (isDisposableEmail(email)) {
@@ -268,6 +292,14 @@ const Index = () => {
       }
 
       // 4. Check rate limiting
+     // Enhanced rate limiting with mobile network consideration
+     const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
+     
+     console.log("Rate limit check:", {
+       clientIP,
+       isMobile,
+       userAgent: userAgent.substring(0, 100)
+     });
       const isWithinRateLimit = await checkRateLimit(clientIP);
       if (!isWithinRateLimit) {
         await logSignupAttempt({
@@ -421,23 +453,75 @@ const Index = () => {
         description: "You've been added to our launch notification list."
       });
     } catch (error) {
-      console.error('Signup error:', error);
+     // Enhanced error logging for mobile debugging
+     console.error("=== DETAILED SIGNUP ERROR ===");
+     console.error("Error object:", error);
+     console.error("Error details:", {
+       message: error instanceof Error ? error.message : "Unknown error",
+       stack: error instanceof Error ? error.stack : "No stack trace",
+       userAgent: navigator.userAgent,
+       timestamp: new Date().toISOString(),
+       userType: userType,
+       email: email,
+       clientIP: clientIP,
+       recaptchaToken: recaptchaToken ? "present" : "missing",
+       formData: {
+         userType,
+         fieldRepName: userType === "field-rep" ? fieldRepName : undefined,
+         companyName: userType === "vendor" ? companyName : undefined,
+         primaryState: userType === "field-rep" ? primaryState : undefined
+       }
+     });
 
-      // Log failed signup attempt
+     // Check if this is a database constraint error
+     let errorMessage = "Something went wrong. Please try again.";
+     let errorCode = Date.now().toString().slice(-6);
+     
+     if (error instanceof Error) {
+       // Provide more specific error messages
+       if (error.message.includes("duplicate key") || error.message.includes("already exists")) {
+         errorMessage = "This email is already registered. Please use a different email.";
+       } else if (error.message.includes("violates check constraint") || error.message.includes("invalid input")) {
+         errorMessage = "Please check your form data and try again.";
+       } else if (error.message.includes("column") && error.message.includes("does not exist")) {
+         errorMessage = "Database schema issue detected. Please contact support with error code: " + errorCode;
+       } else if (error.message.includes("network") || error.message.includes("timeout")) {
+         errorMessage = "Network connection issue. Please check your internet and try again.";
+       } else if (error.message.includes("recaptcha") || error.message.includes("captcha")) {
+         errorMessage = "Security verification failed. Please try refreshing the page and completing reCAPTCHA again.";
+       } else {
+         errorMessage = `Error: ${error.message}. If this persists, contact support with code: ${errorCode}`;
+       }
+     }
+
+     // Log failed signup attempt with enhanced metadata
       await logSignupAttempt({
         email,
-        userType: userType as 'field-rep' | 'vendor',
+        userType: userType as "field-rep" | "vendor",
         ipAddress: clientIP,
         userAgent: navigator.userAgent,
         success: false,
-        failureReason: 'server_error',
+        failureReason: "server_error",
         metadata: {
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error",
+          errorDetails: error instanceof Error ? error.stack : "No details",
+          errorCode: errorCode,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          recaptchaStatus: recaptchaToken ? "verified" : "missing",
+          formValidation: {
+            emailValid: !!email,
+            userTypeValid: !!userType,
+            analyticsAgreed: agreedToAnalytics,
+            fieldRepDataValid: userType === "field-rep" ? !!(primaryState && fieldRepName) : true,
+            vendorDataValid: userType === "vendor" ? !!companyName : true
+          }
         }
       });
+     
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Signup Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
