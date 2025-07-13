@@ -18,8 +18,11 @@ const AuthPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Only redirect if user is authenticated AND they successfully signed in
-  // Remove automatic redirect to allow users to access auth page even when logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,8 +123,12 @@ const AuthPage = () => {
                 src="/icon-192.png" 
                 alt="ClearMarket Logo" 
                 className="w-12 h-12 rounded-lg"
-               />
+              />
             </div>
+            <h1 className="text-2xl font-bold">Welcome to ClearMarket</h1>
+            <p className="text-muted-foreground">Sign in to access your account</p>
+          </div>
+
           <Tabs defaultValue="signin" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -169,21 +176,38 @@ const AuthPage = () => {
             <TabsContent value="signup">
               <Card>
                 <CardHeader>
-                  <CardTitle>Coming Soon!</CardTitle>
+                  <CardTitle>Create Account</CardTitle>
                   <CardDescription>
-                    We're still under construction
+                    Sign up to join the ClearMarket community
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="text-center space-y-4">
-                  <p className="text-muted-foreground">
-                    Sorry, we're still under construction but you can join the waitlist to be notified when we launch!
-                  </p>
-                  <Link 
-                    to="/" 
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                  >
-                    Join the Waitlist Here
-                  </Link>
+                <CardContent>
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Creating account..." : "Create Account"}
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </TabsContent>
