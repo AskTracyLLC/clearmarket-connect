@@ -724,14 +724,14 @@ const Index = () => {
                     
 
                     {/* Privacy Agreement */}
-                    <div className="flex items-start space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-start space-x-3 p-4 bg-accent/10 rounded-lg border border-accent/20">
                       <Checkbox id="analytics-agreement" checked={agreedToAnalytics} onCheckedChange={checked => setAgreedToAnalytics(checked === true)} className="mt-0.5" required />
                       <div className="flex-1">
                         <Label htmlFor="analytics-agreement" className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-green-600" />
+                          <Shield className="h-4 w-4 text-accent" />
                           Privacy & Analytics Agreement *
                         </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-foreground/80 mt-1">
                           I agree to receive launch notifications. My information will be used for analytical purposes only and will never be sold to third parties.
                         </p>
                       </div>
