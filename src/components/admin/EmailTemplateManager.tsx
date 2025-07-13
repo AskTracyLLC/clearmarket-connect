@@ -8,8 +8,10 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SecureHtmlPreview } from '@/components/ui/secure-html-preview';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeFormData, isValidEmail } from '@/utils/security';
 import { 
   Mail, 
   Plus, 
@@ -97,20 +99,23 @@ const EmailTemplateManager = () => {
 
   const handleCreateTemplate = async (formData: any) => {
     try {
-      const variablesArray = formData.variables
-        ? formData.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v.length > 0)
+      // Sanitize form data for security
+      const sanitizedData = sanitizeFormData(formData);
+      
+      const variablesArray = sanitizedData.variables
+        ? sanitizedData.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v.length > 0)
         : [];
 
       const { data, error } = await supabase
         .from('system_templates')
         .insert([{
-          template_name: formData.template_name,
+          template_name: sanitizedData.template_name,
           template_type: 'email',
-          subject: formData.subject,
-          html_content: formData.html_content,
-          text_content: formData.text_content,
+          subject: sanitizedData.subject,
+          html_content: sanitizedData.html_content,
+          text_content: sanitizedData.text_content,
           variables: JSON.stringify(variablesArray),
-          is_active: formData.is_active
+          is_active: sanitizedData.is_active
         }])
         .select()
         .single();
@@ -136,14 +141,17 @@ const EmailTemplateManager = () => {
 
   const handleUpdateTemplate = async (templateId: string, updates: any) => {
     try {
-      const variablesArray = typeof updates.variables === 'string'
-        ? updates.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v.length > 0)
-        : updates.variables || [];
+      // Sanitize form data for security
+      const sanitizedUpdates = sanitizeFormData(updates);
+      
+      const variablesArray = typeof sanitizedUpdates.variables === 'string'
+        ? sanitizedUpdates.variables.split(',').map((v: string) => v.trim()).filter((v: string) => v.length > 0)
+        : sanitizedUpdates.variables || [];
 
       const { error } = await supabase
         .from('system_templates')
         .update({
-          ...updates,
+          ...sanitizedUpdates,
           variables: JSON.stringify(variablesArray),
           updated_at: new Date().toISOString()
         })
@@ -197,6 +205,16 @@ const EmailTemplateManager = () => {
 
   const handleTestEmail = async (template: EmailTemplate) => {
     try {
+      // Validate email format
+      if (!isValidEmail(testEmail)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const variables: Record<string, string> = {};
       template.variables.forEach(variable => {
         variables[variable] = testVariables[variable] || `[${variable}]`;
@@ -310,7 +328,18 @@ const EmailTemplateManager = () => {
 
             <div className="flex gap-2 pt-4">
               <Button 
-                onClick={() => handleCreateTemplate(formData)}
+                onClick={() => {
+                  // Basic validation before submission
+                  if (!formData.template_name.trim() || !formData.subject.trim() || !formData.html_content.trim()) {
+                    toast({
+                      title: "Validation Error",
+                      description: "Please fill in all required fields",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  handleCreateTemplate(formData);
+                }}
                 disabled={!formData.template_name || !formData.subject || !formData.html_content}
               >
                 <Save className="h-4 w-4 mr-2" />
@@ -403,7 +432,18 @@ const EmailTemplateManager = () => {
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button onClick={() => handleUpdateTemplate(editingTemplate.id, formData)}>
+              <Button onClick={() => {
+                // Basic validation before submission
+                if (!formData.template_name.trim() || !formData.subject.trim() || !formData.html_content.trim()) {
+                  toast({
+                    title: "Validation Error",
+                    description: "Please fill in all required fields",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                handleUpdateTemplate(editingTemplate.id, formData);
+              }}>
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
@@ -436,9 +476,9 @@ const EmailTemplateManager = () => {
             <TabsContent value="html" className="space-y-4">
               <div className="border rounded-lg p-4">
                 <p className="text-sm text-muted-foreground mb-2">Subject: {previewTemplate.subject}</p>
-                <div 
-                  className="border rounded p-4 bg-white"
-                  dangerouslySetInnerHTML={{ __html: previewTemplate.html_content }}
+                <SecureHtmlPreview 
+                  html={previewTemplate.html_content}
+                  className="border rounded p-4 bg-background"
                 />
               </div>
             </TabsContent>

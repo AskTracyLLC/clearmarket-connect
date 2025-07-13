@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeFormData, isValidEmail, isValidUserRole } from "@/utils/security";
 import { UserPlus, Send } from "lucide-react";
 
 interface CreateUserFormProps {
@@ -30,10 +31,33 @@ export const CreateUserForm = ({ onUserInvited }: CreateUserFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role) {
+    // Sanitize input data
+    const sanitizedData = sanitizeFormData(formData);
+    
+    // Validation
+    if (!sanitizedData.firstName.trim() || !sanitizedData.lastName.trim() || !sanitizedData.email.trim() || !sanitizedData.role) {
       toast({
-        title: "Error",
+        title: "Validation Error",
         description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Additional security validation
+    if (!isValidEmail(sanitizedData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isValidUserRole(sanitizedData.role)) {
+      toast({
+        title: "Security Error",
+        description: "Invalid user role selected",
         variant: "destructive"
       });
       return;
@@ -44,10 +68,10 @@ export const CreateUserForm = ({ onUserInvited }: CreateUserFormProps) => {
     try {
       const { error } = await supabase.functions.invoke('send-invitation', {
         body: {
-          email: formData.email,
-          role: formData.role,
-          firstName: formData.firstName,
-          lastName: formData.lastName
+          email: sanitizedData.email,
+          role: sanitizedData.role,
+          firstName: sanitizedData.firstName,
+          lastName: sanitizedData.lastName
         }
       });
 

@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { UserCog, Search, RefreshCw, Eye, Save } from "lucide-react";
+import { isValidUserRole } from "@/utils/security";
+import { UserCog, Search, RefreshCw, Eye, Save, AlertTriangle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -86,6 +87,16 @@ export const RoleAssignment = () => {
   }, []);
 
   const handleRoleChange = (userId: string, newRole: string) => {
+    // Validate role before accepting the change
+    if (!isValidUserRole(newRole)) {
+      toast({
+        title: "Security Error",
+        description: "Invalid role selected",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setPendingChanges(prev => ({
       ...prev,
       [userId]: newRole
@@ -94,6 +105,28 @@ export const RoleAssignment = () => {
 
   const saveRoleChanges = async () => {
     try {
+      // Additional security check before batch update
+      const invalidRoles = Object.values(pendingChanges).filter(role => !isValidUserRole(role));
+      if (invalidRoles.length > 0) {
+        toast({
+          title: "Security Error",
+          description: "One or more invalid roles detected. Changes rejected.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Show confirmation for sensitive role changes
+      const hasAdminChanges = Object.values(pendingChanges).some(role => role === 'admin');
+      if (hasAdminChanges) {
+        const confirmed = window.confirm(
+          "⚠️ You are about to assign admin privileges. This action grants full system access. Are you sure you want to continue?"
+        );
+        if (!confirmed) {
+          return;
+        }
+      }
+
       for (const [userId, newRole] of Object.entries(pendingChanges)) {
         const { error } = await supabase
           .from('users')
@@ -103,6 +136,19 @@ export const RoleAssignment = () => {
         if (error) {
           throw error;
         }
+
+        // Log the role change for audit purposes
+        await supabase
+          .from('audit_log')
+          .insert({
+            action: 'role_change',
+            target_table: 'users',
+            target_id: userId,
+            metadata: {
+              new_role: newRole,
+              changed_at: new Date().toISOString()
+            }
+          });
       }
 
       toast({
@@ -191,6 +237,9 @@ export const RoleAssignment = () => {
             <Button variant="default" size="sm" onClick={saveRoleChanges}>
               <Save className="h-4 w-4 mr-2" />
               Save Changes ({Object.keys(pendingChanges).length})
+              {Object.values(pendingChanges).some(role => role === 'admin') && (
+                <AlertTriangle className="h-3 w-3 ml-1 text-destructive" />
+              )}
             </Button>
           )}
         </div>
@@ -252,8 +301,17 @@ export const RoleAssignment = () => {
                           <SelectContent>
                             <SelectItem value="field_rep">Field Rep</SelectItem>
                             <SelectItem value="vendor">Vendor</SelectItem>
-                            <SelectItem value="moderator">Moderator</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="moderator">
+                              <span className="flex items-center gap-1">
+                                Moderator
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="admin">
+                              <span className="flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3 text-destructive" />
+                                Admin
+                              </span>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         {pendingRole && (

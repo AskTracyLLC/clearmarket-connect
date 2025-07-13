@@ -1,4 +1,5 @@
 // Security utilities for input sanitization and validation
+import DOMPurify from 'dompurify';
 
 /**
  * Sanitizes user input to prevent XSS attacks
@@ -13,6 +14,51 @@ export const sanitizeInput = (input: string): string => {
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;')
     .trim();
+};
+
+/**
+ * Safely sanitizes HTML content using DOMPurify
+ */
+export const sanitizeHtml = (html: string): string => {
+  if (!html) return '';
+  
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'a', 'img', 'div', 'span', 'table', 'tr', 'td', 'th',
+      'thead', 'tbody', 'tfoot'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'title', 'width', 'height', 'style', 'class'
+    ],
+    ALLOW_DATA_ATTR: false,
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+  });
+};
+
+/**
+ * Validates and sanitizes form data
+ */
+export const sanitizeFormData = <T extends Record<string, any>>(data: T): T => {
+  const sanitized = {} as T;
+  
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    if (typeof value === 'string') {
+      // Don't sanitize HTML content fields that need to preserve formatting
+      if (key.includes('html_content') || key.includes('html')) {
+        (sanitized as any)[key] = sanitizeHtml(value);
+      } else {
+        (sanitized as any)[key] = sanitizeInput(value);
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      (sanitized as any)[key] = sanitizeObject(value);
+    } else {
+      (sanitized as any)[key] = value;
+    }
+  });
+  
+  return sanitized;
 };
 
 /**
