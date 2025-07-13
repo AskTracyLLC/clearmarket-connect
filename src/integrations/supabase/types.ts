@@ -93,6 +93,39 @@ export type Database = {
           },
         ]
       }
+      beta_testers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string | null
+          signup_date: string
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          signup_date?: string
+          updated_at?: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string | null
+          signup_date?: string
+          updated_at?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       bulk_message_recipients: {
         Row: {
           bulk_message_id: string
@@ -887,10 +920,10 @@ export type Database = {
           field_rep_name: string | null
           id: string
           interested_features: string[] | null
+          interested_in_beta_testing: boolean | null
           join_feedback_group: boolean | null
           primary_state: string | null
           updated_at: string
-          wants_progress_reports: boolean | null
           work_types: string[] | null
         }
         Insert: {
@@ -905,10 +938,10 @@ export type Database = {
           field_rep_name?: string | null
           id?: string
           interested_features?: string[] | null
+          interested_in_beta_testing?: boolean | null
           join_feedback_group?: boolean | null
           primary_state?: string | null
           updated_at?: string
-          wants_progress_reports?: boolean | null
           work_types?: string[] | null
         }
         Update: {
@@ -923,10 +956,10 @@ export type Database = {
           field_rep_name?: string | null
           id?: string
           interested_features?: string[] | null
+          interested_in_beta_testing?: boolean | null
           join_feedback_group?: boolean | null
           primary_state?: string | null
           updated_at?: string
-          wants_progress_reports?: boolean | null
           work_types?: string[] | null
         }
         Relationships: []
@@ -1935,11 +1968,11 @@ export type Database = {
           feedback_token_expires_at: string | null
           id: string
           interested_features: string[] | null
+          interested_in_beta_testing: boolean | null
           join_feedback_group: boolean | null
           primary_service: string[] | null
           states_covered: string[] | null
           updated_at: string
-          wants_progress_reports: boolean | null
         }
         Insert: {
           agreed_to_analytics?: boolean | null
@@ -1953,11 +1986,11 @@ export type Database = {
           feedback_token_expires_at?: string | null
           id?: string
           interested_features?: string[] | null
+          interested_in_beta_testing?: boolean | null
           join_feedback_group?: boolean | null
           primary_service?: string[] | null
           states_covered?: string[] | null
           updated_at?: string
-          wants_progress_reports?: boolean | null
         }
         Update: {
           agreed_to_analytics?: boolean | null
@@ -1971,11 +2004,11 @@ export type Database = {
           feedback_token_expires_at?: string | null
           id?: string
           interested_features?: string[] | null
+          interested_in_beta_testing?: boolean | null
           join_feedback_group?: boolean | null
           primary_service?: string[] | null
           states_covered?: string[] | null
           updated_at?: string
-          wants_progress_reports?: boolean | null
         }
         Relationships: []
       }

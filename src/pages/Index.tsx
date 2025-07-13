@@ -62,7 +62,7 @@ const Index = () => {
   const [currentChallenges, setCurrentChallenges] = useState('');
   const [interestedFeatures, setInterestedFeatures] = useState([]);
   const [otherFeature, setOtherFeature] = useState('');
-  const [wantsProgressReports, setWantsProgressReports] = useState(false);
+  const [interestedInBetaTesting, setInterestedInBetaTesting] = useState(false);
   const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
   
   // Anti-spam states
@@ -325,7 +325,7 @@ const Index = () => {
           experience_level: experienceLevel,
           current_challenges: currentChallenges,
           interested_features: finalFeatures,
-          wants_progress_reports: wantsProgressReports,
+          interested_in_beta_testing: interestedInBetaTesting,
           agreed_to_analytics: agreedToAnalytics,
           anonymous_username: anonymousUsername
         };
@@ -370,7 +370,7 @@ const Index = () => {
           primary_service: finalServices,
           current_challenges: currentChallenges,
           interested_features: finalFeatures,
-          wants_progress_reports: wantsProgressReports,
+          interested_in_beta_testing: interestedInBetaTesting,
           agreed_to_analytics: agreedToAnalytics,
           anonymous_username: anonymousUsername
         };
@@ -850,20 +850,20 @@ const Index = () => {
                     <div className="flex items-start space-x-3 p-4 bg-primary/5 rounded-lg border">
                       <Checkbox 
                         id="progress-reports"
-                        checked={wantsProgressReports}
-                        onCheckedChange={(checked) => setWantsProgressReports(checked === true)}
+                        checked={interestedInBetaTesting}
+                        onCheckedChange={(checked) => setInterestedInBetaTesting(checked === true)}
                         className="mt-0.5"
                       />
-                      <div className="flex-1">
+                       <div className="flex-1">
                          <Label 
                            htmlFor="progress-reports" 
                            className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2"
                          >
                            <BarChart3 className="h-4 w-4 text-primary" />
-                           Send me development progress updates <span className="text-muted-foreground">(Optional)</span>
+                           I'm Interested in being a Beta Tester for Early Access <span className="text-muted-foreground">(Optional)</span>
                          </Label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Get occasional emails about new features as we build them
+                          Get early access to test new features before they're released
                         </p>
                       </div>
                     </div>
