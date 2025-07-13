@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -8,8 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  isDisposableEmail,
+  checkRateLimit,
+  checkDuplicateEmail,
+  logSignupAttempt,
+  getClientIP,
+  validateHoneypot,
+  getAntiSpamErrorMessage
+} from '@/utils/antiSpam';
 import { 
   Users, 
   MapPin, 
@@ -54,7 +64,13 @@ const Index = () => {
   const [wantsProgressReports, setWantsProgressReports] = useState(false);
   const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
   
+  // Anti-spam states
+  const [honeypotField, setHoneypotField] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [clientIP, setClientIP] = useState<string | undefined>(undefined);
+  
   const { toast } = useToast();
+  const recaptchaRef = useRef<any>(null);
 
   // Service types for vendors
   const serviceTypes = [
@@ -118,6 +134,11 @@ const Index = () => {
     loadStates();
   }, []);
 
+  useEffect(() => {
+    // Get client IP for rate limiting
+    getClientIP().then(ip => setClientIP(ip));
+  }, []);
+
   // Helper functions for multi-select
   const handleWorkTypeToggle = (workType) => {
     setWorkTypes(prev => 
@@ -151,7 +172,7 @@ const Index = () => {
     );
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !userType || !agreedToAnalytics) return;
 
@@ -178,23 +199,107 @@ const Index = () => {
     setIsLoading(true);
 
     try {
+      // Anti-spam validation
+      const userAgent = navigator.userAgent;
+      
+      // 1. Validate honeypot field (should be empty)
+      if (!validateHoneypot(honeypotField)) {
+        await logSignupAttempt({
+          email,
+          userType: userType as 'field-rep' | 'vendor',
+          ipAddress: clientIP,
+          userAgent,
+          success: false,
+          failureReason: 'honeypot',
+          honeypotFilled: true
+        });
+        
+        toast({
+          title: "Error",
+          description: getAntiSpamErrorMessage('honeypot'),
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Validate reCAPTCHA
+      if (!recaptchaToken) {
+        toast({
+          title: "Security Check Required",
+          description: getAntiSpamErrorMessage('recaptcha_failed'),
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 3. Check for disposable email
+      if (isDisposableEmail(email)) {
+        await logSignupAttempt({
+          email,
+          userType: userType as 'field-rep' | 'vendor',
+          ipAddress: clientIP,
+          userAgent,
+          success: false,
+          failureReason: 'disposable_email',
+          isDisposableEmail: true
+        });
+        
+        toast({
+          title: "Invalid Email",
+          description: getAntiSpamErrorMessage('disposable_email'),
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 4. Check rate limiting
+      const isWithinRateLimit = await checkRateLimit(clientIP);
+      if (!isWithinRateLimit) {
+        await logSignupAttempt({
+          email,
+          userType: userType as 'field-rep' | 'vendor',
+          ipAddress: clientIP,
+          userAgent,
+          success: false,
+          failureReason: 'rate_limit'
+        });
+        
+        toast({
+          title: "Rate Limit Exceeded",
+          description: getAntiSpamErrorMessage('rate_limit'),
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 5. Check for duplicate email across both tables
+      const duplicateCheck = await checkDuplicateEmail(email);
+      if (duplicateCheck.exists) {
+        await logSignupAttempt({
+          email,
+          userType: userType as 'field-rep' | 'vendor',
+          ipAddress: clientIP,
+          userAgent,
+          success: false,
+          failureReason: 'duplicate_email',
+          metadata: { existingTable: duplicateCheck.table }
+        });
+        
+        const tableType = duplicateCheck.table === 'field_rep_signups' ? 'field rep' : 'vendor';
+        toast({
+          title: "Already registered",
+          description: `This email is already registered as a ${tableType}. You'll be notified when we launch!`,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Proceed with signup if all validations pass
       if (userType === 'field-rep') {
-        // Check if email already exists
-        const { data: existing } = await supabase
-          .from('field_rep_signups')
-          .select('email')
-          .eq('email', email)
-          .maybeSingle();
-
-        if (existing) {
-          toast({
-            title: "Already registered",
-            description: "This email is already registered for field rep updates. You'll be notified when we launch!",
-          });
-          setIsLoading(false);
-          return;
-        }
-
         // Include the custom work type if "other" was selected
         const finalWorkTypes = workTypes.includes('other') && otherWorkType 
           ? [...workTypes.filter(w => w !== 'other'), otherWorkType]
@@ -229,23 +334,17 @@ const Index = () => {
           .insert([signupData]);
 
         if (error) throw error;
+
+        // Log successful signup
+        await logSignupAttempt({
+          email,
+          userType: 'field-rep',
+          ipAddress: clientIP,
+          userAgent,
+          success: true,
+          metadata: signupData
+        });
       } else {
-        // Check if email already exists
-        const { data: existing } = await supabase
-          .from('vendor_signups')
-          .select('email')
-          .eq('email', email)
-          .maybeSingle();
-
-        if (existing) {
-          toast({
-            title: "Already registered",
-            description: "This email is already registered for vendor updates. You'll be notified when we launch!",
-          });
-          setIsLoading(false);
-          return;
-        }
-
         // Include the custom service type if "other" was selected
         const finalServices = primaryServices.includes('other') && otherService 
           ? [...primaryServices.filter(s => s !== 'other'), otherService]
@@ -280,6 +379,16 @@ const Index = () => {
           .insert([signupData]);
 
         if (error) throw error;
+
+        // Log successful signup
+        await logSignupAttempt({
+          email,
+          userType: 'vendor',
+          ipAddress: clientIP,
+          userAgent,
+          success: true,
+          metadata: signupData
+        });
       }
 
       // Calculate user position based on type
@@ -305,6 +414,19 @@ const Index = () => {
         description: "You've been added to our launch notification list."
       });
     } catch (error) {
+      console.error('Signup error:', error);
+      
+      // Log failed signup attempt
+      await logSignupAttempt({
+        email,
+        userType: userType as 'field-rep' | 'vendor',
+        ipAddress: clientIP,
+        userAgent: navigator.userAgent,
+        success: false,
+        failureReason: 'server_error',
+        metadata: { error: error instanceof Error ? error.message : 'Unknown error' }
+      });
+      
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -316,7 +438,7 @@ const Index = () => {
   };
 
   const isFormValid = () => {
-    if (!email || !userType || !agreedToAnalytics) return false;
+    if (!email || !userType || !agreedToAnalytics || !recaptchaToken) return false;
     if (userType === 'field-rep' && (!primaryState || !fieldRepName)) return false;
     if (userType === 'vendor' && !companyName) return false;
     return true;
@@ -768,6 +890,28 @@ const Index = () => {
                       </div>
                     </div>
 
+                    {/* Honeypot field - hidden from users */}
+                    <input
+                      type="text"
+                      name="website"
+                      value={honeypotField}
+                      onChange={(e) => setHoneypotField(e.target.value)}
+                      style={{ display: 'none' }}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+
+                    {/* reCAPTCHA */}
+                    <div className="flex justify-center">
+                      <RecaptchaWrapper
+                        onVerify={setRecaptchaToken}
+                        onExpired={() => setRecaptchaToken(null)}
+                        onError={() => setRecaptchaToken(null)}
+                        size="normal"
+                        theme="light"
+                      />
+                    </div>
+
                     {/* Submit Button */}
                     <div className="pt-4">
                       <Button 
@@ -782,7 +926,7 @@ const Index = () => {
 
                     {!isFormValid() && (
                       <p className="text-xs text-muted-foreground text-center">
-                        Please complete all required fields and agree to our privacy policy
+                        Please complete all required fields, verify reCAPTCHA, and agree to our privacy policy
                       </p>
                     )}
                   </>
