@@ -1250,7 +1250,7 @@ const Index = () => {
                 aria-label="Go to ClearMarket Admin Login"
               >
                 <img 
-                  src="/new-clearmarket-logo.svg" 
+                  src="/lovable-uploads/0b38b64e-f303-433a-966f-6a04ca5e826e.png" 
                   alt="ClearMarket - Professional Field Inspection Network" 
                   className="w-6 h-6 rounded"
                   style={{ imageRendering: 'crisp-edges' }}
