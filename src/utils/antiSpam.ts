@@ -89,23 +89,33 @@ export const DISPOSABLE_EMAIL_DOMAINS = [
  */
 export const isDisposableEmail = (email: string): boolean => {
   try {
-    console.log("Checking disposable email for:", email, "at", new Date().toISOString());
+    console.log("=== DISPOSABLE EMAIL CHECK ===");
+    console.log("Checking email:", email, "at", new Date().toISOString());
     const domain = email.toLowerCase().split('@')[1];
-    return DISPOSABLE_EMAIL_DOMAINS.includes(domain);
-  } catch {
+    const isDisposable = DISPOSABLE_EMAIL_DOMAINS.includes(domain);
+    console.log("Domain:", domain, "- Is disposable:", isDisposable);
+    return isDisposable;
+  } catch (error) {
+    console.error("Error checking disposable email:", error);
     return false;
   }
 };
 
 /**
  * Check if IP has exceeded rate limit for signups
- * Simplified version without database function
+ * Increased limit from 3 to 10 for mobile networks
  */
 export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
-  if (!ipAddress) return true; // Allow if no IP tracking
+  if (!ipAddress) {
+    console.log("=== RATE LIMIT CHECK ===");
+    console.log("No IP address provided - allowing signup");
+    return true;
+  }
   
   try {
-    console.log("Rate limit check for IP:", ipAddress, "at", new Date().toISOString());
+    console.log("=== RATE LIMIT CHECK ===");
+    console.log("Checking rate limit for IP:", ipAddress, "at", new Date().toISOString());
+    
     // Simple rate limiting based on local storage for now
     // In production, implement server-side rate limiting
     const now = Date.now();
@@ -115,14 +125,17 @@ export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
     // Remove attempts older than 1 hour
     const validAttempts = attempts.filter((timestamp: number) => now - timestamp < 3600000);
     
-    // Check if we have exceeded 10 attempts in the last hour
+    // Check if we have exceeded 10 attempts in the last hour (increased from 3)
     console.log("Rate limit status:", {
       ip: ipAddress,
       validAttempts: validAttempts.length,
       limit: 10,
-      willBlock: validAttempts.length >= 10
+      willBlock: validAttempts.length >= 10,
+      timeWindow: "1 hour"
     });
+    
     if (validAttempts.length >= 10) {
+      console.warn("RATE LIMIT EXCEEDED for IP:", ipAddress);
       return false;
     }
     
@@ -130,6 +143,7 @@ export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
     validAttempts.push(now);
     localStorage.setItem(rateKey, JSON.stringify(validAttempts));
     
+    console.log("Rate limit check PASSED - attempt logged");
     return true;
   } catch (error) {
     console.error('Rate limit check failed:', error);
@@ -145,7 +159,9 @@ export const checkDuplicateEmail = async (email: string): Promise<{
   table?: 'field_rep_signups' | 'vendor_signups';
 }> => {
   try {
-    console.log("Checking duplicate email for:", email, "at", new Date().toISOString());
+    console.log("=== DUPLICATE EMAIL CHECK ===");
+    console.log("Checking for duplicate email:", email, "at", new Date().toISOString());
+    
     const [fieldRepResult, vendorResult] = await Promise.all([
       supabase
         .from('field_rep_signups')
@@ -160,13 +176,16 @@ export const checkDuplicateEmail = async (email: string): Promise<{
     ]);
 
     if (fieldRepResult.data) {
+      console.log("DUPLICATE FOUND in field_rep_signups table");
       return { exists: true, table: 'field_rep_signups' };
     }
     
     if (vendorResult.data) {
+      console.log("DUPLICATE FOUND in vendor_signups table");
       return { exists: true, table: 'vendor_signups' };
     }
 
+    console.log("No duplicate found - email is unique");
     return { exists: false };
   } catch (error) {
     console.error('Duplicate email check failed:', error);
@@ -176,7 +195,7 @@ export const checkDuplicateEmail = async (email: string): Promise<{
 
 /**
  * Log a signup attempt with all metadata
- * Simplified version without database function
+ * Enhanced version with detailed logging
  */
 export const logSignupAttempt = async ({
   email,
@@ -202,21 +221,42 @@ export const logSignupAttempt = async ({
   isDisposableEmail?: boolean;
 }): Promise<string | null> => {
   try {
+    console.log("=== SIGNUP ATTEMPT LOG ===");
     console.log("Logging signup attempt for:", email, "at", new Date().toISOString());
-    // Log to console for now - in production, you'd want to store this in a database
-    console.log('Signup attempt:', {
+    
+    // Enhanced logging with mobile detection
+    const isMobile = userAgent ? /Mobile|Android|iPhone|iPad/i.test(userAgent) : false;
+    
+    const logData = {
       email,
       userType,
       ipAddress,
-      userAgent,
+      userAgent: userAgent?.substring(0, 200), // Truncate long user agents
       success,
       failureReason,
       metadata,
       honeypotFilled,
       recaptchaScore,
       isDisposableEmail,
-      timestamp: new Date().toISOString()
-    });
+      isMobile,
+      timestamp: new Date().toISOString(),
+      browserInfo: {
+        language: navigator.language,
+        platform: navigator.platform,
+        cookieEnabled: navigator.cookieEnabled,
+        onLine: navigator.onLine
+      }
+    };
+    
+    // Log to console for now - in production, you'd want to store this in a database
+    console.log('=== DETAILED SIGNUP ATTEMPT DATA ===');
+    console.log(JSON.stringify(logData, null, 2));
+
+    if (success) {
+      console.log("✅ SUCCESSFUL SIGNUP LOGGED");
+    } else {
+      console.warn("❌ FAILED SIGNUP LOGGED - Reason:", failureReason);
+    }
 
     return 'logged';
   } catch (error) {
@@ -226,18 +266,47 @@ export const logSignupAttempt = async ({
 };
 
 /**
- * Get client IP address (limited in browser environment)
+ * Get client IP address with fallback options
  */
 export const getClientIP = async (): Promise<string | undefined> => {
+  console.log("=== GETTING CLIENT IP ===");
+  console.log("Attempting to fetch client IP at", new Date().toISOString());
+  
   try {
-    console.log("Getting client IP at", new Date().toISOString());
-    // Note: This is limited in browser environments due to privacy restrictions
-    // In production, you might want to pass IP from a server-side function
-    const response = await fetch('https://api.ipify.org?format=json');
+    // Primary IP service
+    const response = await fetch('https://api.ipify.org?format=json', {
+      timeout: 5000
+    } as any);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
+    console.log("Successfully got IP from ipify.org:", data.ip);
     return data.ip;
-  } catch {
-    return undefined;
+  } catch (error) {
+    console.warn("Primary IP service failed:", error);
+    
+    try {
+      // Fallback IP service
+      console.log("Trying fallback IP service...");
+      const fallbackResponse = await fetch('https://httpbin.org/ip', {
+        timeout: 5000
+      } as any);
+      
+      if (!fallbackResponse.ok) {
+        throw new Error(`HTTP error! status: ${fallbackResponse.status}`);
+      }
+      
+      const fallbackData = await fallbackResponse.json();
+      console.log("Successfully got IP from httpbin.org:", fallbackData.origin);
+      return fallbackData.origin;
+    } catch (fallbackError) {
+      console.error("All IP services failed:", fallbackError);
+      console.log("Using fallback IP for testing");
+      return "127.0.0.1"; // Fallback for testing
+    }
   }
 };
 
@@ -245,25 +314,33 @@ export const getClientIP = async (): Promise<string | undefined> => {
  * Validate honeypot field (should be empty)
  */
 export const validateHoneypot = (honeypotValue: string): boolean => {
-  return honeypotValue === '' || honeypotValue == null;
+  console.log("=== HONEYPOT VALIDATION ===");
+  const isValid = honeypotValue === '' || honeypotValue == null;
+  console.log("Honeypot field value:", honeypotValue ? "FILLED (SUSPICIOUS)" : "empty (valid)");
+  console.log("Honeypot validation result:", isValid ? "PASSED" : "FAILED");
+  return isValid;
 };
 
 /**
  * Generate user-friendly error messages for anti-spam rejections
+ * Updated with mobile-friendly messaging
  */
 export const getAntiSpamErrorMessage = (reason: string): string => {
+  console.log("=== GENERATING ERROR MESSAGE ===");
+  console.log("Error reason:", reason);
+  
   switch (reason) {
     case 'disposable_email':
       return 'Please use a permanent email address. Temporary email services are not allowed.';
     case 'rate_limit':
-      return 'Too many signups from your location (10 per hour limit). Please try again later.';
+      return 'Too many signups from your location (10 per hour limit). If on mobile, try switching to WiFi or try again later.';
     case 'honeypot':
-      return 'Your submission appears to be automated. Please try again.';
+      return 'Your submission appears to be automated. Please try again manually.';
     case 'recaptcha_failed':
-      return 'Security verification failed. Please complete the reCAPTCHA and try again.';
+      return 'Security verification failed. Please complete the reCAPTCHA. If on mobile, check your internet connection and try again.';
     case 'duplicate_email':
-      return 'This email address is already registered. Please use a different email or sign in.';
+      return 'This email address is already registered. Please use a different email or contact support.';
     default:
-      return 'Security verification failed. Please try again.';
+      return 'Security verification failed. Please try again or contact support if the issue persists.';
   }
 };
