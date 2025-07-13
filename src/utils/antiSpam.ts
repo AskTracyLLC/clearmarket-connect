@@ -89,6 +89,7 @@ export const DISPOSABLE_EMAIL_DOMAINS = [
  */
 export const isDisposableEmail = (email: string): boolean => {
   try {
+    console.log("Checking disposable email for:", email, "at", new Date().toISOString());
     const domain = email.toLowerCase().split('@')[1];
     return DISPOSABLE_EMAIL_DOMAINS.includes(domain);
   } catch {
@@ -104,6 +105,7 @@ export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
   if (!ipAddress) return true; // Allow if no IP tracking
   
   try {
+    console.log("Rate limit check for IP:", ipAddress, "at", new Date().toISOString());
     // Simple rate limiting based on local storage for now
     // In production, implement server-side rate limiting
     const now = Date.now();
@@ -113,8 +115,14 @@ export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
     // Remove attempts older than 1 hour
     const validAttempts = attempts.filter((timestamp: number) => now - timestamp < 3600000);
     
-    // Check if we have exceeded 3 attempts in the last hour
-    if (validAttempts.length >= 3) {
+    // Check if we have exceeded 10 attempts in the last hour
+    console.log("Rate limit status:", {
+      ip: ipAddress,
+      validAttempts: validAttempts.length,
+      limit: 10,
+      willBlock: validAttempts.length >= 10
+    });
+    if (validAttempts.length >= 10) {
       return false;
     }
     
@@ -137,6 +145,7 @@ export const checkDuplicateEmail = async (email: string): Promise<{
   table?: 'field_rep_signups' | 'vendor_signups';
 }> => {
   try {
+    console.log("Checking duplicate email for:", email, "at", new Date().toISOString());
     const [fieldRepResult, vendorResult] = await Promise.all([
       supabase
         .from('field_rep_signups')
@@ -193,6 +202,7 @@ export const logSignupAttempt = async ({
   isDisposableEmail?: boolean;
 }): Promise<string | null> => {
   try {
+    console.log("Logging signup attempt for:", email, "at", new Date().toISOString());
     // Log to console for now - in production, you'd want to store this in a database
     console.log('Signup attempt:', {
       email,
@@ -220,6 +230,7 @@ export const logSignupAttempt = async ({
  */
 export const getClientIP = async (): Promise<string | undefined> => {
   try {
+    console.log("Getting client IP at", new Date().toISOString());
     // Note: This is limited in browser environments due to privacy restrictions
     // In production, you might want to pass IP from a server-side function
     const response = await fetch('https://api.ipify.org?format=json');
@@ -245,7 +256,7 @@ export const getAntiSpamErrorMessage = (reason: string): string => {
     case 'disposable_email':
       return 'Please use a permanent email address. Temporary email services are not allowed.';
     case 'rate_limit':
-      return 'Too many signups from your location. Please try again in an hour.';
+      return 'Too many signups from your location (10 per hour limit). Please try again later.';
     case 'honeypot':
       return 'Your submission appears to be automated. Please try again.';
     case 'recaptcha_failed':
