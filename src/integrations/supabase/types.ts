@@ -1922,51 +1922,6 @@ export type Database = {
           },
         ]
       }
-      signup_attempts: {
-        Row: {
-          id: string
-          email: string
-          user_type: string
-          ip_address: string | null
-          user_agent: string | null
-          success: boolean
-          failure_reason: string | null
-          metadata: Json | null
-          honeypot_filled: boolean | null
-          recaptcha_score: number | null
-          is_disposable_email: boolean | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          user_type: string
-          ip_address?: string | null
-          user_agent?: string | null
-          success?: boolean
-          failure_reason?: string | null
-          metadata?: Json | null
-          honeypot_filled?: boolean | null
-          recaptcha_score?: number | null
-          is_disposable_email?: boolean | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          user_type?: string
-          ip_address?: string | null
-          user_agent?: string | null
-          success?: boolean
-          failure_reason?: string | null
-          metadata?: Json | null
-          honeypot_filled?: boolean | null
-          recaptcha_score?: number | null
-          is_disposable_email?: boolean | null
-          created_at?: string
-        }
-        Relationships: []
-      }
       vendor_signups: {
         Row: {
           agreed_to_analytics: boolean | null

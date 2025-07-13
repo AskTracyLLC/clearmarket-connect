@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Link } from 'react-router-dom';
 import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -493,13 +494,14 @@ const Index = () => {
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <img 
-                src="/new-clearmarket-logo.svg" 
-                alt="ClearMarket - Professional Field Inspection Network" 
-                className="w-8 h-8 rounded-lg"
-                style={{ imageRendering: 'crisp-edges' }}
-              />
+             <div className="flex items-center space-x-2">
+              <Link to="/auth">
+                <img 
+                  src="/lovable-uploads/0b38b64e-f303-433a-966f-6a04ca5e826e.png" 
+                  alt="ClearMarket - Professional Field Inspection Network" 
+                  className="w-8 h-8 rounded-lg"
+                />
+              </Link>
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
             <div className="flex items-center space-x-3">

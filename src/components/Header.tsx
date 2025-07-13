@@ -27,12 +27,14 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <MobileNav />
-            <img 
-              src="/lovable-uploads/12800399-00d5-4377-986a-bc4da4a34ea1.png" 
-              alt="ClearMarket" 
-              className="w-8 h-8 rounded-lg"
-            />
-            <span className="text-xl font-bold text-foreground">ClearMarket</span>
+            <Link to="/auth" className="flex items-center space-x-2">
+              <img 
+                src="/lovable-uploads/0b38b64e-f303-433a-966f-6a04ca5e826e.png" 
+                alt="ClearMarket" 
+                className="w-8 h-8 rounded-lg"
+              />
+              <span className="text-xl font-bold text-foreground">ClearMarket</span>
+            </Link>
           </div>
           
           <nav className="hidden md:flex items-center space-x-6">
