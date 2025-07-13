@@ -29,7 +29,7 @@ const Header = () => {
             <MobileNav />
             <Link to="/auth" className="flex items-center space-x-2">
               <img 
-                src="/lovable-uploads/0b38b64e-f303-433a-966f-6a04ca5e826e.png" 
+                src="/lovable-uploads/5d315367-d1a1-4352-939e-bbe0ead13db2.png" 
                 alt="ClearMarket" 
                 className="w-8 h-8 rounded-lg"
               />
