@@ -8,7 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import LoadingBar from "@/components/ui/loading-bar";
 import BackToTop from "@/components/ui/back-to-top";
-import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Prelaunch from "./pages/Prelaunch";
@@ -111,7 +110,6 @@ const App = () => (
               </Routes>
             </ErrorBoundary>
             <BackToTop />
-            <PWAInstallPrompt />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
