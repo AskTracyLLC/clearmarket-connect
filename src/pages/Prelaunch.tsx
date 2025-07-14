@@ -68,6 +68,36 @@ const Prelaunch = () => {
   } = useToast();
   const recaptchaRef = useRef<any>(null);
 
+  // 🆕 EMAIL TRIGGER FUNCTION
+  const sendSignupEmail = async (signupData: {
+    signupType: 'field-rep' | 'vendor';
+    email: string;
+    anonymous_username: string;
+    interested_in_beta_testing?: boolean;
+  }) => {
+    try {
+      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-signup-email', {
+        body: {
+          signupType: signupData.signupType,
+          email: signupData.email,
+          anonymous_username: signupData.anonymous_username,
+          beta_tester: signupData.interested_in_beta_testing || false
+        }
+      });
+
+      if (emailError) {
+        console.error('Email sending failed:', emailError);
+        return { success: false, error: emailError };
+      }
+
+      console.log('Signup email sent successfully:', emailResult);
+      return { success: true, data: emailResult };
+    } catch (error) {
+      console.error('Email trigger error:', error);
+      return { success: false, error };
+    }
+  };
+
   // Service types for vendors
   const serviceTypes = [{
     value: 'inspections',
@@ -388,6 +418,19 @@ const Prelaunch = () => {
         } = await supabase.from('field_rep_signups').insert([signupData]);
         if (error) throw error;
 
+        // 🆕 SEND FIELD REP EMAIL AFTER SUCCESSFUL INSERT
+        const emailResult = await sendSignupEmail({
+          signupType: 'field-rep',
+          email: email,
+          anonymous_username: anonymousUsername,
+          interested_in_beta_testing: interestedInBetaTesting
+        });
+
+        // Don't fail signup if email fails, just log it
+        if (!emailResult.success) {
+          console.error('Email failed but signup succeeded:', emailResult.error);
+        }
+
         // Log successful signup
         await logSignupAttempt({
           email,
@@ -428,6 +471,19 @@ const Prelaunch = () => {
           error
         } = await supabase.from('vendor_signups').insert([signupData]);
         if (error) throw error;
+
+        // 🆕 SEND VENDOR EMAIL AFTER SUCCESSFUL INSERT
+        const emailResult = await sendSignupEmail({
+          signupType: 'vendor',
+          email: email,
+          anonymous_username: anonymousUsername,
+          interested_in_beta_testing: interestedInBetaTesting
+        });
+
+        // Don't fail signup if email fails, just log it
+        if (!emailResult.success) {
+          console.error('Email failed but signup succeeded:', emailResult.error);
+        }
 
         // Log successful signup
         await logSignupAttempt({
