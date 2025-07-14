@@ -28,7 +28,13 @@ const Index = () => {
       navigate(dashboardPath);
     }
   }, [user, accountData, navigate]);
-
+  // ADD THIS: Redirect root to pre-launch during pre-launch phase
+  useEffect(() => {
+    if (window.location.pathname === '/' && !window.location.search && !window.location.hash) {
+      window.location.replace('/pre-launch');
+    }
+  }, []);
+  
   useEffect(() => {
     const checkHash = () => {
       const hash = window.location.hash;
