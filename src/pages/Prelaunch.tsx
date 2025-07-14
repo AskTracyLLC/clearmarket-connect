@@ -758,7 +758,7 @@ const Prelaunch = () => {
                          </div>
 
                         <div>
-                          <Label className="text-sm font-medium">States Where You Need Coverage</Label>
+                          <Label className="text-sm font-medium">State(s) You Cover</Label>
                           <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
                           <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
