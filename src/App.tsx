@@ -11,6 +11,7 @@ import BackToTop from "@/components/ui/back-to-top";
 import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import PreLaunch from "./pages/PreLaunch"; // ADD THIS IMPORT
 import VendorSearchPage from "./pages/VendorSearchPage";
 import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
@@ -50,6 +51,7 @@ const App = () => (
               <ErrorBoundary>
                 <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/pre-launch" element={<PreLaunch />} /> {/* ADD THIS ROUTE */}
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
