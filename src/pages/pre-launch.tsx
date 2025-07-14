@@ -83,4 +83,4 @@ const Index = () => {
   );
 };
 
-export default pre-launch;
+export default PreLaunch;
