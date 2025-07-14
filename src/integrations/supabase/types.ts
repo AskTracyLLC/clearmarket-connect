@@ -912,7 +912,7 @@ export type Database = {
           agreed_to_analytics: boolean | null
           anonymous_username: string | null
           created_at: string
-          current_challenges: string | null
+          current_challenges: string[] | null
           email: string
           experience_level: string | null
           feedback_access_token: string | null
@@ -930,7 +930,7 @@ export type Database = {
           agreed_to_analytics?: boolean | null
           anonymous_username?: string | null
           created_at?: string
-          current_challenges?: string | null
+          current_challenges?: string[] | null
           email: string
           experience_level?: string | null
           feedback_access_token?: string | null
@@ -948,7 +948,7 @@ export type Database = {
           agreed_to_analytics?: boolean | null
           anonymous_username?: string | null
           created_at?: string
-          current_challenges?: string | null
+          current_challenges?: string[] | null
           email?: string
           experience_level?: string | null
           feedback_access_token?: string | null
