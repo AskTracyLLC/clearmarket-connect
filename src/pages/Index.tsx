@@ -47,7 +47,7 @@ const Index = () => {
     if (showHowItWorks) {
       const element = document.getElementById("how-it-works");
       if (element) {
-        element.scrollIntoView({ behavior: "smooth" );
+        element.scrollIntoView({ behavior: "smooth" });
       }
     }
   }, [showHowItWorks]);
