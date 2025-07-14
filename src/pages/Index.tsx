@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
+import HeroSection from "@/components/HeroSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import SuccessStoriesSection from "@/components/SuccessStoriesSection";
 import RecentlyJoinedCarousel from "@/components/RecentlyJoinedCarousel";
@@ -20,6 +21,13 @@ const Index = () => {
   const { accountData } = useUserProfile();
   const navigate = useNavigate();
 
+  // ADD THIS: Redirect root to pre-launch during pre-launch phase
+  useEffect(() => {
+    if (window.location.pathname === '/' && !window.location.search && !window.location.hash) {
+      window.location.replace('/pre-launch');
+    }
+  }, []);
+
   // Redirect authenticated users to their dashboard
   useEffect(() => {
     if (user && accountData) {
@@ -28,13 +36,7 @@ const Index = () => {
       navigate(dashboardPath);
     }
   }, [user, accountData, navigate]);
-  // ADD THIS: Redirect root to pre-launch during pre-launch phase
-  useEffect(() => {
-    if (window.location.pathname === '/' && !window.location.search && !window.location.hash) {
-      window.location.replace('/pre-launch');
-    }
-  }, []);
-  
+
   useEffect(() => {
     const checkHash = () => {
       const hash = window.location.hash;
@@ -69,22 +71,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      {/* Simple hero for main page */}
-      <section className="py-20 bg-gradient-to-br from-background via-muted/30 to-background">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            The Professional Network for
-            <span className="bg-gradient-primary bg-clip-text text-transparent block">
-              Field Inspections
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            ClearMarket connects field representatives with vendors through a trusted, professional networking platform designed specifically for the field inspection industry.
-          </p>
-        </div>
-      </section>
-
+      <HeroSection />
       {settings.testimonials_section_visible && <TestimonialsSection />}
       {settings.success_stories_section_visible && <SuccessStoriesSection />}
       <RecentlyJoinedCarousel />
