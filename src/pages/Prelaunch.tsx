@@ -505,11 +505,11 @@ const Prelaunch = () => {
       
       console.log('🔍 New userPosition object:', newUserPosition);
       
-      // Use a Promise to ensure state update completes before showing confirmation
+      // Add delay to ensure database triggers complete and data is consistent
       await new Promise((resolve) => {
         setUserPosition(newUserPosition);
-        // Use a small timeout to ensure React has processed the state update
-        setTimeout(resolve, 50);
+        // Use a longer timeout to ensure database triggers have completed
+        setTimeout(resolve, 300);
       });
       
       setIsSubmitted(true);
@@ -928,7 +928,7 @@ const Prelaunch = () => {
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
                 <Badge className="bg-accent/20 text-accent">
-                  {userPosition.fullUsername || `${userType === 'vendor' ? 'Vendor' : 'FieldRep'}#0`} to join
+                  {userPosition.fullUsername || 'Loading...'} to join
                 </Badge>
               </div>
             </Card>}
