@@ -33,7 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
       : 'inspection vendor';
 
     const emailResponse = await resend.emails.send({
-      from: "ClearMarket <onboarding@resend.dev>",
+      from: "ClearMarket <hello@useclearmarket.io>",
       to: [email],
       subject: `Welcome to ClearMarket, ${anonymous_username}!`,
       html: `
