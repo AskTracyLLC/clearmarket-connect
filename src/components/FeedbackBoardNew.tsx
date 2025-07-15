@@ -21,7 +21,8 @@ const statusColors = {
 
 const categoryLabels = {
   'bug-report': 'Bug Report',
-  'feature-request': 'Feature Request'
+  'feature-request': 'Feature Request',
+  'testimony': 'Testimony'
 };
 
 export const FeedbackBoardNew = () => {
@@ -30,6 +31,7 @@ export const FeedbackBoardNew = () => {
   const { user: feedbackUser } = useFeedbackAuth();
   const { posts, loading, createPost } = useFeedbackPosts();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<FeedbackPost | null>(null);
@@ -70,6 +72,7 @@ export const FeedbackBoardNew = () => {
 
   const filteredAndSortedPosts = posts
     .filter(post => statusFilter === 'all' || post.status === statusFilter)
+    .filter(post => categoryFilter === 'all' || post.category === categoryFilter)
     .sort((a, b) => {
       if (sortBy === 'upvotes') {
         return b.upvotes - a.upvotes;
@@ -103,6 +106,18 @@ export const FeedbackBoardNew = () => {
             <SelectItem value="in-progress">In Progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="bug-report">Bug Report</SelectItem>
+            <SelectItem value="feature-request">Feature Request</SelectItem>
+            <SelectItem value="testimony">Testimony</SelectItem>
           </SelectContent>
         </Select>
 
