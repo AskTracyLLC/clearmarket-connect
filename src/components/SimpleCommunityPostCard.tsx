@@ -59,7 +59,7 @@ const SimpleCommunityPostCard = ({ post, onClick, onReply, onVote, onFlag }: Sim
                       <span>Trust: {post.author_trust_score}</span>
                     )}
                     {post.author_community_score !== null && (
-                      <span>Community: {post.author_community_score}</span>
+                      <span>Pulse: {post.author_community_score}</span>
                     )}
                   </div>
                 </div>
