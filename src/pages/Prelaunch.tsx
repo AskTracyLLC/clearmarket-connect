@@ -506,11 +506,15 @@ const Prelaunch = () => {
       // Store the generated anonymous username for display
       console.log('🔍 Generated username:', generatedUsername);
       console.log('🔍 Setting userPosition with fullUsername:', generatedUsername);
-      setUserPosition({
+      
+      const newUserPosition = {
         type: '', // We'll use the full username instead of type + number
         number: 0, // Not needed anymore
         fullUsername: generatedUsername // Store the actual username
-      });
+      };
+      
+      console.log('🔍 New userPosition object:', newUserPosition);
+      setUserPosition(newUserPosition);
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
 
@@ -926,9 +930,17 @@ const Prelaunch = () => {
                 <p className="text-accent/80 mb-4">
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
-                <Badge className="bg-accent/20 text-accent">
-                  {userPosition.fullUsername || `${userType === 'vendor' ? 'Vendor' : 'FieldRep'}#0`} to join
-                </Badge>
+                {(() => {
+                  const displayUsername = userPosition.fullUsername || `${userType === 'vendor' ? 'Vendor' : 'FieldRep'}#0`;
+                  console.log('🔍 Badge display - userPosition:', userPosition);
+                  console.log('🔍 Badge display - displayUsername:', displayUsername);
+                  console.log('🔍 Badge display - userType:', userType);
+                  return (
+                    <Badge className="bg-accent/20 text-accent">
+                      {displayUsername} to join
+                    </Badge>
+                  );
+                })()}
               </div>
             </Card>}
         </div>
