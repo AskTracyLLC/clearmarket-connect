@@ -20,7 +20,7 @@ const FeedbackPage = () => {
           
           <div className="space-y-3">
             <Button 
-              onClick={() => navigate('/community')} 
+              onClick={() => navigate('/community', { state: { activeTab: 'support' } })} 
               className="w-full"
             >
               Go to Community Support

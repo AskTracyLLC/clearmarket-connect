@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +12,14 @@ import SimpleCommunityFeed from "@/components/SimpleCommunityFeed";
 import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
 
 const CommunityBoard = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("community");
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   const [category, setCategory] = useState("all");
   const [jobType, setJobType] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
