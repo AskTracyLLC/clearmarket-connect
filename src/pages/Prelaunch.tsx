@@ -515,6 +515,10 @@ const Prelaunch = () => {
       
       console.log('🔍 New userPosition object:', newUserPosition);
       setUserPosition(newUserPosition);
+      
+      // Small delay to ensure state is updated before showing confirmation
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
 
@@ -930,17 +934,9 @@ const Prelaunch = () => {
                 <p className="text-accent/80 mb-4">
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
-                {(() => {
-                  const displayUsername = userPosition.fullUsername || `${userType === 'vendor' ? 'Vendor' : 'FieldRep'}#0`;
-                  console.log('🔍 Badge display - userPosition:', userPosition);
-                  console.log('🔍 Badge display - displayUsername:', displayUsername);
-                  console.log('🔍 Badge display - userType:', userType);
-                  return (
-                    <Badge className="bg-accent/20 text-accent">
-                      {displayUsername} to join
-                    </Badge>
-                  );
-                })()}
+                <Badge className="bg-accent/20 text-accent">
+                  {userPosition.fullUsername || `${userType === 'vendor' ? 'Vendor' : 'FieldRep'}#0`} to join
+                </Badge>
               </div>
             </Card>}
         </div>
