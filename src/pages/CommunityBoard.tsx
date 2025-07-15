@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,11 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Wrench, MessageCircle } from "lucide-react";
+import { Search, Wrench } from "lucide-react";
 import SimpleCommunityFeed from "@/components/SimpleCommunityFeed";
+import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
 
 const CommunityBoard = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("community");
   const [category, setCategory] = useState("all");
   const [jobType, setJobType] = useState("all");
@@ -77,7 +76,8 @@ const CommunityBoard = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* Filter Bar */}
+            {/* Filter Bar - Hidden for Support tab since it has its own filters */}
+            {activeTab !== "support" && (
             <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
               {/* Categories */}
               <div className="flex items-center gap-2">
@@ -131,6 +131,7 @@ const CommunityBoard = () => {
                 </Select>
               </div>
             </div>
+            )}
 
             {/* Tab Content */}
             <TabsContent value="community" className="space-y-4">
@@ -164,30 +165,7 @@ const CommunityBoard = () => {
             </TabsContent>
 
             <TabsContent value="support" className="space-y-4">
-              <div className="bg-muted/20 rounded-lg p-6 border-2 border-dashed border-muted-foreground/20">
-                <div className="text-center space-y-4">
-                  <div className="flex justify-center">
-                    <div className="p-3 bg-primary/10 rounded-full">
-                      <MessageCircle className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Support & Feedback</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Report bugs, submit feature requests, and access our internal feedback board.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Button variant="outline" onClick={() => navigate('/feedback')}>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        View Feedback Board
-                      </Button>
-                      <Button onClick={() => navigate('/feedback')}>
-                        Submit Feedback
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <FeedbackBoardNew />
             </TabsContent>
           </Tabs>
         </div>

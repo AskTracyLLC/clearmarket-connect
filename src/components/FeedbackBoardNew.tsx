@@ -38,11 +38,9 @@ export const FeedbackBoardNew = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-8">Community Feedback</h1>
-          <p>Loading feedback posts...</p>
-        </div>
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold mb-4">Support & Feedback</h2>
+        <p>Loading feedback posts...</p>
       </div>
     );
   }
@@ -80,10 +78,10 @@ export const FeedbackBoardNew = () => {
     });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Community Feedback</h1>
+          <h2 className="text-2xl font-bold mb-2">Support & Feedback</h2>
           <p className="text-muted-foreground">Help us improve ClearMarket by sharing your ideas and reporting issues</p>
         </div>
         <Button onClick={() => setIsSubmissionModalOpen(true)} className="gap-2">
