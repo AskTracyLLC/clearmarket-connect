@@ -2144,17 +2144,7 @@ export type Database = {
         Returns: undefined
       }
       generate_anonymous_username: {
-        Args:
-          | { user_role: string; user_id: string }
-          | { user_type_param: string }
-        Returns: string
-      }
-      generate_sequential_anonymous_username: {
-        Args: { user_role: string }
-        Returns: string
-      }
-      generate_unique_display_name: {
-        Args: { user_role_text: string }
+        Args: { user_type_param: string }
         Returns: string
       }
       get_or_create_user_preferences: {
