@@ -10,9 +10,11 @@ interface StatsCardProps {
   description?: string;
   actions?: React.ReactNode;
   urgentCount?: number;
+  onClick?: () => void;
+  clickableNumber?: boolean;
 }
 
-const StatsCard = ({ title, count, icon: Icon, description, actions, urgentCount }: StatsCardProps) => (
+const StatsCard = ({ title, count, icon: Icon, description, actions, urgentCount, onClick, clickableNumber }: StatsCardProps) => (
   <Card className="relative">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -26,7 +28,16 @@ const StatsCard = ({ title, count, icon: Icon, description, actions, urgentCount
       </div>
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{count.toLocaleString()}</div>
+      {clickableNumber && onClick ? (
+        <button 
+          onClick={onClick}
+          className="text-2xl font-bold hover:text-primary transition-colors cursor-pointer text-left"
+        >
+          {count.toLocaleString()}
+        </button>
+      ) : (
+        <div className="text-2xl font-bold">{count.toLocaleString()}</div>
+      )}
       {description && (
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
       )}
@@ -57,6 +68,36 @@ export const AdminStatsCards = () => {
     urbanZips: 13236,
   };
 
+  const handleVendorDirectoryClick = () => {
+    console.log("Navigate to Vendor Directory");
+    // Add navigation logic here
+  };
+
+  const handleFieldRepDirectoryClick = () => {
+    console.log("Navigate to Field Rep Directory");
+    // Add navigation logic here
+  };
+
+  const handleCoverageRequestsClick = () => {
+    console.log("Navigate to Coverage Requests");
+    // Add navigation logic here
+  };
+
+  const handleFlaggedPostsClick = () => {
+    console.log("Navigate to Flagged Posts Review");
+    // Add navigation logic here
+  };
+
+  const handlePendingReviewsClick = () => {
+    console.log("Navigate to Review Queue");
+    // Add navigation logic here
+  };
+
+  const handleTransactionsClick = () => {
+    console.log("Navigate to Transaction Logs");
+    // Add navigation logic here
+  };
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {/* Total Vendors */}
@@ -65,15 +106,12 @@ export const AdminStatsCards = () => {
         count={stats.vendors}
         icon={Users}
         description="Active vendor accounts"
+        clickableNumber={true}
+        onClick={handleVendorDirectoryClick}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="w-full">
-              View Vendor Directory
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Login as Vendor (Support)
-            </Button>
-          </>
+          <Button variant="ghost" size="sm" className="w-full text-xs">
+            Login as Vendor (Support)
+          </Button>
         }
       />
 
@@ -83,15 +121,12 @@ export const AdminStatsCards = () => {
         count={stats.fieldReps}
         icon={Users}
         description="Active field rep accounts"
+        clickableNumber={true}
+        onClick={handleFieldRepDirectoryClick}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="w-full">
-              View Field Rep Directory
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Login as Field Rep (Support)
-            </Button>
-          </>
+          <Button variant="ghost" size="sm" className="w-full text-xs">
+            Login as Field Rep (Support)
+          </Button>
         }
       />
 
@@ -101,34 +136,28 @@ export const AdminStatsCards = () => {
         count={stats.coverageRequests}
         icon={MapPin}
         description="Open seeking coverage posts"
+        clickableNumber={true}
+        onClick={handleCoverageRequestsClick}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="w-full">
-              View All Posts
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Moderate Posts
-            </Button>
-          </>
+          <Button variant="ghost" size="sm" className="w-full text-xs">
+            Moderate Posts
+          </Button>
         }
       />
 
-      {/* Community Board Posts */}
+      {/* Community Posts - Show only flagged posts count */}
       <StatsCard
         title="Community Posts"
-        count={stats.communityPosts}
+        count={stats.flaggedPosts}
         icon={MessageSquare}
-        description={`${stats.flaggedPosts} flagged posts need review`}
+        description="flagged posts need review"
         urgentCount={stats.flaggedPosts}
+        clickableNumber={true}
+        onClick={handleFlaggedPostsClick}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="w-full">
-              Review Flagged Posts
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Moderate Community
-            </Button>
-          </>
+          <Button variant="ghost" size="sm" className="w-full text-xs">
+            Moderate Community
+          </Button>
         }
       />
 
@@ -139,15 +168,12 @@ export const AdminStatsCards = () => {
         icon={Star}
         description={`${stats.pendingVendorReviews} vendor, ${stats.pendingRepReviews} field rep`}
         urgentCount={stats.pendingVendorReviews + stats.pendingRepReviews}
+        clickableNumber={true}
+        onClick={handlePendingReviewsClick}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="w-full">
-              Review Queue
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Export Review Data
-            </Button>
-          </>
+          <Button variant="ghost" size="sm" className="w-full text-xs">
+            Export Review Data
+          </Button>
         }
       />
 
@@ -157,15 +183,12 @@ export const AdminStatsCards = () => {
         count={stats.monthlyUnlocks + stats.monthlyBoosts}
         icon={CreditCard}
         description={`$${stats.totalRevenue.toLocaleString()} revenue | ${stats.monthlyUnlocks} unlocks, ${stats.monthlyBoosts} boosts`}
+        clickableNumber={true}
+        onClick={handleTransactionsClick}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="w-full">
-              View Transaction Logs
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full text-xs">
-              Export CSV
-            </Button>
-          </>
+          <Button variant="ghost" size="sm" className="w-full text-xs">
+            Export CSV
+          </Button>
         }
       />
 
