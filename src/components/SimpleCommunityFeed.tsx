@@ -14,11 +14,18 @@ interface SimpleCommunityFeedProps {
   section?: string;
   primaryView?: string;
   secondaryFilter?: string;
+  searchTerm?: string;
+  jobTypeFilter?: string;
 }
 
-const SimpleCommunityFeed = ({ section, primaryView = "all", secondaryFilter = "recent" }: SimpleCommunityFeedProps) => {
+const SimpleCommunityFeed = ({ 
+  section, 
+  primaryView = "all", 
+  secondaryFilter = "recent",
+  searchTerm = "",
+  jobTypeFilter = "all"
+}: SimpleCommunityFeedProps) => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   
   // Get all posts for filtering
   const { posts: allPosts, loading: allLoading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts();
@@ -41,23 +48,20 @@ const SimpleCommunityFeed = ({ section, primaryView = "all", secondaryFilter = "
   // Get posts based on primary view
   const getPostsByPrimaryView = () => {
     switch (primaryView) {
-      case "network":
-        // Posts made by vendors you are connected to
+      case "vendor":
         return vendorPosts;
-      case "community":
-        // Posts made by Field Reps
-        return fieldRepPosts;
-      case "for-you":
-        // Posts specific to the job types the field rep does (determined by profile setup)
-        // For now, return field rep posts - this would need user profile data
+      case "field-rep":
         return fieldRepPosts;
       case "local-news":
-        // User can setup areas of interest
-        // For now, return empty array - this would need location-based filtering
+        return [];
+      case "user":
+        // Return posts by current user - would need user ID filtering
+        return allPosts; // Placeholder
+      case "saved":
+        // Return saved posts - would need saved posts data
         return [];
       case "all":
       default:
-        // Mixture of both Network and Community
         return allPosts;
     }
   };
@@ -105,77 +109,47 @@ const SimpleCommunityFeed = ({ section, primaryView = "all", secondaryFilter = "
   const sortedPosts = applySortFilter(rawPosts);
   
   // Apply search filter
-  const filteredPosts = sortedPosts.filter(post => 
+  let filteredPosts = sortedPosts.filter(post => 
     post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (post.title && post.title.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Apply job type filter
+  if (jobTypeFilter && jobTypeFilter !== "all") {
+    filteredPosts = filteredPosts.filter(post => 
+      post.user_tags?.some(tag => 
+        tag.toLowerCase().includes(jobTypeFilter.replace('-', ' '))
+      ) || 
+      post.system_tags?.some(tag => 
+        tag.toLowerCase().includes(jobTypeFilter.replace('-', ' '))
+      )
+    );
+  }
 
   const loading = allLoading || fieldRepLoading || vendorLoading;
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Community Feed</h1>
-          <Button onClick={() => setIsPostModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Post
-          </Button>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-xl font-semibold">
+            {primaryView === "user" ? "Your Posts" : 
+             primaryView === "saved" ? "Saved Posts" :
+             primaryView === "vendor" ? "Vendor Posts" :
+             primaryView === "field-rep" ? "Field Rep Posts" :
+             "Community Posts"}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {filteredPosts.length} posts found
+          </p>
         </div>
-        
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search posts or users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <Button onClick={() => setIsPostModalOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Post
+        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-8 w-8 text-primary" />
-              <div>
-                <p className="text-2xl font-bold">{filteredPosts.length}</p>
-                <p className="text-sm text-muted-foreground">Total Posts</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Users className="h-8 w-8 text-green-600" />
-              <div>
-                <p className="text-2xl font-bold">{new Set(filteredPosts.map(p => p.user_id)).size}</p>
-                <p className="text-sm text-muted-foreground">Active Users</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-              <div>
-                <p className="text-2xl font-bold">{filteredPosts.reduce((sum, p) => sum + (p.helpful_votes || 0), 0)}</p>
-                <p className="text-sm text-muted-foreground">Total Votes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Separator />
 
       {/* Posts List */}
       {loading ? (
