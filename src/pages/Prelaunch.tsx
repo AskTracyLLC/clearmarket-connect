@@ -514,10 +514,13 @@ const Prelaunch = () => {
       };
       
       console.log('🔍 New userPosition object:', newUserPosition);
-      setUserPosition(newUserPosition);
       
-      // Small delay to ensure state is updated before showing confirmation
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Use a Promise to ensure state update completes before showing confirmation
+      await new Promise((resolve) => {
+        setUserPosition(newUserPosition);
+        // Use a small timeout to ensure React has processed the state update
+        setTimeout(resolve, 50);
+      });
       
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
