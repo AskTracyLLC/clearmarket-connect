@@ -923,6 +923,7 @@ export type Database = {
           interested_in_beta_testing: boolean | null
           join_feedback_group: boolean | null
           primary_state: string | null
+          status: string | null
           updated_at: string
           work_types: string[] | null
         }
@@ -941,6 +942,7 @@ export type Database = {
           interested_in_beta_testing?: boolean | null
           join_feedback_group?: boolean | null
           primary_state?: string | null
+          status?: string | null
           updated_at?: string
           work_types?: string[] | null
         }
@@ -959,6 +961,7 @@ export type Database = {
           interested_in_beta_testing?: boolean | null
           join_feedback_group?: boolean | null
           primary_state?: string | null
+          status?: string | null
           updated_at?: string
           work_types?: string[] | null
         }
@@ -1972,6 +1975,7 @@ export type Database = {
           join_feedback_group: boolean | null
           primary_service: string[] | null
           states_covered: string[] | null
+          status: string | null
           updated_at: string
         }
         Insert: {
@@ -1990,6 +1994,7 @@ export type Database = {
           join_feedback_group?: boolean | null
           primary_service?: string[] | null
           states_covered?: string[] | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
@@ -2008,6 +2013,7 @@ export type Database = {
           join_feedback_group?: boolean | null
           primary_service?: string[] | null
           states_covered?: string[] | null
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
