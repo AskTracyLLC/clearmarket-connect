@@ -12,12 +12,18 @@ import { useCommunityPosts } from "@/hooks/useCommunityPosts";
 
 interface SimpleCommunityFeedProps {
   section?: string;
+  primaryView?: string;
+  secondaryFilter?: string;
 }
 
-const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
+const SimpleCommunityFeed = ({ section, primaryView = "all", secondaryFilter = "recent" }: SimpleCommunityFeedProps) => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { posts, loading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts(section);
+  
+  // Get all posts for filtering
+  const { posts: allPosts, loading: allLoading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts();
+  const { posts: fieldRepPosts, loading: fieldRepLoading } = useCommunityPosts('field-rep-forum');
+  const { posts: vendorPosts, loading: vendorLoading } = useCommunityPosts('vendor-bulletin');
 
   const handleCreatePostSubmit = async (title: string, content: string) => {
     await handleCreatePost({
@@ -32,10 +38,79 @@ const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
     setIsPostModalOpen(false);
   };
 
-  // Filter posts based on search term
-  const filteredPosts = posts.filter(post => 
-    post.content.toLowerCase().includes(searchTerm.toLowerCase())
+  // Get posts based on primary view
+  const getPostsByPrimaryView = () => {
+    switch (primaryView) {
+      case "network":
+        // Posts made by vendors you are connected to
+        return vendorPosts;
+      case "community":
+        // Posts made by Field Reps
+        return fieldRepPosts;
+      case "for-you":
+        // Posts specific to the job types the field rep does (determined by profile setup)
+        // For now, return field rep posts - this would need user profile data
+        return fieldRepPosts;
+      case "local-news":
+        // User can setup areas of interest
+        // For now, return empty array - this would need location-based filtering
+        return [];
+      case "all":
+      default:
+        // Mixture of both Network and Community
+        return allPosts;
+    }
+  };
+
+  // Apply secondary filter for sorting
+  const applySortFilter = (posts: any[]) => {
+    const now = new Date();
+    
+    switch (secondaryFilter) {
+      case "top-day":
+        const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        return posts
+          .filter(post => new Date(post.created_at) >= dayAgo)
+          .sort((a, b) => (b.helpful_votes || 0) - (a.helpful_votes || 0));
+      
+      case "top-week":
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return posts
+          .filter(post => new Date(post.created_at) >= weekAgo)
+          .sort((a, b) => (b.helpful_votes || 0) - (a.helpful_votes || 0));
+      
+      case "top-month":
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return posts
+          .filter(post => new Date(post.created_at) >= monthAgo)
+          .sort((a, b) => (b.helpful_votes || 0) - (a.helpful_votes || 0));
+      
+      case "top-year":
+        const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        return posts
+          .filter(post => new Date(post.created_at) >= yearAgo)
+          .sort((a, b) => (b.helpful_votes || 0) - (a.helpful_votes || 0));
+      
+      case "saved":
+        // For now, return empty - this would need saved posts data
+        return [];
+      
+      case "recent":
+      default:
+        return posts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+  };
+
+  const rawPosts = getPostsByPrimaryView();
+  const sortedPosts = applySortFilter(rawPosts);
+  
+  // Apply search filter
+  const filteredPosts = sortedPosts.filter(post => 
+    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (post.title && post.title.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const loading = allLoading || fieldRepLoading || vendorLoading;
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -68,7 +143,7 @@ const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
             <div className="flex items-center gap-3">
               <MessageSquare className="h-8 w-8 text-primary" />
               <div>
-                <p className="text-2xl font-bold">{posts.length}</p>
+                <p className="text-2xl font-bold">{filteredPosts.length}</p>
                 <p className="text-sm text-muted-foreground">Total Posts</p>
               </div>
             </div>
@@ -80,7 +155,7 @@ const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
             <div className="flex items-center gap-3">
               <Users className="h-8 w-8 text-green-600" />
               <div>
-                <p className="text-2xl font-bold">{new Set(posts.map(p => p.user_id)).size}</p>
+                <p className="text-2xl font-bold">{new Set(filteredPosts.map(p => p.user_id)).size}</p>
                 <p className="text-sm text-muted-foreground">Active Users</p>
               </div>
             </div>
@@ -92,7 +167,7 @@ const SimpleCommunityFeed = ({ section }: SimpleCommunityFeedProps) => {
             <div className="flex items-center gap-3">
               <TrendingUp className="h-8 w-8 text-orange-600" />
               <div>
-                <p className="text-2xl font-bold">{posts.reduce((sum, p) => sum + (p.helpful_votes || 0), 0)}</p>
+                <p className="text-2xl font-bold">{filteredPosts.reduce((sum, p) => sum + (p.helpful_votes || 0), 0)}</p>
                 <p className="text-sm text-muted-foreground">Total Votes</p>
               </div>
             </div>
