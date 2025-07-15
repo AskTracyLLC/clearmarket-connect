@@ -505,12 +505,43 @@ const Prelaunch = () => {
       
       console.log('🔍 New userPosition object:', newUserPosition);
       
-      // Add delay to ensure database triggers complete and data is consistent
-      await new Promise((resolve) => {
+      // Poll database until we get the generated username
+      let actualUsername = null;
+      let attempts = 0;
+      const maxAttempts = 20; // 10 seconds max (500ms * 20)
+      
+      while (!actualUsername && attempts < maxAttempts) {
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        try {
+          const tableName = userType === 'vendor' ? 'vendor_signups' : 'field_rep_signups';
+          const { data: signupData } = await supabase
+            .from(tableName)
+            .select('anonymous_username')
+            .eq('email', email)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+          if (signupData?.anonymous_username) {
+            actualUsername = signupData.anonymous_username;
+            console.log(`✅ Retrieved username from database: ${actualUsername}`);
+          }
+        } catch (error) {
+          console.log(`⏳ Attempt ${attempts}: Username not ready yet...`);
+        }
+      }
+      
+      // Update with actual username if found
+      if (actualUsername) {
+        setUserPosition({
+          ...newUserPosition,
+          fullUsername: actualUsername
+        });
+      } else {
         setUserPosition(newUserPosition);
-        // Use a longer timeout to ensure database triggers have completed
-        setTimeout(resolve, 300);
-      });
+      }
       
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
