@@ -505,6 +505,7 @@ const Prelaunch = () => {
 
       // Store the generated anonymous username for display
       console.log('🔍 Generated username:', generatedUsername);
+      console.log('🔍 Setting userPosition with fullUsername:', generatedUsername);
       setUserPosition({
         type: '', // We'll use the full username instead of type + number
         number: 0, // Not needed anymore
@@ -926,7 +927,7 @@ const Prelaunch = () => {
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
                 <Badge className="bg-accent/20 text-accent">
-                  {userPosition.fullUsername || 'User#0'} joined ClearMarket
+                  {userPosition.fullUsername || `${userType === 'vendor' ? 'Vendor' : 'FieldRep'}#0`} to join
                 </Badge>
               </div>
             </Card>}
