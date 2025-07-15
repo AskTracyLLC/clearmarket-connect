@@ -41,7 +41,8 @@ const Prelaunch = () => {
   const [emailCount, setEmailCount] = useState(78);
   const [userPosition, setUserPosition] = useState({
     type: '',
-    number: 0
+    number: 0,
+    fullUsername: ''
   });
   const [states, setStates] = useState([]);
 
@@ -386,6 +387,8 @@ const Prelaunch = () => {
       }
 
       // Proceed with signup if all validations pass
+      let generatedUsername = '';
+      
       if (userType === 'field-rep') {
         // Include the custom work type if "other" was selected
         const finalWorkTypes = workTypes.includes('other') && otherWorkType ? [...workTypes.filter(w => w !== 'other'), otherWorkType] : workTypes;
@@ -401,6 +404,8 @@ const Prelaunch = () => {
           user_type_param: 'field-rep'
         });
         if (usernameError) throw usernameError;
+        generatedUsername = anonymousUsername;
+        
         const signupData = {
           email,
           primary_state: primaryState,
@@ -455,6 +460,8 @@ const Prelaunch = () => {
           user_type_param: 'vendor'
         });
         if (usernameError) throw usernameError;
+        generatedUsername = anonymousUsername;
+        
         const signupData = {
           email,
           company_name: companyName,
@@ -496,18 +503,11 @@ const Prelaunch = () => {
         });
       }
 
-      // Calculate user position based on type
-      const tableName = userType === 'field-rep' ? 'field_rep_signups' : 'vendor_signups';
-      const {
-        count
-      } = await supabase.from(tableName).select('*', {
-        count: 'exact',
-        head: true
-      });
-      const userTypeLabel = userType === 'field-rep' ? 'FieldRep' : 'Vendor';
+      // Store the generated anonymous username for display
       setUserPosition({
-        type: userTypeLabel,
-        number: count || 0
+        type: '', // We'll use the full username instead of type + number
+        number: 0, // Not needed anymore
+        fullUsername: generatedUsername // Store the actual username
       });
       setIsSubmitted(true);
       setEmailCount(prev => prev + 1);
@@ -925,7 +925,7 @@ const Prelaunch = () => {
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
                 <Badge className="bg-accent/20 text-accent">
-                  {userPosition.type}#{userPosition.number} to join
+                  {userPosition.fullUsername} to join
                 </Badge>
               </div>
             </Card>}
