@@ -3,14 +3,18 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MobileNav from "@/components/ui/mobile-nav";
+import NotificationBell from "@/components/ui/NotificationBell";
+import ProfileDropdown from "@/components/ui/ProfileDropdown";
 import { ChevronDown, UserPlus, Building, MessageSquare, Settings, Calendar, LogOut, User, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { profile } = useUserProfile();
+  const { unreadCount } = useNotifications();
 
   const getDashboardPath = () => {
     const role = profile?.role || "field_rep";
@@ -85,33 +89,35 @@ const Header = () => {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-3">
               {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <User className="mr-2 h-4 w-4" />
-                      Account
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-background border border-border">
-                    <DropdownMenuItem asChild>
-                      <Link to="/vendor/profile" className="flex items-center cursor-pointer">
-                        <Building className="mr-2 h-4 w-4" />
-                        Vendor Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/fieldrep/profile" className="flex items-center cursor-pointer">
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Field Rep Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSignOut} className="flex items-center cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <>
+                  {/* Circular Icon Layout */}
+                  <div className="flex items-center space-x-2">
+                    {/* Notification Bell */}
+                    <NotificationBell count={unreadCount} />
+                    
+                    {/* Messages Icon */}
+                    <Link to="/messages">
+                      <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
+                        <MessageSquare className="h-5 w-5" />
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                        >
+                          2
+                        </Badge>
+                      </Button>
+                    </Link>
+                    
+                    {/* Profile Avatar with Dropdown */}
+                    <ProfileDropdown
+                      profile={profile}
+                      firstName={user?.user_metadata?.first_name}
+                      lastName={user?.user_metadata?.last_name}
+                      companyLogo={user?.user_metadata?.company_logo}
+                      onSignOut={handleSignOut}
+                    />
+                  </div>
+                </>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" asChild>

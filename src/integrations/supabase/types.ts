@@ -310,6 +310,7 @@ export type Database = {
           helpful_votes: number | null
           id: string
           is_anonymous: boolean | null
+          poll_data: Json | null
           post_type: string
           priority: string
           screenshots: string[] | null
@@ -328,6 +329,7 @@ export type Database = {
           helpful_votes?: number | null
           id?: string
           is_anonymous?: boolean | null
+          poll_data?: Json | null
           post_type?: string
           priority?: string
           screenshots?: string[] | null
@@ -346,6 +348,7 @@ export type Database = {
           helpful_votes?: number | null
           id?: string
           is_anonymous?: boolean | null
+          poll_data?: Json | null
           post_type?: string
           priority?: string
           screenshots?: string[] | null
@@ -1226,6 +1229,48 @@ export type Database = {
           {
             foreignKeyName: "moderation_actions_moderator_id_fkey"
             columns: ["moderator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          choice_index: number
+          choice_text: string | null
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          choice_index: number
+          choice_text?: string | null
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          choice_index?: number
+          choice_text?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
