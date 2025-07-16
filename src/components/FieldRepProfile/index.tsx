@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
@@ -97,32 +98,6 @@ const FieldRepProfile = () => {
         className="max-w-md mx-auto"
       />
       
-      {/* Credit and Boost Information */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Credit Balance: {mockUserData.creditBalance}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCreditExplainerOpen(true)}
-              >
-                How to earn?
-              </Button>
-            </CardTitle>
-            <CardDescription>
-              Use credits to unlock vendor contact information and boost your profile visibility
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        
-        <BoostEligibilityBadge 
-          trustScore={mockUserData.trustScore}
-          profileComplete={85} 
-        />
-      </div>
-      
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-foreground">
@@ -134,26 +109,69 @@ const FieldRepProfile = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              
-              <PersonalInfo form={form} />
-              <LocationInfo form={form} />
-              <ContactVerification form={form} />
-              <DisplayIdentity form={form} />
-              <CoverageAreas 
-                coverageAreas={coverageAreas}
-                setCoverageAreas={setCoverageAreas}
-                selectedInspectionTypes={form.watch("inspectionTypes")}
-              />
-              <PlatformsUsed form={form} />
-              <InspectionTypes form={form} />
-              <ProfessionalBio form={form} />
-              <BackgroundCheck form={form} />
-              <HudKeys form={form} />
-              <ClearVueBeta form={form} />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <Tabs defaultValue="personal" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="personal">Personal Info</TabsTrigger>
+                  <TabsTrigger value="verification">Verification</TabsTrigger>
+                  <TabsTrigger value="coverage">Coverage Setup</TabsTrigger>
+                  <TabsTrigger value="credits">Credits</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="personal" className="space-y-6 mt-6">
+                  <PersonalInfo form={form} />
+                  <LocationInfo form={form} />
+                  <ContactVerification form={form} />
+                  <DisplayIdentity form={form} />
+                  <ProfessionalBio form={form} />
+                </TabsContent>
+
+                <TabsContent value="verification" className="space-y-6 mt-6">
+                  <BackgroundCheck form={form} />
+                  <HudKeys form={form} />
+                  <ClearVueBeta form={form} />
+                </TabsContent>
+
+                <TabsContent value="coverage" className="space-y-6 mt-6">
+                  <CoverageAreas 
+                    coverageAreas={coverageAreas}
+                    setCoverageAreas={setCoverageAreas}
+                    selectedInspectionTypes={form.watch("inspectionTypes")}
+                  />
+                  <PlatformsUsed form={form} />
+                  <InspectionTypes form={form} />
+                </TabsContent>
+
+                <TabsContent value="credits" className="space-y-6 mt-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          Credit Balance: {mockUserData.creditBalance}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setCreditExplainerOpen(true)}
+                          >
+                            How to earn?
+                          </Button>
+                        </CardTitle>
+                        <CardDescription>
+                          Use credits to unlock vendor contact information and boost your profile visibility
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                    
+                    <BoostEligibilityBadge 
+                      trustScore={mockUserData.trustScore}
+                      profileComplete={85} 
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
 
               {/* Submit Button */}
-              <div className="pt-4">
+              <div className="pt-6">
                 <Button type="submit" variant="hero" size="lg" className="w-full">
                   Create Field Rep Profile
                 </Button>
