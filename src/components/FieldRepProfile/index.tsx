@@ -119,9 +119,9 @@ const FieldRepProfile = () => {
 
                 <TabsContent value="personal" className="space-y-6 mt-6">
                   <PersonalInfo form={form} />
-                  <LocationInfo form={form} />
                   <ContactVerification form={form} />
                   <ProfessionalBio form={form} />
+                  <LocationInfo form={form} />
                 </TabsContent>
 
                 <TabsContent value="verification" className="space-y-6 mt-6">
