@@ -108,12 +108,12 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
         const baseMessage = `Today I'll be in ${area || '[Location]'}.`;
         const fullMessage = customMessage ? `${baseMessage}\n\n${customMessage}` : baseMessage;
         return {
-          subject: `${userName} - Today I'll be in ${area || '[Location]'}`,
+          subject: `${userName} (${userState}) - Today I'll be in ${area || '[Location]'}`,
           content: fullMessage
         };
       case 'availability':
         return {
-          subject: 'Available for Work - Field Rep',
+          subject: `Available for Work - ${userName} (${userState})`,
           content: `I'll be in [${area || 'Area'}] on [${selectedDates.length > 0 ? selectedDates.map(d => format(d, 'M/d')).join(', ') : 'Date(s)'}] and available for work.`
         };
       case 'emergency':
@@ -127,7 +127,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
         };
       case 'custom':
         return {
-          subject: 'Custom Message - Field Rep',
+          subject: `Custom Message - ${userName} (${userState})`,
           content: 'Custom message content will be entered.'
         };
       default:
