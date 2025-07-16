@@ -227,20 +227,54 @@ const FieldRepProfile = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
+                        <CardTitle>
                           Credit Balance: {mockUserData.creditBalance}
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setCreditExplainerOpen(true)}
-                          >
-                            How to earn?
-                          </Button>
                         </CardTitle>
                         <CardDescription>
                           Use credits to unlock vendor contact information and boost your profile visibility
                         </CardDescription>
                       </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-sm">How to Earn Credits:</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Mark posts as "Helpful"</span>
+                              <span className="text-primary">+1 credit/day</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Receive "Helpful" votes</span>
+                              <span className="text-primary">+1 credit each</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Leave vendor reviews</span>
+                              <span className="text-primary">+1 credit each</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Complete profile (100%)</span>
+                              <span className="text-primary">+5 credits</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Monthly active participation</span>
+                              <span className="text-primary">+5 credits</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3 pt-4 border-t">
+                          <h4 className="font-semibold text-sm">Credit Usage:</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Unlock contact details</span>
+                              <span className="text-destructive">-2 credits</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Boost profile visibility</span>
+                              <span className="text-destructive">-5 credits</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
                     </Card>
                     
                     <BoostEligibilityBadge 
