@@ -65,8 +65,7 @@ serve(async (req) => {
     const { data: recentPosts, error: postsError } = await supabase
       .from('community_posts')
       .select(`
-        id, title, content, user_tags, created_at, helpful_votes,
-        (SELECT COUNT(*) FROM community_comments WHERE post_id = community_posts.id) as comments_count
+        id, title, content, user_tags, created_at, helpful_votes
       `)
       .gte('created_at', sixtyDaysAgo.toISOString())
       .order('created_at', { ascending: false });
@@ -94,7 +93,7 @@ serve(async (req) => {
           similarity,
           created_at: post.created_at,
           helpful_votes: post.helpful_votes || 0,
-          comments_count: parseInt(post.comments_count) || 0
+          comments_count: 0 // We'll fetch this separately if needed
         });
       }
     }
