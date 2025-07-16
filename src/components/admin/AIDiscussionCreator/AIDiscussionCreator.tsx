@@ -63,7 +63,7 @@ export const AIDiscussionCreator = () => {
     title: "",
     content: "",
     tags: [],
-    category: "discussion",
+    category: "Ask the Community",
     section: "field-rep-forum",
     scheduledDate: "",
     scheduledTime: ""
@@ -72,11 +72,12 @@ export const AIDiscussionCreator = () => {
   const [similarityAnalysis, setSimilarityAnalysis] = useState<SimilarityAnalysis | null>(null);
 
   const categories = [
-    { value: "discussion", label: "Discussion" },
-    { value: "question", label: "Q&A" },
-    { value: "announcement", label: "Announcement" },
-    { value: "tip", label: "Pro Tip" },
-    { value: "resource", label: "Resource" }
+    { value: "Ask the Community", label: "❓ Ask the Community" },
+    { value: "Tips & Advice", label: "💡 Tips & Advice" },
+    { value: "Business Talk", label: "💼 Business Talk" },
+    { value: "Tech Help", label: "🔧 Tech Help" },
+    { value: "Announcements", label: "📢 Announcements" },
+    { value: "Poll", label: "📋 Poll" }
   ];
 
   const sections = [
@@ -144,7 +145,7 @@ export const AIDiscussionCreator = () => {
       title: "",
       content: "",
       tags: [],
-      category: "discussion",
+      category: "Ask the Community",
       section: "field-rep-forum",
       scheduledDate: "",
       scheduledTime: ""
@@ -250,7 +251,7 @@ export const AIDiscussionCreator = () => {
       title: suggestion.suggested_title,
       content: suggestion.suggested_topic,
       tags: suggestion.tags || [],
-      category: suggestion.category || 'discussion'
+      category: suggestion.category || 'Ask the Community'
     }));
     setShowAISuggestions(false);
     toast.success("AI suggestion applied to form");
