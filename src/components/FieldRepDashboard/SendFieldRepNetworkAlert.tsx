@@ -23,6 +23,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
   const [messageType, setMessageType] = useState('daily-location');
   const [area, setArea] = useState('');
   const [selectedDates, setSelectedDates] = useState<Date[]>([new Date()]);
+  const [unavailableUntilDate, setUnavailableUntilDate] = useState<Date>();
   const [customMessage, setCustomMessage] = useState('');
 
   const { toast } = useToast();
@@ -92,6 +93,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
     setMessageType('daily-location');
     setArea('');
     setSelectedDates([new Date()]);
+    setUnavailableUntilDate(undefined);
     setCustomMessage('');
     onOpenChange(false);
   };
@@ -114,9 +116,13 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
           content: `I'll be in [${area || 'Area'}] on [${selectedDates.length > 0 ? selectedDates.map(d => format(d, 'M/d')).join(', ') : 'Date(s)'}] and available for work.`
         };
       case 'emergency':
+        const emergencyContent = area || 'Emergency notice details will be entered here.';
+        const unavailableText = unavailableUntilDate 
+          ? `\n\nUnavailable until: ${format(unavailableUntilDate, 'PPP')}` 
+          : '';
         return {
           subject: `Emergency Notice - ${userName}`,
-          content: area || 'Emergency notice details will be entered here.'
+          content: emergencyContent + unavailableText
         };
       case 'custom':
         return {
@@ -248,6 +254,42 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Unavailable Until Date (Emergency Notice only) */}
+          {messageType === 'emergency' && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Unavailable Until Date (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !unavailableUntilDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {unavailableUntilDate ? format(unavailableUntilDate, 'PPP') : "Select unavailable until date (optional)"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={unavailableUntilDate}
+                    onSelect={setUnavailableUntilDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              {unavailableUntilDate && (
+                <p className="text-xs text-muted-foreground">
+                  You will be marked as unavailable until {format(unavailableUntilDate, 'PPP')}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Custom Message for Daily Location Update */}
           {messageType === 'daily-location' && (
