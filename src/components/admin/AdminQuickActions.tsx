@@ -59,7 +59,7 @@ export const AdminQuickActions = ({ onTabChange }: AdminQuickActionsProps) => {
               variant="ghost" 
               size="sm" 
               className="w-full justify-start"
-              onClick={() => onTabChange?.('scheduler')}
+              onClick={() => onTabChange?.('ai-creator')}
             >
               <Plus className="h-3 w-3 mr-2" />
               Schedule Discussion

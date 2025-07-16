@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Users, Database, Settings, Coins, Mail, Calendar } from "lucide-react";
 import { SchedulerDashboard } from "@/components/admin/CommunityScheduler";
+import { AIDiscussionCreator } from "@/components/admin/AIDiscussionCreator";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -125,9 +126,13 @@ const AdminDashboard = () => {
               <Shield className="h-4 w-4" />
               Moderation
             </TabsTrigger>
+            <TabsTrigger value="ai-creator" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              AI Discussion Creator
+            </TabsTrigger>
             <TabsTrigger value="scheduler" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Community Scheduler
+              Legacy Scheduler
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -157,6 +162,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="moderation" className="mt-6">
             <ContentModeration />
+          </TabsContent>
+
+          <TabsContent value="ai-creator" className="mt-6">
+            <AIDiscussionCreator />
           </TabsContent>
 
           <TabsContent value="scheduler" className="mt-6">

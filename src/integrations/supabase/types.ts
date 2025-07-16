@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_discussions: {
+        Row: {
+          admin_user_id: string
+          ai_suggestions_used: boolean | null
+          category: string
+          conflict_score: number | null
+          content: string
+          created_at: string | null
+          engagement_prediction: Json | null
+          id: string
+          posted_post_id: string | null
+          scheduled_date: string | null
+          section: string
+          similarity_analysis: Json | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          ai_suggestions_used?: boolean | null
+          category?: string
+          conflict_score?: number | null
+          content: string
+          created_at?: string | null
+          engagement_prediction?: Json | null
+          id?: string
+          posted_post_id?: string | null
+          scheduled_date?: string | null
+          section?: string
+          similarity_analysis?: Json | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          ai_suggestions_used?: boolean | null
+          category?: string
+          conflict_score?: number | null
+          content?: string
+          created_at?: string | null
+          engagement_prediction?: Json | null
+          id?: string
+          posted_post_id?: string | null
+          scheduled_date?: string | null
+          section?: string
+          similarity_analysis?: Json | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_discussions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_discussions_posted_post_id_fkey"
+            columns: ["posted_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -262,6 +334,33 @@ export type Database = {
           },
         ]
       }
+      community_analytics: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          metric_data: Json
+          metric_type: string
+          relevance_score: number
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metric_data: Json
+          metric_type: string
+          relevance_score: number
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          metric_data?: Json
+          metric_type?: string
+          relevance_score?: number
+        }
+        Relationships: []
+      }
       community_comments: {
         Row: {
           content: string
@@ -416,6 +515,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_similarity_cache: {
+        Row: {
+          analysis_date: string | null
+          content_hash: string
+          expires_at: string | null
+          id: string
+          similar_posts: Json
+        }
+        Insert: {
+          analysis_date?: string | null
+          content_hash: string
+          expires_at?: string | null
+          id?: string
+          similar_posts: Json
+        }
+        Update: {
+          analysis_date?: string | null
+          content_hash?: string
+          expires_at?: string | null
+          id?: string
+          similar_posts?: Json
+        }
+        Relationships: []
       }
       counties: {
         Row: {
@@ -817,6 +940,59 @@ export type Database = {
           {
             foreignKeyName: "daily_credit_earnings_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_suggestions: {
+        Row: {
+          admin_user_id: string | null
+          category: string | null
+          confidence_score: number
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          rationale: string
+          suggested_title: string
+          suggested_topic: string
+          tags: string[] | null
+          used_at: string | null
+          used_by_admin: boolean | null
+        }
+        Insert: {
+          admin_user_id?: string | null
+          category?: string | null
+          confidence_score: number
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          rationale: string
+          suggested_title: string
+          suggested_topic: string
+          tags?: string[] | null
+          used_at?: string | null
+          used_by_admin?: boolean | null
+        }
+        Update: {
+          admin_user_id?: string | null
+          category?: string | null
+          confidence_score?: number
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          rationale?: string
+          suggested_title?: string
+          suggested_topic?: string
+          tags?: string[] | null
+          used_at?: string | null
+          used_by_admin?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_suggestions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -2351,6 +2527,10 @@ export type Database = {
       can_create_flag: {
         Args: { user_id: string }
         Returns: boolean
+      }
+      cleanup_expired_ai_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       ensure_admin_exists: {
         Args: Record<PropertyKey, never>
