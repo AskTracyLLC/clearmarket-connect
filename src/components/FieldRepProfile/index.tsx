@@ -248,17 +248,6 @@ const FieldRepProfile = () => {
                       profileComplete={85} 
                     />
                   </div>
-                  
-                  <div className="pt-4">
-                    <Button 
-                      onClick={saveCredits} 
-                      variant="hero" 
-                      size="lg" 
-                      className="w-full"
-                    >
-                      SAVE Credit Details
-                    </Button>
-                  </div>
                 </TabsContent>
               </Tabs>
             </div>
