@@ -31,6 +31,7 @@ const SimpleCommunityFeed = ({
   const { posts: allPosts, loading: allLoading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts();
   const { posts: fieldRepPosts, loading: fieldRepLoading } = useCommunityPosts('field-rep-forum');
   const { posts: vendorPosts, loading: vendorLoading } = useCommunityPosts('vendor-bulletin');
+  const { posts: betaTestersPost, loading: betaTestersLoading } = useCommunityPosts('beta-testers');
 
   const handleCreatePostSubmit = async (title: string, content: string) => {
     await handleCreatePost({
@@ -52,6 +53,8 @@ const SimpleCommunityFeed = ({
         return vendorPosts;
       case "field-rep":
         return fieldRepPosts;
+      case "beta-testers":
+        return betaTestersPost;
       case "local-news":
         return [];
       case "user":
@@ -126,7 +129,7 @@ const SimpleCommunityFeed = ({
     );
   }
 
-  const loading = allLoading || fieldRepLoading || vendorLoading;
+  const loading = allLoading || fieldRepLoading || vendorLoading || betaTestersLoading;
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -138,6 +141,7 @@ const SimpleCommunityFeed = ({
              primaryView === "saved" ? "Saved Posts" :
              primaryView === "vendor" ? "Vendor Posts" :
              primaryView === "field-rep" ? "Field Rep Posts" :
+             primaryView === "beta-testers" ? "Beta Testers" :
              "Community Posts"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
