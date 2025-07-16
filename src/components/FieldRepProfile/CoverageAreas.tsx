@@ -13,20 +13,10 @@ import { CoverageArea, InspectionTypePricing } from "./types";
 interface CoverageAreasProps {
   coverageAreas: CoverageArea[];
   setCoverageAreas: React.Dispatch<React.SetStateAction<CoverageArea[]>>;
+  selectedInspectionTypes?: string[];
 }
 
-const INSPECTION_TYPES = [
-  "Appt-Based",
-  "REO",
-  "Preservation",
-  "Maintenance",
-  "Occupancy",
-  "Interior",
-  "Drive-By",
-  "Insurance"
-];
-
-export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreasProps) => {
+export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [] }: CoverageAreasProps) => {
   const { toast } = useToast();
   const { states } = useStates();
   const [selectedState, setSelectedState] = useState<State | null>(null);
@@ -36,6 +26,29 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
   const [standardPrice, setStandardPrice] = useState("");
   const [rushPrice, setRushPrice] = useState("");
   const [inspectionTypes, setInspectionTypes] = useState<InspectionTypePricing[]>([]);
+
+  // Create a mapping from profile inspection types to coverage area inspection types
+  const getAvailableInspectionTypes = () => {
+    const typeMapping: Record<string, string> = {
+      "Interior/Exterior Inspections": "Interior",
+      "Exterior Only Inspections": "Exterior", 
+      "Drive-by Inspections": "Drive-By",
+      "Occupancy Verification": "Occupancy",
+      "REO Services": "REO",
+      "Property Preservation": "Preservation",
+      "Damage Assessment": "Maintenance",
+      "High Quality Marketing Photos": "Marketing",
+      "Appt-Based Inspections": "Appt-Based"
+    };
+
+    // Filter available types based on what's selected in the profile
+    return selectedInspectionTypes
+      .map(profileType => typeMapping[profileType])
+      .filter(Boolean) // Remove undefined values
+      .filter((type, index, array) => array.indexOf(type) === index); // Remove duplicates
+  };
+
+  const availableInspectionTypes = getAvailableInspectionTypes();
 
   const handleStateChange = (stateCode: string) => {
     const state = states.find(s => s.code === stateCode);
@@ -298,15 +311,15 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
                       <SelectTrigger className="text-sm">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {INSPECTION_TYPES.filter(type => 
-                          !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
-                        ).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                       <SelectContent>
+                         {availableInspectionTypes.filter(type => 
+                           !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
+                         ).map((type) => (
+                           <SelectItem key={type} value={type}>
+                             {type}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
                     </Select>
                     <div className="flex gap-1">
                       <Input 

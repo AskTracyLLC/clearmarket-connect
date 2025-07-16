@@ -143,6 +143,7 @@ const FieldRepProfile = () => {
               <CoverageAreas 
                 coverageAreas={coverageAreas}
                 setCoverageAreas={setCoverageAreas}
+                selectedInspectionTypes={form.watch("inspectionTypes")}
               />
               <PlatformsUsed form={form} />
               <InspectionTypes form={form} />
