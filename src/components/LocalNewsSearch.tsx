@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, BookmarkPlus, MapPin, Trash2, Clock } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Search, BookmarkPlus, MapPin, Trash2, Clock, ExternalLink, RefreshCw } from "lucide-react";
 import { useStates, useCountiesByState } from "@/hooks/useLocationData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,27 @@ interface SavedSearch {
   user_id: string;
 }
 
+interface NewsArticle {
+  title: string;
+  description: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
+  source: {
+    name: string;
+  };
+  priority: string;
+  icon: string;
+  category: string;
+}
+
+interface NewsData {
+  location: string;
+  totalArticles: number;
+  categories: Record<string, NewsArticle[]>;
+  timestamp: string;
+}
+
 const LocalNewsSearch = () => {
   const { user } = useAuth();
   const { states } = useStates();
@@ -33,6 +55,11 @@ const LocalNewsSearch = () => {
   // Saved searches state
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // News data state
+  const [newsData, setNewsData] = useState<NewsData | null>(null);
+  const [loadingNews, setLoadingNews] = useState(false);
+  const [currentSearchLocation, setCurrentSearchLocation] = useState('');
   
   const { counties } = useCountiesByState(selectedState);
 
@@ -149,6 +176,65 @@ const LocalNewsSearch = () => {
     toast.success(`Loaded search: ${search.name}`);
   };
 
+  const handleSearchNews = async (locationValue?: string, locationDisplay?: string) => {
+    const searchLocation = locationValue || (selectedState && selectedCounty ? `${selectedCounty}, ${states.find(s => s.code === selectedState)?.name}` : searchInput);
+    const displayLocation = locationDisplay || searchLocation;
+    
+    if (!searchLocation.trim()) {
+      toast.error("Please select state and county OR enter a city/state or zipcode");
+      return;
+    }
+
+    setLoadingNews(true);
+    setCurrentSearchLocation(displayLocation);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-local-news', {
+        body: {
+          searchQuery: searchLocation,
+          location: displayLocation
+        }
+      });
+
+      if (error) {
+        console.error('Error fetching news:', error);
+        toast.error("Failed to fetch local news");
+        return;
+      }
+
+      setNewsData(data);
+      toast.success(`Found ${data.totalArticles} local news articles`);
+    } catch (error) {
+      console.error('Error calling news function:', error);
+      toast.error("Failed to fetch local news");
+    } finally {
+      setLoadingNews(false);
+    }
+  };
+
+  const handleQuickSearchNews = (search: SavedSearch) => {
+    handleQuickSearch(search);
+    handleSearchNews(search.location_value, search.location_display);
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return `${Math.floor(diffInHours / 24)}d ago`;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-destructive text-destructive-foreground';
+      case 'medium': return 'bg-accent text-accent-foreground';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Info Card */}
@@ -243,10 +329,24 @@ const LocalNewsSearch = () => {
             />
           </div>
 
-          <Button onClick={handleSaveSearch} disabled={loading} className="w-full">
-            <BookmarkPlus className="h-4 w-4 mr-2" />
-            {loading ? "Saving..." : "Save Search"}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleSaveSearch} disabled={loading} variant="outline" className="flex-1">
+              <BookmarkPlus className="h-4 w-4 mr-2" />
+              {loading ? "Saving..." : "Save Search"}
+            </Button>
+            <Button 
+              onClick={() => handleSearchNews()} 
+              disabled={loadingNews} 
+              className="flex-1"
+            >
+              {loadingNews ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4 mr-2" />
+              )}
+              {loadingNews ? "Searching..." : "Search News"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -293,10 +393,10 @@ const LocalNewsSearch = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleQuickSearch(search)}
+                      onClick={() => handleQuickSearchNews(search)}
                     >
                       <Search className="h-3 w-3 mr-1" />
-                      Use
+                      Search
                     </Button>
                     <Button
                       variant="ghost"
@@ -313,6 +413,96 @@ const LocalNewsSearch = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* News Results */}
+      {newsData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Local News for {currentSearchLocation}</span>
+              <Badge variant="outline">{newsData.totalArticles} total articles</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {Object.keys(newsData.categories).length === 0 ? (
+              <div className="text-center py-8">
+                <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No News Found</h3>
+                <p className="text-muted-foreground">
+                  No local news articles found for this area. Try a different location.
+                </p>
+              </div>
+            ) : (
+              <Accordion type="multiple" className="space-y-4">
+                {Object.entries(newsData.categories).map(([category, articles]) => (
+                  <AccordionItem key={category} value={category} className="border rounded-lg">
+                    <AccordionTrigger className="px-4 hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{articles[0]?.icon}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold capitalize">{category}</span>
+                          <Badge className={getPriorityColor(articles[0]?.priority)}>
+                            {articles[0]?.priority} priority
+                          </Badge>
+                          <Badge variant="outline">{articles.length} articles</Badge>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <div className="space-y-4">
+                        {articles.map((article, index) => (
+                          <div
+                            key={index}
+                            className="flex gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                          >
+                            {article.urlToImage && (
+                              <img
+                                src={article.urlToImage}
+                                alt={article.title}
+                                className="w-20 h-20 object-cover rounded flex-shrink-0"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium line-clamp-2 mb-2">
+                                {article.title}
+                              </h4>
+                              {article.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                  {article.description}
+                                </p>
+                              )}
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{article.source.name}</span>
+                                <span>{formatTimeAgo(article.publishedAt)}</span>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              className="flex-shrink-0"
+                            >
+                              <a
+                                href={article.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Read
+                              </a>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
