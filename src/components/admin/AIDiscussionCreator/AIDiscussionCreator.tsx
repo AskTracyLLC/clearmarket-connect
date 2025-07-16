@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,10 @@ import {
   Hash,
   X,
   ArrowLeft,
-  Search
+  Search,
+  List,
+  CheckCircle,
+  AlertTriangle
 } from "lucide-react";
 import { AISuggestionsPanel } from "./AISuggestionsPanel";
 import { ConflictAnalysisPanel } from "./ConflictAnalysisPanel";
@@ -52,6 +55,18 @@ interface SimilarityAnalysis {
   };
 }
 
+interface ScheduledPost {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  section: string;
+  scheduled_date: string | null;
+  status: string;
+  created_at: string;
+  posted_post_id: string | null;
+}
+
 export const AIDiscussionCreator = () => {
   const { user } = useAuth();
   const [showAISuggestions, setShowAISuggestions] = useState(false);
@@ -59,6 +74,8 @@ export const AIDiscussionCreator = () => {
   const [checkSimilarPosts, setCheckSimilarPosts] = useState(false);
   const [showAnalysisResults, setShowAnalysisResults] = useState(false);
   const [postingOption, setPostingOption] = useState<'now' | 'schedule'>('now');
+  const [showScheduledPosts, setShowScheduledPosts] = useState(false);
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
   const [formData, setFormData] = useState<DiscussionFormData>({
     title: "",
     content: "",
@@ -70,6 +87,48 @@ export const AIDiscussionCreator = () => {
   });
   const [tagInput, setTagInput] = useState("");
   const [similarityAnalysis, setSimilarityAnalysis] = useState<SimilarityAnalysis | null>(null);
+
+  // Load scheduled posts on mount
+  useEffect(() => {
+    loadScheduledPosts();
+  }, []);
+
+  const loadScheduledPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_discussions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setScheduledPosts(data || []);
+    } catch (error) {
+      console.error('Error loading scheduled posts:', error);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'scheduled':
+        return <Badge variant="default" className="text-xs">Scheduled</Badge>;
+      case 'posted':
+        return <Badge variant="secondary" className="text-xs">Posted</Badge>;
+      case 'draft':
+        return <Badge variant="outline" className="text-xs">Draft</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs">{status}</Badge>;
+    }
+  };
 
   const categories = [
     { value: "Ask the Community", label: "❓ Ask the Community" },
@@ -238,6 +297,8 @@ export const AIDiscussionCreator = () => {
         toast.success(`Discussion scheduled for ${scheduledDate?.toLocaleDateString()} at ${scheduledDate?.toLocaleTimeString()}`);
       }
       
+      // Reload scheduled posts after posting/scheduling
+      await loadScheduledPosts();
       handleReset();
     } catch (error) {
       console.error('Post/Schedule error:', error);
@@ -260,6 +321,71 @@ export const AIDiscussionCreator = () => {
   const backToForm = () => {
     setShowAnalysisResults(false);
   };
+
+  // Show scheduled posts view
+  if (showScheduledPosts) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <List className="h-5 w-5 text-primary" />
+                Scheduled Posts
+              </span>
+              <Button
+                onClick={() => setShowScheduledPosts(false)}
+                variant="outline"
+                size="sm"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Creator
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {scheduledPosts.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No posts found</p>
+            ) : (
+              <div className="space-y-3">
+                {scheduledPosts.map((post) => (
+                  <div key={post.id} className="border rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-sm">{post.title}</h3>
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(post.status)}
+                        <Badge variant="outline" className="text-xs">
+                          {post.category}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {post.content}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Section: {post.section}</span>
+                      {post.scheduled_date && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDate(post.scheduled_date)}
+                        </span>
+                      )}
+                      {post.posted_post_id && (
+                        <span className="flex items-center gap-1 text-green-600">
+                          <CheckCircle className="h-3 w-3" />
+                          Posted
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Show analysis results page
   if (showAnalysisResults && similarityAnalysis) {
@@ -295,7 +421,18 @@ export const AIDiscussionCreator = () => {
     <div className="space-y-6">
       <Card className="bg-accent/20 border-accent">
         <CardHeader>
-          <CardTitle className="text-lg">Schedule Community Discussion</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span className="text-lg">Schedule Community Discussion</span>
+            <Button
+              onClick={() => setShowScheduledPosts(true)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <List className="h-4 w-4" />
+              View Scheduled Posts ({scheduledPosts.length})
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* AI Suggestions Toggle */}

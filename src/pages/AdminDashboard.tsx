@@ -18,7 +18,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Users, Database, Settings, Coins, Mail, Calendar } from "lucide-react";
-import { SchedulerDashboard } from "@/components/admin/CommunityScheduler";
 import { AIDiscussionCreator } from "@/components/admin/AIDiscussionCreator";
 
 const AdminDashboard = () => {
@@ -121,18 +120,14 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="moderation" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Moderation
             </TabsTrigger>
             <TabsTrigger value="ai-creator" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              AI Discussion Creator
-            </TabsTrigger>
-            <TabsTrigger value="scheduler" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Legacy Scheduler
+              Discussion Scheduler
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -166,10 +161,6 @@ const AdminDashboard = () => {
 
           <TabsContent value="ai-creator" className="mt-6">
             <AIDiscussionCreator />
-          </TabsContent>
-
-          <TabsContent value="scheduler" className="mt-6">
-            <SchedulerDashboard />
           </TabsContent>
 
           <TabsContent value="system" className="mt-6">
