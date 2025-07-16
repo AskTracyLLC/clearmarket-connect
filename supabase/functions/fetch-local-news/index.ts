@@ -74,15 +74,30 @@ const WEATHER_CATEGORIES = {
 
 async function getCoordinates(location: string): Promise<{ lat: number; lon: number; name: string } | null> {
   try {
+    let queryLocation = location;
+    
+    // If the location looks like a US zipcode (5 digits), add country code
+    if (/^\d{5}$/.test(location.trim())) {
+      queryLocation = `${location.trim()},US`;
+      console.log(`Converted zipcode ${location} to ${queryLocation}`);
+    }
+    
     const geocodeUrl = new URL('https://api.openweathermap.org/geo/1.0/direct')
-    geocodeUrl.searchParams.set('q', location)
+    geocodeUrl.searchParams.set('q', queryLocation)
     geocodeUrl.searchParams.set('limit', '1')
     geocodeUrl.searchParams.set('appid', OPENWEATHER_API_KEY!)
 
+    console.log(`Geocoding query: ${geocodeUrl.toString()}`);
+
     const response = await fetch(geocodeUrl.toString())
-    if (!response.ok) return null
+    if (!response.ok) {
+      console.error(`Geocoding API error: ${response.status}`)
+      return null
+    }
 
     const data: GeocodingResponse[] = await response.json()
+    console.log(`Geocoding results:`, data);
+    
     if (data.length === 0) return null
 
     const result = data[0]
