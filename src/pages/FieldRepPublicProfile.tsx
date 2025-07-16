@@ -154,8 +154,11 @@ const FieldRepPublicProfile: React.FC = () => {
               <div className="flex justify-center md:justify-end">
                 <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="p-6 text-center">
-                    <div className="text-3xl font-bold text-primary mb-1">{fieldRep.trustScore}</div>
-                    <div className="text-sm text-muted-foreground">Trust Score</div>
+                    <div className="text-sm text-muted-foreground mb-1">Trust Score</div>
+                    <div className="text-lg font-medium text-muted-foreground mb-2">Coming Soon</div>
+                    <Link to="/trust-score-info" className="text-xs text-primary hover:underline">
+                      What's this?
+                    </Link>
                   </CardContent>
                 </Card>
               </div>
