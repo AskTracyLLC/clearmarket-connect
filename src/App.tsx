@@ -35,6 +35,7 @@ import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import BetaNDA from "./pages/BetaNDA";
 import NotFound from "./pages/NotFound";
 import { TestingDashboard } from "./components/TestingDashboard";
 
@@ -111,6 +112,7 @@ const App = () => (
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/verify-email" element={<EmailVerificationPage />} />
                 <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                <Route path="/beta-nda" element={<BetaNDA />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
