@@ -4,16 +4,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Info, Edit2, Save, X, Download } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trash2, Info, Plus, Download } from "lucide-react";
 import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
 import { useToast } from "@/hooks/use-toast";
-import { CoverageArea } from "./types";
+import { CoverageArea, InspectionTypePricing } from "./types";
 
 interface CoverageAreasProps {
   coverageAreas: CoverageArea[];
   setCoverageAreas: React.Dispatch<React.SetStateAction<CoverageArea[]>>;
 }
+
+const INSPECTION_TYPES = [
+  "Appt-Based",
+  "REO",
+  "Preservation",
+  "Maintenance",
+  "Occupancy",
+  "Interior",
+  "Drive-By",
+  "Insurance"
+];
 
 export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreasProps) => {
   const { toast } = useToast();
@@ -24,8 +35,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
   const [selectAllCounties, setSelectAllCounties] = useState(false);
   const [standardPrice, setStandardPrice] = useState("");
   const [rushPrice, setRushPrice] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<{ standardPrice: string; rushPrice: string }>({ standardPrice: "", rushPrice: "" });
+  const [inspectionTypes, setInspectionTypes] = useState<InspectionTypePricing[]>([]);
 
   const handleStateChange = (stateCode: string) => {
     const state = states.find(s => s.code === stateCode);
@@ -47,7 +57,6 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     if (checked) {
       const newSelectedCounties = [...selectedCounties, countyId];
       setSelectedCounties(newSelectedCounties);
-      // Check if all counties are now selected
       if (selectedState && newSelectedCounties.length === counties.length) {
         setSelectAllCounties(true);
       }
@@ -57,11 +66,30 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     }
   };
 
+  const addInspectionType = () => {
+    const newInspectionType: InspectionTypePricing = {
+      id: `inspection-${Date.now()}`,
+      inspectionType: "",
+      price: "",
+    };
+    setInspectionTypes(prev => [...prev, newInspectionType]);
+  };
+
+  const updateInspectionType = (id: string, field: keyof InspectionTypePricing, value: string) => {
+    setInspectionTypes(prev => prev.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ));
+  };
+
+  const removeInspectionType = (id: string) => {
+    setInspectionTypes(prev => prev.filter(item => item.id !== id));
+  };
+
   const addCoverageArea = () => {
     if (!selectedState || selectedCounties.length === 0 || !standardPrice || !rushPrice) {
       toast({
         title: "Missing Information",
-        description: "Please select a state, counties, and enter both pricing tiers.",
+        description: "Please select a state, counties, and enter both standard and rush pricing.",
         variant: "destructive",
       });
       return;
@@ -78,6 +106,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
           ).filter(Boolean),
       standardPrice,
       rushPrice,
+      inspectionTypes: inspectionTypes.filter(item => item.inspectionType && item.price),
     };
 
     setCoverageAreas(prev => [...prev, newCoverage]);
@@ -86,6 +115,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
     setSelectAllCounties(false);
     setStandardPrice("");
     setRushPrice("");
+    setInspectionTypes([]);
     
     toast({
       title: "Coverage Added",
@@ -95,54 +125,14 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
 
   const removeCoverageArea = (id: string) => {
     setCoverageAreas(prev => prev.filter(area => area.id !== id));
-    setEditingId(null);
     toast({
       title: "Coverage Removed",
       description: "Coverage area has been removed.",
     });
   };
 
-  const startEditCoverage = (area: CoverageArea) => {
-    setEditingId(area.id);
-    setEditValues({
-      standardPrice: area.standardPrice,
-      rushPrice: area.rushPrice,
-    });
-  };
-
-  const saveEditCoverage = (id: string) => {
-    if (!editValues.standardPrice || !editValues.rushPrice) {
-      toast({
-        title: "Invalid Pricing",
-        description: "Please enter both standard and rush pricing.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setCoverageAreas(prev => prev.map(area => 
-      area.id === id 
-        ? { ...area, standardPrice: editValues.standardPrice, rushPrice: editValues.rushPrice }
-        : area
-    ));
-    setEditingId(null);
-    setEditValues({ standardPrice: "", rushPrice: "" });
-    toast({
-      title: "Pricing Updated",
-      description: "Coverage area pricing has been updated.",
-    });
-  };
-
-  const cancelEditCoverage = () => {
-    setEditingId(null);
-    setEditValues({ standardPrice: "", rushPrice: "" });
-  };
-
   const exportToCSV = () => {
-    // Mock user data - in real app this would come from auth context
-    const fieldRepName = "John Smith"; // This should come from user profile/auth
-    
-    // Get today's date in MMDDYY format
+    const fieldRepName = "John Smith";
     const today = new Date();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
@@ -155,7 +145,8 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
       "State Code", 
       "Counties",
       "Standard Pricing",
-      "Rush Pricing"
+      "Rush Pricing",
+      "Inspection Types"
     ];
     
     const rows = coverageAreas.map(area => [
@@ -166,7 +157,8 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
         ? "All Counties" 
         : area.counties.join("; "),
       area.standardPrice,
-      area.rushPrice
+      area.rushPrice,
+      area.inspectionTypes.map(it => `${it.inspectionType}: ${it.price}`).join("; ")
     ]);
     
     const csvContent = [
@@ -202,22 +194,20 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
       <div className="border border-border rounded-lg p-4 space-y-4">
         <h4 className="font-medium">Add Coverage Area</h4>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Select State</Label>
-            <Select onValueChange={handleStateChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a state" />
-              </SelectTrigger>
-              <SelectContent>
-                {states.map((state) => (
-                  <SelectItem key={state.code} value={state.code}>
-                    {state.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2">
+          <Label>Select State</Label>
+          <Select onValueChange={handleStateChange}>
+            <SelectTrigger className="w-full md:w-64">
+              <SelectValue placeholder="Choose a state" />
+            </SelectTrigger>
+            <SelectContent>
+              {states.map((state) => (
+                <SelectItem key={state.code} value={state.code}>
+                  {state.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {selectedState && (
@@ -225,8 +215,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
             <div className="space-y-3">
               <Label>Select Counties</Label>
               
-              <div className="border border-border rounded-lg p-3 max-h-60 overflow-y-auto">
-                {/* Select All Counties - Always First */}
+              <div className="border border-border rounded-lg p-3 max-h-48 overflow-y-auto">
                 <div className="flex items-center space-x-2 mb-3 pb-2 border-b border-border">
                   <Checkbox 
                     id="all-counties"
@@ -238,7 +227,6 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
                   </Label>
                 </div>
                 
-                {/* Individual Counties - Two Column Grid */}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                   {counties
                     .sort((a, b) => a.name.localeCompare(b.name))
@@ -260,23 +248,84 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Condensed Standard & Rush Pricing */}
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Standard Pricing</Label>
+                <Label>Standard</Label>
                 <Input 
                   placeholder="$35"
                   value={standardPrice}
                   onChange={(e) => setStandardPrice(e.target.value)}
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Rush Pricing</Label>
+                <Label>Rush</Label>
                 <Input 
                   placeholder="$55"
                   value={rushPrice}
                   onChange={(e) => setRushPrice(e.target.value)}
+                  className="text-sm"
                 />
               </div>
+            </div>
+
+            {/* Inspection Type Pricing */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Inspection Type Pricing</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={addInspectionType}
+                  className="flex items-center gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Type
+                </Button>
+              </div>
+              
+              {inspectionTypes.map((item) => (
+                <div key={item.id} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <Select 
+                      value={item.inspectionType} 
+                      onValueChange={(value) => updateInspectionType(item.id, 'inspectionType', value)}
+                    >
+                      <SelectTrigger className="text-sm">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INSPECTION_TYPES.filter(type => 
+                          !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
+                        ).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-24">
+                    <Input 
+                      placeholder="$45"
+                      value={item.price}
+                      onChange={(e) => updateInspectionType(item.id, 'price', e.target.value)}
+                      className="text-sm"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeInspectionType(item.id)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
 
             <Button type="button" onClick={addCoverageArea} className="w-full">
@@ -286,7 +335,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
         )}
       </div>
 
-      {/* Coverage Areas Table */}
+      {/* Coverage Areas Display */}
       {coverageAreas.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -303,112 +352,66 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
           </div>
           
           {/* Pricing Disclaimer */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <div className="flex items-start gap-2">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-amber-800">
+              <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-800">
                 <p className="font-medium mb-1">Pricing Disclaimer</p>
                 <p>
                   The pricing listed below is for vendor reference only and does not guarantee payment rates. 
-                  All pricing agreements must be finalized directly between you and the vendor you are connecting with. 
-                  These rates assist vendors in finding field representatives in their coverage areas.
+                  All pricing agreements must be finalized directly between you and the vendor you are connecting with.
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="border border-border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>State</TableHead>
-                  <TableHead>Counties</TableHead>
-                  <TableHead>Standard</TableHead>
-                  <TableHead>Rush</TableHead>
-                  <TableHead className="w-20">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {coverageAreas.map((area) => (
-                  <TableRow key={area.id}>
-                    <TableCell className="font-medium">{area.stateCode}</TableCell>
-                    <TableCell>
-                      {area.counties.length === 1 && area.counties[0] === "All Counties" 
+          <div className="grid gap-3">
+            {coverageAreas.map((area) => (
+              <Card key={area.id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">
+                      {area.stateCode} - {area.counties.length === 1 && area.counties[0] === "All Counties" 
                         ? "All Counties" 
-                        : area.counties.join(", ")
+                        : area.counties.length > 3 
+                          ? `${area.counties.slice(0, 3).join(", ")} +${area.counties.length - 3} more`
+                          : area.counties.join(", ")
                       }
-                    </TableCell>
-                    <TableCell>
-                      {editingId === area.id ? (
-                        <Input
-                          value={editValues.standardPrice}
-                          onChange={(e) => setEditValues(prev => ({ ...prev, standardPrice: e.target.value }))}
-                          placeholder="$35"
-                          className="w-20"
-                        />
-                      ) : (
-                        area.standardPrice
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingId === area.id ? (
-                        <Input
-                          value={editValues.rushPrice}
-                          onChange={(e) => setEditValues(prev => ({ ...prev, rushPrice: e.target.value }))}
-                          placeholder="$55"
-                          className="w-20"
-                        />
-                      ) : (
-                        area.rushPrice
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {editingId === area.id ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => saveEditCoverage(area.id)}
-                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                            >
-                              <Save className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={cancelEditCoverage}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => startEditCoverage(area)}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeCoverageArea(area.id)}
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeCoverageArea(area.id)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Standard:</span> {area.standardPrice}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Rush:</span> {area.rushPrice}
+                    </div>
+                  </div>
+                  {area.inspectionTypes.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <div className="text-xs text-muted-foreground mb-2">Inspection Types:</div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        {area.inspectionTypes.map((type) => (
+                          <div key={type.id}>
+                            <span className="text-muted-foreground">{type.inspectionType}:</span> {type.price}
+                          </div>
+                        ))}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       )}

@@ -24,6 +24,12 @@ export const fieldRepSchema = z.object({
 
 export type FieldRepFormData = z.infer<typeof fieldRepSchema>;
 
+export interface InspectionTypePricing {
+  id: string;
+  inspectionType: string;
+  price: string;
+}
+
 export interface CoverageArea {
   id: string;
   state: string;
@@ -31,4 +37,5 @@ export interface CoverageArea {
   counties: string[];
   standardPrice: string;
   rushPrice: string;
+  inspectionTypes: InspectionTypePricing[];
 }
