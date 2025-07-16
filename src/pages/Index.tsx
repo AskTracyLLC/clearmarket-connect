@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -16,11 +16,19 @@ import { Loader2 } from 'lucide-react';
  */
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Redirect to prelaunch page immediately when component mounts
+  // unless there's a bypass parameter indicating admin access
   useEffect(() => {
-    navigate('/prelaunch', { replace: true });
-  }, [navigate]);
+    const bypass = searchParams.get('bypass');
+    if (bypass === 'admin') {
+      // Bypass the redirect for admin access
+      navigate('/auth', { replace: true });
+    } else {
+      navigate('/prelaunch', { replace: true });
+    }
+  }, [navigate, searchParams]);
 
   // Show loading state while redirect is happening
   return (
