@@ -5,11 +5,12 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MobileNav from "@/components/ui/mobile-nav";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ProfileDropdown from "@/components/ui/ProfileDropdown";
-import { ChevronDown, UserPlus, Building, MessageSquare, Settings, Calendar, LogOut, User, Home } from "lucide-react";
+import { ChevronDown, UserPlus, Building, MessageSquare, Calendar, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNotifications } from "@/hooks/useNotifications";
+import CreditBalance from "@/components/ui/CreditBalance";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -54,19 +55,11 @@ const Header = () => {
                 <Link to="/community" className="text-muted-foreground hover:text-foreground transition-colors">
                   Community
                 </Link>
-                <Link to="/messages" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  Messages
-                  <Badge variant="destructive" className="text-xs">2</Badge>
-                </Link>
                 <Link to="/calendar" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   Calendar
                 </Link>
-                <Link to="/settings" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Link>
+                <CreditBalance />
               </>
             ) : (
               <>
