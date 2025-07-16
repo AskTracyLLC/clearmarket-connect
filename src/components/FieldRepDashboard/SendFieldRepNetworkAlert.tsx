@@ -28,7 +28,8 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
     console.log('Sending field rep network alert:', {
       messageType,
       area,
-      selectedDates
+      selectedDates,
+      customMessage
     });
     onOpenChange(false);
   };
@@ -60,8 +61,8 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
         };
       case 'emergency':
         return {
-          subject: 'Emergency Notice - Field Rep',
-          content: 'Emergency notice regarding coverage availability.'
+          subject: `Emergency Notice - ${userName}`,
+          content: area || 'Emergency notice details will be entered here.'
         };
       case 'custom':
         return {
@@ -122,12 +123,14 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
             </RadioGroup>
           </div>
 
-          {/* Area/Location */}
+          {/* Area/Location or Message Details */}
           <div className="space-y-2">
-            <Label htmlFor="area" className="text-sm font-medium">Area/Location</Label>
+            <Label htmlFor="area" className="text-sm font-medium">
+              {messageType === 'emergency' ? 'Message Details' : 'Area/Location'}
+            </Label>
             <Input
               id="area"
-              placeholder="e.g., Downtown, North Side, etc."
+              placeholder={messageType === 'emergency' ? 'Enter emergency details...' : 'e.g., Downtown, North Side, etc.'}
               value={area}
               onChange={(e) => setArea(e.target.value)}
               className="w-full"
@@ -150,7 +153,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDates.length > 0 
-                    ? (messageType === 'daily-location' 
+                    ? (messageType === 'daily-location' || messageType === 'emergency'
                         ? format(selectedDates[0], 'PPP')
                         : `${selectedDates.length} date(s) selected`)
                     : "Select dates"
@@ -162,6 +165,16 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
                   <Calendar
                     mode="single"
                     selected={selectedDates[0]}
+                    onSelect={(date) => {
+                      setSelectedDates(date ? [date] : [new Date()]);
+                    }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                ) : messageType === 'emergency' ? (
+                  <Calendar
+                    mode="single"
+                    selected={selectedDates[0] || new Date()}
                     onSelect={(date) => {
                       setSelectedDates(date ? [date] : [new Date()]);
                     }}
