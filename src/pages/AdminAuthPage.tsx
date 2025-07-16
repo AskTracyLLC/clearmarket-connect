@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -124,10 +124,13 @@ const AdminAuthPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+        >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Admin Access Portal</span>
-        </div>
+          <span className="text-sm">Back to ClearMarket</span>
+        </Link>
 
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
