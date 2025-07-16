@@ -11,6 +11,7 @@ import { UserManagement } from "@/components/admin/UserManagement";
 import { SystemSettings } from "@/components/admin/SystemSettings";
 import { ContentModeration } from "@/components/admin/ContentModeration";
 import { CreditOverrides } from "@/components/admin/CreditOverrides";
+import { UserActivityLog } from "@/components/admin/UserActivityLog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -176,16 +177,19 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="reports" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Platform Reports</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Analytics and reporting dashboards will be available here in future updates.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <UserActivityLog />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Reports</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Additional analytics and reporting dashboards will be available here in future updates.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
