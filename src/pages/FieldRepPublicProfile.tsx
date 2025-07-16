@@ -41,7 +41,7 @@ const mockFieldRepData = {
   ],
   platforms: ['Clear Capital', 'ServiceLink', 'Altisource', 'Safeguard Properties', 'PEMCO', 'Five Brothers'],
   joinDate: '2019-03-15',
-  completedJobs: 1247,
+  totalReviews: 147,
   averageRating: 4.8
 };
 
@@ -52,7 +52,7 @@ const FieldRepPublicProfile: React.FC = () => {
   const fieldRep = mockFieldRepData; // Replace with actual data fetch based on id
 
   const profileUrl = `${window.location.origin}/fieldrep/profile/${id}`;
-  const shareText = `Connect with ${fieldRep.displayName} on ClearMarket - Trusted field representative with ${fieldRep.trustScore}% trust score`;
+  const shareText = `Connect with ${fieldRep.anonymousUsername} on ClearMarket - Trusted field representative with ${fieldRep.trustScore}% trust score`;
 
   const handleMessage = () => {
     // Navigate to messages with this rep pre-selected
@@ -63,7 +63,7 @@ const FieldRepPublicProfile: React.FC = () => {
     setIsSharing(true);
     
     const shareData = {
-      title: `${fieldRep.displayName} - Field Representative`,
+      title: `${fieldRep.anonymousUsername} - Field Representative`,
       text: shareText,
       url: profileUrl
     };
@@ -102,7 +102,7 @@ const FieldRepPublicProfile: React.FC = () => {
           <span>/</span>
           <Link to="/fieldrep/search" className="hover:text-primary">Field Reps</Link>
           <span>/</span>
-          <span className="text-foreground">{fieldRep.displayName}</span>
+          <span className="text-foreground">{fieldRep.anonymousUsername}</span>
         </div>
 
         {/* Back Button */}
@@ -124,8 +124,7 @@ const FieldRepPublicProfile: React.FC = () => {
                 </Avatar>
                 
                 <div className="text-center md:text-left">
-                  <h1 className="text-2xl font-bold mb-1">{fieldRep.displayName}</h1>
-                  <p className="text-primary text-sm mb-2">({fieldRep.anonymousUsername})</p>
+                  <h1 className="text-2xl font-bold mb-1">{fieldRep.anonymousUsername}</h1>
                   <div className="flex items-center gap-1 text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4" />
                     <span>{fieldRep.location}</span>
@@ -193,7 +192,7 @@ const FieldRepPublicProfile: React.FC = () => {
                 </div>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">If Applicable</p>
+            
           </CardContent>
         </Card>
 
@@ -262,8 +261,8 @@ const FieldRepPublicProfile: React.FC = () => {
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
-                <div className="text-2xl font-bold text-primary">{fieldRep.completedJobs.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">Completed Jobs</div>
+                <div className="text-2xl font-bold text-primary">{fieldRep.totalReviews}</div>
+                <div className="text-sm text-muted-foreground">Reviews</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-primary">{fieldRep.averageRating}</div>
