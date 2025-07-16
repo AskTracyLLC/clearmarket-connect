@@ -1646,6 +1646,39 @@ export type Database = {
           },
         ]
       }
+      saved_local_news_searches: {
+        Row: {
+          created_at: string
+          id: string
+          location_display: string
+          location_value: string
+          name: string
+          search_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_display: string
+          location_value: string
+          name: string
+          search_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_display?: string
+          location_value?: string
+          name?: string
+          search_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_posts: {
         Row: {
           created_at: string | null

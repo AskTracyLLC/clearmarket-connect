@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Wrench } from "lucide-react";
 import SimpleCommunityFeed from "@/components/SimpleCommunityFeed";
 import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
+import LocalNewsSearch from "@/components/LocalNewsSearch";
 
 const CommunityBoard = () => {
   const location = useLocation();
@@ -143,13 +144,17 @@ const CommunityBoard = () => {
 
             {/* Tab Content */}
             <TabsContent value="community" className="space-y-4">
-              <SimpleCommunityFeed 
-                section="community"
-                primaryView={category === "all" ? "all" : category}
-                secondaryFilter={sortBy}
-                searchTerm={searchTerm}
-                jobTypeFilter={jobType}
-              />
+              {category === "local-news" ? (
+                <LocalNewsSearch />
+              ) : (
+                <SimpleCommunityFeed 
+                  section="community"
+                  primaryView={category === "all" ? "all" : category}
+                  secondaryFilter={sortBy}
+                  searchTerm={searchTerm}
+                  jobTypeFilter={jobType}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="your-posts" className="space-y-4">

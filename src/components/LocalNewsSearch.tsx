@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search, BookmarkPlus, MapPin, Trash2, Clock } from "lucide-react";
 import { useStates, useCountiesByState, useLocationByZip } from "@/hooks/useLocationData";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -22,7 +22,6 @@ interface SavedSearch {
 
 const LocalNewsSearch = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { states } = useStates();
   
   // Search form state
@@ -51,6 +50,7 @@ const LocalNewsSearch = () => {
     if (!user) return;
     
     try {
+      // Use a generic query since the table type isn't in types yet
       const { data, error } = await supabase
         .from('saved_local_news_searches')
         .select('*')
@@ -58,9 +58,10 @@ const LocalNewsSearch = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSavedSearches(data || []);
+      setSavedSearches((data as SavedSearch[]) || []);
     } catch (error) {
       console.error('Error loading saved searches:', error);
+      toast.error("Failed to load saved searches");
     }
   };
 
