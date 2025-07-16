@@ -207,7 +207,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
                             className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
                           />
                         </DialogTrigger>
-                        <DialogContent className="max-w-4xl">
+                        <DialogContent className="max-w-2xl">
                           <img 
                             src={displayUrl} 
                             alt="AspenGrove Credential - Full View" 
