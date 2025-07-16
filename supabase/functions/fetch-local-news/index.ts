@@ -1,78 +1,161 @@
 import { corsHeaders } from '../_shared/cors.ts'
 
-const NEWS_API_KEY = Deno.env.get('NEWS_API_KEY')
+const OPENWEATHER_API_KEY = Deno.env.get('OPENWEATHER_API_KEY')
 
-interface NewsArticle {
-  title: string
+interface WeatherAlert {
+  event: string
   description: string
-  url: string
-  urlToImage: string
-  publishedAt: string
-  source: {
-    name: string
+  start: number
+  end: number
+  severity: string
+  sender_name: string
+}
+
+interface WeatherCurrent {
+  temp: number
+  feels_like: number
+  humidity: number
+  wind_speed: number
+  weather: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+}
+
+interface WeatherForecast {
+  dt: number
+  temp: {
+    min: number
+    max: number
   }
+  weather: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+  pop: number
 }
 
-interface NewsResponse {
-  articles: NewsArticle[]
-  totalResults: number
+interface WeatherResponse {
+  lat: number
+  lon: number
+  current: WeatherCurrent
+  alerts?: WeatherAlert[]
+  daily: WeatherForecast[]
 }
 
-// News categories with keywords for classification
-const NEWS_CATEGORIES = {
-  weather: {
+interface GeocodingResponse {
+  name: string
+  lat: number
+  lon: number
+  country: string
+  state?: string
+}
+
+// Weather categories with priorities
+const WEATHER_CATEGORIES = {
+  alerts: {
     priority: 'high',
-    keywords: ['weather', 'storm', 'rain', 'snow', 'tornado', 'hurricane', 'flood', 'temperature', 'forecast', 'climate'],
-    icon: '🌤️'
+    icon: '🚨',
+    title: 'Weather Alerts'
   },
-  emergency: {
-    priority: 'high',
-    keywords: ['emergency', 'alert', 'evacuation', 'fire', 'accident', 'crash', 'incident', 'rescue', 'ambulance'],
-    icon: '🚨'
-  },
-  traffic: {
+  current: {
     priority: 'medium',
-    keywords: ['road closure', 'traffic', 'highway', 'construction', 'detour', 'interstate', 'bridge'],
-    icon: '🚧'
+    icon: '🌤️',
+    title: 'Current Conditions'
   },
-  disaster: {
-    priority: 'high',
-    keywords: ['disaster', 'earthquake', 'wildfire', 'flooding', 'explosion', 'collapse', 'outbreak'],
-    icon: '⚠️'
-  },
-  economic: {
+  forecast: {
     priority: 'low',
-    keywords: ['business', 'economy', 'market', 'employment', 'jobs', 'budget', 'tax'],
-    icon: '💼'
-  },
-  local: {
-    priority: 'medium',
-    keywords: ['local', 'community', 'school', 'government', 'council', 'mayor', 'election'],
-    icon: '🏛️'
+    icon: '📅',
+    title: 'Daily Forecast'
   }
 }
 
-function categorizeArticle(article: NewsArticle): { category: string; priority: string; icon: string } {
-  const text = `${article.title} ${article.description}`.toLowerCase()
-  
-  // Check each category for keyword matches
-  for (const [categoryName, categoryData] of Object.entries(NEWS_CATEGORIES)) {
-    const hasKeyword = categoryData.keywords.some(keyword => text.includes(keyword))
-    if (hasKeyword) {
-      return {
-        category: categoryName,
-        priority: categoryData.priority,
-        icon: categoryData.icon
-      }
+async function getCoordinates(location: string): Promise<{ lat: number; lon: number; name: string } | null> {
+  try {
+    const geocodeUrl = new URL('https://api.openweathermap.org/geo/1.0/direct')
+    geocodeUrl.searchParams.set('q', location)
+    geocodeUrl.searchParams.set('limit', '1')
+    geocodeUrl.searchParams.set('appid', OPENWEATHER_API_KEY!)
+
+    const response = await fetch(geocodeUrl.toString())
+    if (!response.ok) return null
+
+    const data: GeocodingResponse[] = await response.json()
+    if (data.length === 0) return null
+
+    const result = data[0]
+    return {
+      lat: result.lat,
+      lon: result.lon,
+      name: `${result.name}${result.state ? `, ${result.state}` : ''}, ${result.country}`
     }
+  } catch (error) {
+    console.error('Geocoding error:', error)
+    return null
   }
-  
-  // Default category
-  return {
-    category: 'local',
+}
+
+function formatWeatherData(weather: WeatherResponse, locationName: string) {
+  const categories: Record<string, any[]> = {}
+
+  // Weather Alerts (High Priority)
+  if (weather.alerts && weather.alerts.length > 0) {
+    categories.alerts = weather.alerts.map(alert => ({
+      title: alert.event,
+      description: alert.description,
+      severity: alert.severity,
+      start: new Date(alert.start * 1000).toISOString(),
+      end: new Date(alert.end * 1000).toISOString(),
+      source: { name: alert.sender_name },
+      priority: 'high',
+      icon: '🚨',
+      category: 'Weather Alerts',
+      url: `https://openweathermap.org/city/${weather.lat},${weather.lon}`
+    }))
+  }
+
+  // Current Conditions (Medium Priority)
+  const currentWeather = weather.current
+  categories.current = [{
+    title: `Current Weather in ${locationName}`,
+    description: `${Math.round(currentWeather.temp)}°F, ${currentWeather.weather[0].description}. Feels like ${Math.round(currentWeather.feels_like)}°F. Humidity: ${currentWeather.humidity}%, Wind: ${Math.round(currentWeather.wind_speed)} mph`,
+    temperature: Math.round(currentWeather.temp),
+    feelsLike: Math.round(currentWeather.feels_like),
+    humidity: currentWeather.humidity,
+    windSpeed: Math.round(currentWeather.wind_speed),
+    condition: currentWeather.weather[0].main,
+    conditionDescription: currentWeather.weather[0].description,
+    weatherIcon: currentWeather.weather[0].icon,
     priority: 'medium',
-    icon: '📰'
-  }
+    icon: '🌤️',
+    category: 'Current Conditions',
+    url: `https://openweathermap.org/city/${weather.lat},${weather.lon}`,
+    publishedAt: new Date().toISOString(),
+    source: { name: 'OpenWeatherMap' }
+  }]
+
+  // Daily Forecast (Low Priority)
+  categories.forecast = weather.daily.slice(0, 5).map((day, index) => ({
+    title: index === 0 ? 'Today\'s Forecast' : `${new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'long' })} Forecast`,
+    description: `High: ${Math.round(day.temp.max)}°F, Low: ${Math.round(day.temp.min)}°F. ${day.weather[0].description}. Chance of precipitation: ${Math.round(day.pop * 100)}%`,
+    highTemp: Math.round(day.temp.max),
+    lowTemp: Math.round(day.temp.min),
+    condition: day.weather[0].main,
+    conditionDescription: day.weather[0].description,
+    precipitationChance: Math.round(day.pop * 100),
+    weatherIcon: day.weather[0].icon,
+    date: new Date(day.dt * 1000).toISOString(),
+    priority: 'low',
+    icon: '📅',
+    category: 'Daily Forecast',
+    url: `https://openweathermap.org/city/${weather.lat},${weather.lon}`,
+    publishedAt: new Date(day.dt * 1000).toISOString(),
+    source: { name: 'OpenWeatherMap' }
+  }))
+
+  return categories
 }
 
 Deno.serve(async (req) => {
@@ -82,10 +165,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (!NEWS_API_KEY) {
-      console.error('NEWS_API_KEY not found')
+    if (!OPENWEATHER_API_KEY) {
+      console.error('OPENWEATHER_API_KEY not found')
       return new Response(
-        JSON.stringify({ error: 'News API key not configured' }),
+        JSON.stringify({ error: 'OpenWeather API key not configured' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -105,32 +188,39 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Fetching news for:', { searchQuery, location })
+    const query = location || searchQuery
+    console.log('Fetching weather for:', query)
 
-    // Build search query - prioritize location-based news
-    let query = location || searchQuery
-    
-    // Add location context if we have both
-    if (location && searchQuery) {
-      query = `${location} ${searchQuery}`
+    // Get coordinates for the location
+    const coords = await getCoordinates(query)
+    if (!coords) {
+      return new Response(
+        JSON.stringify({ error: 'Location not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
-    // Fetch news from NewsAPI
-    const newsUrl = new URL('https://newsapi.org/v2/everything')
-    newsUrl.searchParams.set('q', query)
-    newsUrl.searchParams.set('language', 'en')
-    newsUrl.searchParams.set('sortBy', 'publishedAt')
-    newsUrl.searchParams.set('pageSize', '50') // Get more articles for better categorization
-    newsUrl.searchParams.set('apiKey', NEWS_API_KEY)
+    console.log('Found coordinates:', coords)
 
-    console.log('Fetching from NewsAPI:', newsUrl.toString())
+    // Fetch weather data from OpenWeatherMap
+    const weatherUrl = new URL('https://api.openweathermap.org/data/3.0/onecall')
+    weatherUrl.searchParams.set('lat', coords.lat.toString())
+    weatherUrl.searchParams.set('lon', coords.lon.toString())
+    weatherUrl.searchParams.set('exclude', 'minutely,hourly')
+    weatherUrl.searchParams.set('units', 'imperial')
+    weatherUrl.searchParams.set('appid', OPENWEATHER_API_KEY)
 
-    const response = await fetch(newsUrl.toString())
+    console.log('Fetching from OpenWeatherMap:', weatherUrl.toString())
+
+    const response = await fetch(weatherUrl.toString())
     
     if (!response.ok) {
-      console.error('NewsAPI error:', response.status, await response.text())
+      console.error('OpenWeatherMap error:', response.status, await response.text())
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch news data' }),
+        JSON.stringify({ error: 'Failed to fetch weather data' }),
         { 
           status: response.status, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -138,46 +228,38 @@ Deno.serve(async (req) => {
       )
     }
 
-    const newsData: NewsResponse = await response.json()
-    console.log(`Found ${newsData.articles.length} articles`)
-
-    // Categorize and organize articles
-    const categorizedNews: Record<string, any[]> = {}
-    
-    newsData.articles.forEach(article => {
-      const { category, priority, icon } = categorizeArticle(article)
-      
-      if (!categorizedNews[category]) {
-        categorizedNews[category] = []
-      }
-      
-      categorizedNews[category].push({
-        ...article,
-        priority,
-        icon,
-        category: category.charAt(0).toUpperCase() + category.slice(1)
-      })
+    const weatherData: WeatherResponse = await response.json()
+    console.log('Weather data received:', {
+      alerts: weatherData.alerts?.length || 0,
+      current: !!weatherData.current,
+      daily: weatherData.daily?.length || 0
     })
+
+    // Format weather data into categories
+    const categorizedWeather = formatWeatherData(weatherData, coords.name)
+
+    // Count total weather items
+    const totalItems = Object.values(categorizedWeather).reduce((sum, items) => sum + items.length, 0)
 
     // Sort categories by priority
     const priorityOrder = { high: 1, medium: 2, low: 3 }
-    const sortedCategories = Object.entries(categorizedNews).sort(([, articlesA], [, articlesB]) => {
-      const priorityA = priorityOrder[articlesA[0]?.priority as keyof typeof priorityOrder] || 3
-      const priorityB = priorityOrder[articlesB[0]?.priority as keyof typeof priorityOrder] || 3
+    const sortedCategories = Object.entries(categorizedWeather).sort(([, itemsA], [, itemsB]) => {
+      const priorityA = priorityOrder[itemsA[0]?.priority as keyof typeof priorityOrder] || 3
+      const priorityB = priorityOrder[itemsB[0]?.priority as keyof typeof priorityOrder] || 3
       return priorityA - priorityB
     })
 
     const result = {
-      location: location || searchQuery,
-      totalArticles: newsData.totalResults,
-      categories: sortedCategories.reduce((acc, [category, articles]) => {
-        acc[category] = articles.slice(0, 5) // Limit to 5 articles per category
+      location: coords.name,
+      totalArticles: totalItems,
+      categories: sortedCategories.reduce((acc, [category, items]) => {
+        acc[category] = items
         return acc
       }, {} as Record<string, any[]>),
       timestamp: new Date().toISOString()
     }
 
-    console.log('Returning categorized news:', Object.keys(result.categories))
+    console.log('Returning categorized weather:', Object.keys(result.categories))
 
     return new Response(
       JSON.stringify(result),

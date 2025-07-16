@@ -25,7 +25,7 @@ interface NewsArticle {
   title: string;
   description: string;
   url: string;
-  urlToImage: string;
+  urlToImage?: string;
   publishedAt: string;
   source: {
     name: string;
@@ -33,6 +33,21 @@ interface NewsArticle {
   priority: string;
   icon: string;
   category: string;
+  // Weather-specific properties
+  weatherIcon?: string;
+  conditionDescription?: string;
+  temperature?: number;
+  feelsLike?: number;
+  humidity?: number;
+  windSpeed?: number;
+  condition?: string;
+  highTemp?: number;
+  lowTemp?: number;
+  precipitationChance?: number;
+  date?: string;
+  severity?: string;
+  start?: string;
+  end?: string;
 }
 
 interface NewsData {
@@ -197,16 +212,16 @@ const LocalNewsSearch = () => {
       });
 
       if (error) {
-        console.error('Error fetching news:', error);
-        toast.error("Failed to fetch local news");
+        console.error('Error fetching weather:', error);
+        toast.error("Failed to fetch weather data");
         return;
       }
 
       setNewsData(data);
-      toast.success(`Found ${data.totalArticles} local news articles`);
+      toast.success(`Found weather data for ${data.location}`);
     } catch (error) {
-      console.error('Error calling news function:', error);
-      toast.error("Failed to fetch local news");
+      console.error('Error calling weather function:', error);
+      toast.error("Failed to fetch weather data");
     } finally {
       setLoadingNews(false);
     }
@@ -240,20 +255,17 @@ const LocalNewsSearch = () => {
       {/* Info Card */}
       <Card className="border-l-4 border-l-primary">
         <CardContent className="p-6">
-          <h3 className="font-semibold text-primary mb-3">Local News</h3>
+          <h3 className="font-semibold text-primary mb-3">Local Weather</h3>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>User can setup areas of interest.</p>
+            <p>Get real-time weather information for your areas of interest.</p>
             <p><strong>Example:</strong> Elgin, IL</p>
-            <p>- Weather (High Priority)</p>
-            <p>- Economic</p>
-            <p>- Emergency Alerts</p>
-            <p>- Road Closures</p>
-            <p>- Disasters</p>
+            <p>- Weather Alerts (High Priority)</p>
+            <p>- Current Conditions (Medium Priority)</p>
+            <p>- Daily Forecast (Low Priority)</p>
           </div>
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm">
             <p className="text-amber-800">
-              Local News will not be saved like our community posts unless users select them to be saved.
-              By default - these will refresh every hour for most recent based.
+              Weather data refreshes in real-time and includes severe weather alerts, current conditions, and forecasts.
             </p>
           </div>
         </CardContent>
@@ -264,7 +276,7 @@ const LocalNewsSearch = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Add Local News Area
+            Add Weather Area
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -344,7 +356,7 @@ const LocalNewsSearch = () => {
               ) : (
                 <Search className="h-4 w-4 mr-2" />
               )}
-              {loadingNews ? "Searching..." : "Search News"}
+              {loadingNews ? "Searching..." : "Get Weather"}
             </Button>
           </div>
         </CardContent>
@@ -355,7 +367,7 @@ const LocalNewsSearch = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookmarkPlus className="h-5 w-5" />
-            Saved Local News Searches
+            Saved Weather Searches
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -364,7 +376,7 @@ const LocalNewsSearch = () => {
               <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No Saved Searches</h3>
               <p className="text-muted-foreground">
-                Save your local news areas for quick access later.
+                Save your weather areas for quick access later.
               </p>
             </div>
           ) : (
@@ -419,17 +431,17 @@ const LocalNewsSearch = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Local News for {currentSearchLocation}</span>
-              <Badge variant="outline">{newsData.totalArticles} total articles</Badge>
+              <span>Weather for {currentSearchLocation}</span>
+              <Badge variant="outline">{newsData.totalArticles} weather items</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {Object.keys(newsData.categories).length === 0 ? (
               <div className="text-center py-8">
                 <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No News Found</h3>
+                <h3 className="text-lg font-semibold mb-2">No Weather Data Found</h3>
                 <p className="text-muted-foreground">
-                  No local news articles found for this area. Try a different location.
+                  No weather data found for this location. Try a different location.
                 </p>
               </div>
             ) : (
@@ -444,7 +456,7 @@ const LocalNewsSearch = () => {
                           <Badge className={getPriorityColor(articles[0]?.priority)}>
                             {articles[0]?.priority} priority
                           </Badge>
-                          <Badge variant="outline">{articles.length} articles</Badge>
+                          <Badge variant="outline">{articles.length} items</Badge>
                         </div>
                       </div>
                     </AccordionTrigger>
@@ -455,12 +467,22 @@ const LocalNewsSearch = () => {
                             key={index}
                             className="flex gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                           >
-                            {article.urlToImage && (
-                              <img
-                                src={article.urlToImage}
-                                alt={article.title}
-                                className="w-20 h-20 object-cover rounded flex-shrink-0"
-                              />
+                            {(article.urlToImage || article.weatherIcon) && (
+                              article.weatherIcon ? (
+                                <div className="w-20 h-20 flex items-center justify-center bg-muted rounded text-3xl">
+                                  <img 
+                                    src={`https://openweathermap.org/img/wn/${article.weatherIcon}@2x.png`}
+                                    alt={article.conditionDescription || article.title}
+                                    className="w-16 h-16"
+                                  />
+                                </div>
+                              ) : (
+                                <img
+                                  src={article.urlToImage}
+                                  alt={article.title}
+                                  className="w-20 h-20 object-cover rounded flex-shrink-0"
+                                />
+                              )
                             )}
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium line-clamp-2 mb-2">
