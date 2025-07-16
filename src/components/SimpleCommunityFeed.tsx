@@ -34,6 +34,12 @@ const SimpleCommunityFeed = ({
   const { posts: betaTestersPost, loading: betaTestersLoading } = useCommunityPosts('beta-testers');
 
   const handleCreatePostSubmit = async (title: string, content: string) => {
+    const sectionMap = {
+      'vendor': 'vendor-bulletin',
+      'field-rep': 'field-rep-forum', 
+      'beta-testers': 'beta-testers'
+    };
+    
     await handleCreatePost({
       type: 'question',
       title: title || undefined,
@@ -41,7 +47,7 @@ const SimpleCommunityFeed = ({
       isAnonymous: false,
       systemTags: [],
       userTags: [],
-      section: section || 'field-rep-forum'
+      section: sectionMap[primaryView as keyof typeof sectionMap] || section || 'field-rep-forum'
     });
     setIsPostModalOpen(false);
   };

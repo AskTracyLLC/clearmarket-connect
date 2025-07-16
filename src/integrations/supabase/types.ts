@@ -2616,6 +2616,10 @@ export type Database = {
           tag_count: number
         }[]
       }
+      get_user_email: {
+        Args: { user_id: string }
+        Returns: string
+      }
       get_user_login_analytics: {
         Args: { target_anonymous_username: string; days_back?: number }
         Returns: {
@@ -2691,6 +2695,10 @@ export type Database = {
       }
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
+      is_beta_tester: {
+        Args: { user_email: string }
         Returns: boolean
       }
       populate_location_data_from_csv: {
