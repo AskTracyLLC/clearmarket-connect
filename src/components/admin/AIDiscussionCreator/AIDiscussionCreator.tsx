@@ -22,10 +22,13 @@ import {
   Search,
   List,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { AISuggestionsPanel } from "./AISuggestionsPanel";
 import { ConflictAnalysisPanel } from "./ConflictAnalysisPanel";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface DiscussionFormData {
   title: string;
@@ -127,6 +130,45 @@ export const AIDiscussionCreator = () => {
         return <Badge variant="outline" className="text-xs">Draft</Badge>;
       default:
         return <Badge variant="outline" className="text-xs">{status}</Badge>;
+    }
+  };
+
+  const handleEditPost = (post: ScheduledPost) => {
+    // Populate form with post data
+    setFormData({
+      title: post.title,
+      content: post.content,
+      tags: [], // Will need to extract from post if stored
+      category: post.category,
+      section: post.section,
+      scheduledDate: post.scheduled_date ? new Date(post.scheduled_date).toISOString().split('T')[0] : "",
+      scheduledTime: post.scheduled_date ? new Date(post.scheduled_date).toTimeString().slice(0, 5) : ""
+    });
+    
+    // Set posting option based on post status
+    setPostingOption(post.status === 'scheduled' ? 'schedule' : 'now');
+    
+    // Switch back to form view
+    setShowScheduledPosts(false);
+    
+    toast.success("Post loaded for editing");
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const { error } = await supabase
+        .from('admin_discussions')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      // Reload the posts list
+      await loadScheduledPosts();
+      toast.success("Post deleted successfully");
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast.error("Failed to delete post");
     }
   };
 
@@ -357,6 +399,44 @@ export const AIDiscussionCreator = () => {
                         <Badge variant="outline" className="text-xs">
                           {post.category}
                         </Badge>
+                        <div className="flex items-center gap-1 ml-2">
+                          <Button
+                            onClick={() => handleEditPost(post)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 hover:bg-muted"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this post? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeletePost(post.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">
