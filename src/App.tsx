@@ -23,6 +23,7 @@ import MessagesPage from "./pages/MessagesPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
+import AdminAuthPage from "./pages/AdminAuthPage";
 import VendorDashboard from "./pages/VendorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/prelaunch" element={<Prelaunch />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/admin-auth" element={<AdminAuthPage />} />
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
