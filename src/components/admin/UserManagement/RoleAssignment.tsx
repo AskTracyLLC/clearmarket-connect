@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 interface UserProfile {
   id: string;
@@ -24,9 +24,10 @@ interface UserProfile {
   role: string;
   trust_score: number;
   display_name: string;
+  last_active: string | null;
 }
 
-type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'join_date';
+type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'join_date' | 'last_active';
 type SortDirection = 'asc' | 'desc';
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -58,7 +59,7 @@ export const RoleAssignment = () => {
       // Then get user data with roles and other fields
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, role, trust_score, display_name');
+        .select('id, role, trust_score, display_name, last_active');
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
@@ -72,7 +73,8 @@ export const RoleAssignment = () => {
           ...profile,
           role: userData?.role || 'field_rep',
           trust_score: userData?.trust_score || 0,
-          display_name: userData?.display_name || `${profile.first_name} ${profile.last_name}`.trim()
+          display_name: userData?.display_name || `${profile.first_name} ${profile.last_name}`.trim(),
+          last_active: userData?.last_active || null
         };
       }) || [];
 
@@ -243,6 +245,10 @@ export const RoleAssignment = () => {
           aValue = new Date(a.join_date || 0);
           bValue = new Date(b.join_date || 0);
           break;
+        case 'last_active':
+          aValue = a.last_active ? new Date(a.last_active) : new Date(0);
+          bValue = b.last_active ? new Date(b.last_active) : new Date(0);
+          break;
         default:
           aValue = '';
           bValue = '';
@@ -373,6 +379,7 @@ export const RoleAssignment = () => {
                     <TableHead>New Role</TableHead>
                     <SortableHeader field="trust_score">Trust Score</SortableHeader>
                     <SortableHeader field="join_date">Join Date</SortableHeader>
+                    <SortableHeader field="last_active">Last Active</SortableHeader>
                     <TableHead>Status</TableHead>
                     <TableHead>Active</TableHead>
                     <TableHead>Actions</TableHead>
@@ -427,6 +434,16 @@ export const RoleAssignment = () => {
                         </TableCell>
                         <TableCell>
                           {format(new Date(user.join_date), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          {user.last_active ? (
+                            <div className="flex flex-col">
+                              <span className="text-sm">{formatDistanceToNow(new Date(user.last_active), { addSuffix: true })}</span>
+                              <span className="text-xs text-muted-foreground">{format(new Date(user.last_active), 'MMM dd, yyyy')}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Never</span>
+                          )}
                         </TableCell>
                         <TableCell>{getStatusBadge(currentStatus)}</TableCell>
                         <TableCell>
