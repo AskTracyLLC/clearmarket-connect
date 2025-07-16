@@ -19,27 +19,36 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
+          ip_address: unknown | null
           metadata: Json | null
+          performed_by_admin: boolean | null
           target_id: string | null
           target_table: string | null
+          user_agent: string | null
           user_id: string | null
         }
         Insert: {
           action: string
           created_at?: string | null
           id?: string
+          ip_address?: unknown | null
           metadata?: Json | null
+          performed_by_admin?: boolean | null
           target_id?: string | null
           target_table?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           action?: string
           created_at?: string | null
           id?: string
+          ip_address?: unknown | null
           metadata?: Json | null
+          performed_by_admin?: boolean | null
           target_id?: string | null
           target_table?: string | null
+          user_agent?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -2364,6 +2373,10 @@ export type Database = {
         Returns: boolean
       }
       update_trust_score: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      update_user_last_active: {
         Args: { target_user_id: string }
         Returns: undefined
       }
