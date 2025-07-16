@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { CalendarIcon, Upload, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
@@ -198,11 +199,22 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
                     </div>
                   ) : (
                     <div className="relative">
-                      <img 
-                        src={displayUrl} 
-                        alt="AspenGrove Credential" 
-                        className="w-full h-32 object-cover rounded-lg border"
-                      />
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <img 
+                            src={displayUrl} 
+                            alt="AspenGrove Credential" 
+                            className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                          />
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <img 
+                            src={displayUrl} 
+                            alt="AspenGrove Credential - Full View" 
+                            className="w-full h-auto rounded-lg"
+                          />
+                        </DialogContent>
+                      </Dialog>
                       <Button
                         type="button"
                         variant="destructive"
