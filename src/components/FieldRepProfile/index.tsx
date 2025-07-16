@@ -28,6 +28,14 @@ const FieldRepProfile = () => {
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   
+  // Track completion status for each tab
+  const [tabCompletionStatus, setTabCompletionStatus] = useState({
+    personalInfoComplete: false,
+    verificationComplete: false,
+    coverageSetupComplete: false,
+    creditsReviewed: false
+  });
+  
   // Mock data for demonstration - in real app this would come from database
   const mockUserData = {
     trustScore: 85,
@@ -64,28 +72,66 @@ const FieldRepProfile = () => {
     }
   }, [profile, form]);
 
-  const onSubmit = (data: FieldRepFormData) => {
-    if (coverageAreas.length === 0) {
+  // Save handlers for each tab
+  const savePersonalInfo = () => {
+    const personalFields = ['firstName', 'lastName', 'displayUsername', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
+    const isComplete = personalFields.every(field => {
+      const value = form.getValues(field as keyof FieldRepFormData);
+      return value && value.toString().trim() !== '';
+    });
+    
+    if (isComplete) {
+      setTabCompletionStatus(prev => ({ ...prev, personalInfoComplete: true }));
       toast({
-        title: "Missing Coverage Areas",
-        description: "Please add at least one coverage area with pricing.",
+        title: "Personal Info Saved",
+        description: "Your personal information has been saved successfully!",
+      });
+    } else {
+      toast({
+        title: "Incomplete Information",
+        description: "Please fill out all required fields in the Personal Info tab.",
         variant: "destructive",
       });
-      return;
     }
+  };
 
-    console.log("Field Rep Profile Data:", { ...data, coverageAreas });
+  const saveVerification = () => {
+    setTabCompletionStatus(prev => ({ ...prev, verificationComplete: true }));
     toast({
-      title: "Profile Created",
-      description: "Your Field Rep profile has been successfully created!",
+      title: "Verification Saved",
+      description: "Your verification information has been saved successfully!",
+    });
+  };
+
+  const saveCoverageSetup = () => {
+    const platforms = form.getValues('platforms');
+    const inspectionTypes = form.getValues('inspectionTypes');
+    
+    if (coverageAreas.length > 0 && platforms.length > 0 && inspectionTypes.length > 0) {
+      setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
+      toast({
+        title: "Coverage Setup Saved",
+        description: "Your coverage setup has been saved successfully!",
+      });
+    } else {
+      toast({
+        title: "Incomplete Setup",
+        description: "Please add coverage areas, select platforms, and choose inspection types.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveCredits = () => {
+    setTabCompletionStatus(prev => ({ ...prev, creditsReviewed: true }));
+    toast({
+      title: "Credit Information Reviewed",
+      description: "Credit details have been reviewed!",
     });
   };
 
   const profileSteps = getFieldRepProfileSteps({
-    coverageAreas: coverageAreas,
-    platforms: form.watch("platforms"),
-    inspectionTypes: form.watch("inspectionTypes"),
-    backgroundCheckComplete: false,
+    ...tabCompletionStatus,
     networkSize: 0
   });
 
@@ -108,7 +154,7 @@ const FieldRepProfile = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-6">
               <Tabs defaultValue="personal" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="personal">Personal Info</TabsTrigger>
@@ -122,12 +168,34 @@ const FieldRepProfile = () => {
                   <ContactVerification form={form} />
                   <ProfessionalBio form={form} />
                   <LocationInfo form={form} />
+                  
+                  <div className="pt-4">
+                    <Button 
+                      onClick={savePersonalInfo} 
+                      variant="hero" 
+                      size="lg" 
+                      className="w-full"
+                    >
+                      SAVE Personal Info
+                    </Button>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="verification" className="space-y-6 mt-6">
                   <BackgroundCheck form={form} />
                   <HudKeys form={form} />
                   <ClearVueBeta form={form} />
+                  
+                  <div className="pt-4">
+                    <Button 
+                      onClick={saveVerification} 
+                      variant="hero" 
+                      size="lg" 
+                      className="w-full"
+                    >
+                      SAVE Verification
+                    </Button>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="coverage" className="space-y-6 mt-6">
@@ -138,6 +206,17 @@ const FieldRepProfile = () => {
                   />
                   <PlatformsUsed form={form} />
                   <InspectionTypes form={form} />
+                  
+                  <div className="pt-4">
+                    <Button 
+                      onClick={saveCoverageSetup} 
+                      variant="hero" 
+                      size="lg" 
+                      className="w-full"
+                    >
+                      SAVE Coverage Setup
+                    </Button>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="credits" className="space-y-6 mt-6">
@@ -165,16 +244,20 @@ const FieldRepProfile = () => {
                       profileComplete={85} 
                     />
                   </div>
+                  
+                  <div className="pt-4">
+                    <Button 
+                      onClick={saveCredits} 
+                      variant="hero" 
+                      size="lg" 
+                      className="w-full"
+                    >
+                      SAVE Credit Details
+                    </Button>
+                  </div>
                 </TabsContent>
               </Tabs>
-
-              {/* Submit Button */}
-              <div className="pt-6">
-                <Button type="submit" variant="hero" size="lg" className="w-full">
-                  Create Field Rep Profile
-                </Button>
-              </div>
-            </form>
+            </div>
           </Form>
         </CardContent>
       </Card>

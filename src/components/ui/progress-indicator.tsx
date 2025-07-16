@@ -107,27 +107,27 @@ export const getVendorProfileSteps = (mockProfile?: any): ProfileStep[] => [
 
 export const getFieldRepProfileSteps = (mockProfile?: any): ProfileStep[] => [
   {
-    id: "service-area",
-    label: "Added coverage areas",
-    completed: mockProfile?.coverageAreas?.length > 0 || true,
+    id: "personal-info",
+    label: "Personal Information Complete",
+    completed: mockProfile?.personalInfoComplete || false,
     required: true
   },
   {
-    id: "platforms",
-    label: "Listed platforms used",
-    completed: mockProfile?.platforms?.length > 0 || false,
+    id: "verification",
+    label: "Verification Complete",
+    completed: mockProfile?.verificationComplete || false,
     required: true
   },
   {
-    id: "inspection-types",
-    label: "Set inspection types",
-    completed: mockProfile?.inspectionTypes?.length > 0 || false,
+    id: "coverage-setup",
+    label: "Coverage Setup Complete",
+    completed: mockProfile?.coverageSetupComplete || false,
     required: true
   },
   {
-    id: "background-check",
-    label: "Completed background check",
-    completed: mockProfile?.backgroundCheckComplete || false
+    id: "credits-reviewed",
+    label: "Credit Details Reviewed",
+    completed: mockProfile?.creditsReviewed || false
   },
   {
     id: "community",
