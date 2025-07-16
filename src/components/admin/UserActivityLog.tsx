@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { ClipboardList, Download, RefreshCw, Search, Filter } from "lucide-react";
-import { format } from "date-fns";
+import { ClipboardList, Download, RefreshCw, Search, Filter, Calendar } from "lucide-react";
+import { format, subDays, subWeeks, subMonths, startOfDay, endOfDay } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import DateRangeSelector from "@/components/calendar/components/DateRangeSelector";
 
 interface ActivityLog {
   id: string;
@@ -33,6 +34,9 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
   const [searchTerm, setSearchTerm] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
   const [userFilter, setUserFilter] = useState(targetUserId || "all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const actionTypes = [
     { value: "all", label: "All Actions" },
@@ -45,6 +49,42 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
     { value: "email_change", label: "Email Changes" },
     { value: "coverage_update", label: "Coverage Updates" },
   ];
+
+  const dateFilterTypes = [
+    { value: "all", label: "All Time" },
+    { value: "today", label: "Today" },
+    { value: "week", label: "This Week" },
+    { value: "month", label: "This Month" },
+    { value: "custom", label: "Custom Range" },
+  ];
+
+  const getDateRange = () => {
+    const now = new Date();
+    switch (dateFilter) {
+      case "today":
+        return {
+          start: startOfDay(now),
+          end: endOfDay(now)
+        };
+      case "week":
+        return {
+          start: startOfDay(subWeeks(now, 1)),
+          end: endOfDay(now)
+        };
+      case "month":
+        return {
+          start: startOfDay(subMonths(now, 1)),
+          end: endOfDay(now)
+        };
+      case "custom":
+        return {
+          start: startDate ? startOfDay(startDate) : undefined,
+          end: endDate ? endOfDay(endDate) : undefined
+        };
+      default:
+        return { start: undefined, end: undefined };
+    }
+  };
 
   const fetchActivityLogs = async () => {
     setLoading(true);
@@ -71,6 +111,15 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
       // Filter by action type
       if (actionFilter !== "all") {
         query = query.eq('action', actionFilter);
+      }
+
+      // Filter by date range
+      const { start, end } = getDateRange();
+      if (start) {
+        query = query.gte('created_at', start.toISOString());
+      }
+      if (end) {
+        query = query.lte('created_at', end.toISOString());
       }
 
       const { data, error } = await query;
@@ -118,7 +167,7 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
 
   useEffect(() => {
     fetchActivityLogs();
-  }, [targetUserId, actionFilter, userFilter]);
+  }, [targetUserId, actionFilter, userFilter, dateFilter, startDate, endDate]);
 
   const exportLogs = () => {
     const filteredLogs = logs.filter(log => 
@@ -228,32 +277,64 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search logs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search logs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Select value={actionFilter} onValueChange={setActionFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {actionTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Select value={actionFilter} onValueChange={setActionFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {actionTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          {/* Date Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex gap-2">
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {dateFilterTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {dateFilter === "custom" && (
+              <div className="flex gap-2 items-center">
+                <DateRangeSelector
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={setStartDate}
+                  onEndDateChange={setEndDate}
+                />
+              </div>
+            )}
           </div>
         </div>
 
