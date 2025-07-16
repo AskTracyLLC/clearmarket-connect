@@ -823,6 +823,45 @@ export type Database = {
           },
         ]
       }
+      discussion_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          post_type: string
+          priority: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string | null
+          id: string
+          is_active?: boolean | null
+          post_type?: string
+          priority?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          post_type?: string
+          priority?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           created_at: string
@@ -1461,6 +1500,130 @@ export type Database = {
           {
             foreignKeyName: "saved_posts_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scheduled_discussion_posts: {
+        Row: {
+          admin_user_id: string
+          conflict_post_id: string | null
+          conflict_reason: string | null
+          created_at: string | null
+          discussion_template_id: string
+          id: string
+          posted_at: string | null
+          posted_post_id: string | null
+          priority: number | null
+          scheduled_date: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          conflict_post_id?: string | null
+          conflict_reason?: string | null
+          created_at?: string | null
+          discussion_template_id: string
+          id?: string
+          posted_at?: string | null
+          posted_post_id?: string | null
+          priority?: number | null
+          scheduled_date: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          conflict_post_id?: string | null
+          conflict_reason?: string | null
+          created_at?: string | null
+          discussion_template_id?: string
+          id?: string
+          posted_at?: string | null
+          posted_post_id?: string | null
+          priority?: number | null
+          scheduled_date?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_discussion_posts_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_discussion_posts_conflict_post_id_fkey"
+            columns: ["conflict_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_discussion_posts_discussion_template_id_fkey"
+            columns: ["discussion_template_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_discussion_posts_posted_post_id_fkey"
+            columns: ["posted_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scheduler_settings: {
+        Row: {
+          conflict_action: string | null
+          conflict_detection_enabled: boolean | null
+          frequency: string | null
+          id: string
+          lookback_days: number | null
+          max_posts_per_week: number | null
+          preferred_days: number[] | null
+          preferred_time: string | null
+          similarity_threshold: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          conflict_action?: string | null
+          conflict_detection_enabled?: boolean | null
+          frequency?: string | null
+          id?: string
+          lookback_days?: number | null
+          max_posts_per_week?: number | null
+          preferred_days?: number[] | null
+          preferred_time?: string | null
+          similarity_threshold?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          conflict_action?: string | null
+          conflict_detection_enabled?: boolean | null
+          frequency?: string | null
+          id?: string
+          lookback_days?: number | null
+          max_posts_per_week?: number | null
+          preferred_days?: number[] | null
+          preferred_time?: string | null
+          similarity_threshold?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduler_settings_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

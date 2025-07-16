@@ -17,7 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, Database, Settings, Coins, Mail } from "lucide-react";
+import { Shield, Users, Database, Settings, Coins, Mail, Calendar } from "lucide-react";
+import { SchedulerDashboard } from "@/components/admin/CommunityScheduler";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -118,10 +119,14 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="moderation" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="moderation" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Moderation
+            </TabsTrigger>
+            <TabsTrigger value="scheduler" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Community Scheduler
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -151,6 +156,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="moderation" className="mt-6">
             <ContentModeration />
+          </TabsContent>
+
+          <TabsContent value="scheduler" className="mt-6">
+            <SchedulerDashboard />
           </TabsContent>
 
           <TabsContent value="system" className="mt-6">

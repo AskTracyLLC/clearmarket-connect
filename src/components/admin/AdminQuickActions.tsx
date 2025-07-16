@@ -11,7 +11,9 @@ import {
   FileDown,
   Search,
   AlertTriangle,
-  Settings
+  Settings,
+  Calendar,
+  Plus
 } from "lucide-react";
 
 export const AdminQuickActions = () => {
@@ -36,6 +38,25 @@ export const AdminQuickActions = () => {
             </Button>
             <Button variant="ghost" size="sm" className="justify-start">
               Field Rep Directory
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Community Scheduler */}
+        <div>
+          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Community Scheduler
+          </h4>
+          <div className="space-y-1">
+            <Button variant="ghost" size="sm" className="w-full justify-start">
+              <Plus className="h-3 w-3 mr-2" />
+              Schedule Discussion
+            </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start">
+              Upcoming Posts
             </Button>
           </div>
         </div>
