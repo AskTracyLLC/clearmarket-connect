@@ -15,7 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Calendar as CalendarIcon, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Calendar as CalendarIcon, Eye, EyeOff, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +38,7 @@ const EnhancedCreateEventModal = ({ trigger, userRole, onEventCreated }: Enhance
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [eventVisibility, setEventVisibility] = useState<"private" | "network">("private");
+  const [enableAutoReply, setEnableAutoReply] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -108,9 +110,48 @@ const EnhancedCreateEventModal = ({ trigger, userRole, onEventCreated }: Enhance
 
       if (error) throw error;
 
+      // If auto-reply is enabled for unavailable events, create/update auto-reply settings
+      if (eventType === "unavailable" && enableAutoReply) {
+        const autoReplyData = {
+          user_id: user.id,
+          enabled: true,
+          active_from: startDate.toISOString().split("T")[0],
+          active_until: endDate.toISOString().split("T")[0],
+          message_template: `Hi! I'm currently unavailable and will return on ${format(endDate, "MM/dd")}. Please reach out again then.`
+        };
+
+        // Check if auto-reply settings already exist
+        const { data: existingSettings } = await supabase
+          .from("auto_reply_settings")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (existingSettings) {
+          // Update existing settings
+          const { error: autoReplyError } = await supabase
+            .from("auto_reply_settings")
+            .update(autoReplyData)
+            .eq("id", existingSettings.id);
+
+          if (autoReplyError) {
+            console.warn("Failed to update auto-reply settings:", autoReplyError);
+          }
+        } else {
+          // Create new settings
+          const { error: autoReplyError } = await supabase
+            .from("auto_reply_settings")
+            .insert(autoReplyData);
+
+          if (autoReplyError) {
+            console.warn("Failed to create auto-reply settings:", autoReplyError);
+          }
+        }
+      }
+
       toast({
         title: "Event created!",
-        description: `${eventTitle} has been added to your calendar.`,
+        description: `${eventTitle} has been added to your calendar.${enableAutoReply && eventType === "unavailable" ? " Auto-reply has been enabled." : ""}`,
       });
 
       setIsOpen(false);
@@ -120,6 +161,7 @@ const EnhancedCreateEventModal = ({ trigger, userRole, onEventCreated }: Enhance
       setStartDate(undefined);
       setEndDate(undefined);
       setEventVisibility("private");
+      setEnableAutoReply(false);
       setEventType(userRole === "field_rep" ? "unavailable" : "office_closure");
 
       onEventCreated?.();
@@ -241,6 +283,35 @@ const EnhancedCreateEventModal = ({ trigger, userRole, onEventCreated }: Enhance
               rows={3}
             />
           </div>
+
+          {/* Auto-Reply for Unavailable Events */}
+          {eventType === "unavailable" && (
+            <div className="border rounded-lg p-4 bg-muted/50">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-reply" className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Enable Auto-Reply
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically respond to messages during this unavailable period
+                  </p>
+                </div>
+                <Switch
+                  id="auto-reply"
+                  checked={enableAutoReply}
+                  onCheckedChange={setEnableAutoReply}
+                />
+              </div>
+              {enableAutoReply && (
+                <div className="mt-3 p-3 border rounded bg-background/50">
+                  <p className="text-sm text-muted-foreground">
+                    Auto-reply will be enabled from {startDate ? format(startDate, "PPP") : "start date"} to {endDate ? format(endDate, "PPP") : "end date"}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Event Visibility */}
           <div>
