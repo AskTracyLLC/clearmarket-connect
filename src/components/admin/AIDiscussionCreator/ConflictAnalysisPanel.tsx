@@ -47,9 +47,9 @@ export const ConflictAnalysisPanel = ({ analysis }: ConflictAnalysisProps) => {
   };
 
   const getSimilarityColor = (similarity: number) => {
-    if (similarity >= 0.7) return "bg-red-100 text-red-800 border-red-200";
-    if (similarity >= 0.4) return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    return "bg-green-100 text-green-800 border-green-200";
+    if (similarity >= 0.7) return "bg-destructive/20 text-destructive-foreground border-destructive/30";
+    if (similarity >= 0.4) return "bg-yellow-500/20 text-yellow-900 dark:text-yellow-100 border-yellow-500/30";
+    return "bg-green-500/20 text-green-900 dark:text-green-100 border-green-500/30";
   };
 
   const getSimilarityLabel = (similarity: number) => {
@@ -90,23 +90,23 @@ export const ConflictAnalysisPanel = ({ analysis }: ConflictAnalysisProps) => {
 
         {/* Recommendations */}
         <Alert className={
-          recommendations.action === 'post_now' ? 'border-green-200 bg-green-50' :
-          recommendations.action === 'schedule' ? 'border-yellow-200 bg-yellow-50' :
-          'border-red-200 bg-red-50'
+          recommendations.action === 'post_now' ? 'border-green-500/30 bg-green-500/10' :
+          recommendations.action === 'schedule' ? 'border-yellow-500/30 bg-yellow-500/10' :
+          'border-destructive/30 bg-destructive/10'
         }>
           <ConflictIcon className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-foreground">
             <div className="space-y-1">
-              <p className="font-medium">
+              <p className="font-medium text-foreground">
                 Recommended Action: {
                   recommendations.action === 'post_now' ? '⚡ Post Immediately' :
                   recommendations.action === 'schedule' ? '📅 Schedule for Later' :
                   '✏️ Revise Content'
                 }
               </p>
-              <p className="text-sm">{recommendations.reasoning}</p>
+              <p className="text-sm text-muted-foreground">{recommendations.reasoning}</p>
               {recommendations.recommendedDate && (
-                <p className="text-sm">
+                <p className="text-sm text-muted-foreground">
                   <Calendar className="h-3 w-3 inline mr-1" />
                   Suggested date: {new Date(recommendations.recommendedDate).toLocaleDateString()}
                 </p>
@@ -185,12 +185,12 @@ export const ConflictAnalysisPanel = ({ analysis }: ConflictAnalysisProps) => {
         )}
 
         {similarPosts.length === 0 && (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
+          <Alert className="border-green-500/30 bg-green-500/10">
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-green-800">No Conflicts Detected</p>
-                <p className="text-sm text-green-700">
+                <p className="font-medium text-green-800 dark:text-green-200">No Conflicts Detected</p>
+                <p className="text-sm text-green-700 dark:text-green-300">
                   Your discussion topic appears to be unique and doesn't conflict with recent posts. 
                   Perfect timing to engage the community!
                 </p>
