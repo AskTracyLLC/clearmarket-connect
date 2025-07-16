@@ -13,31 +13,33 @@ import { toast } from '@/hooks/use-toast';
 // Mock data - replace with real data integration
 const mockFieldRepData = {
   id: 'fieldrep-123',
-  displayName: 'John Doe',
+  displayName: 'Sarah Johnson',
   anonymousUsername: 'FieldRep#2',
-  initials: 'J.D.',
+  initials: 'S.J.',
   location: 'Atlanta, GA',
-  bio: 'Experienced field representative with 5+ years in property inspections. Specializing in residential and commercial properties across the Southeast.',
+  bio: 'Experienced field representative with 8+ years in property inspections. Specializing in residential and commercial properties across the Southeast. I pride myself on thorough, accurate reporting and building strong relationships with vendors and clients. Available for inspections Monday-Saturday with quick turnaround times.',
   trustScore: 85,
-  profilePicture: null,
+  profilePicture: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=400&fit=crop&crop=face',
   verifications: {
     aspenGroveId: true,
     hudKeys: true,
     backgroundCheck: true
   },
   coverage: [
-    { state: 'Georgia', counties: ['Fulton', 'DeKalb', 'Gwinnett', 'Cobb'] },
-    { state: 'Alabama', counties: ['Jefferson', 'Mobile'] },
-    { state: 'Tennessee', counties: ['Davidson', 'Knox'] }
+    { state: 'Georgia', counties: ['Fulton', 'DeKalb', 'Gwinnett', 'Cobb', 'Clayton', 'Cherokee'] },
+    { state: 'Alabama', counties: ['Jefferson', 'Mobile', 'Madison'] },
+    { state: 'Tennessee', counties: ['Davidson', 'Knox', 'Hamilton'] }
   ],
   workTypes: [
     'Interior/Exterior Inspections',
     'Occupancy Checks', 
     'Marketing Photos',
     'Property Condition Reports',
-    'REO Inspections'
+    'REO Inspections',
+    'Insurance Claims',
+    'Rental Inspections'
   ],
-  platforms: ['Clear Capital', 'ServiceLink', 'Altisource', 'Safeguard Properties'],
+  platforms: ['Clear Capital', 'ServiceLink', 'Altisource', 'Safeguard Properties', 'PEMCO', 'Five Brothers'],
   joinDate: '2019-03-15',
   completedJobs: 1247,
   averageRating: 4.8
@@ -114,9 +116,9 @@ const FieldRepPublicProfile: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex flex-col items-center md:items-start">
-                <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={fieldRep.profilePicture} />
-                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                <Avatar className="h-32 w-32 mb-4 border-4 border-background shadow-lg">
+                  <AvatarImage src={fieldRep.profilePicture} className="object-cover" />
+                  <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
                     {fieldRep.initials}
                   </AvatarFallback>
                 </Avatar>
@@ -173,21 +175,21 @@ const FieldRepPublicProfile: React.FC = () => {
           <CardContent>
             <div className="flex flex-wrap gap-4">
               {fieldRep.verifications.aspenGroveId && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950 px-3 py-2 rounded-lg">
                   <Check className="h-4 w-4 text-green-600" />
-                  <span>AspenGrove ID</span>
+                  <span className="text-green-800 dark:text-green-200 font-medium">AspenGrove ID</span>
                 </div>
               )}
               {fieldRep.verifications.hudKeys && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950 px-3 py-2 rounded-lg">
                   <Check className="h-4 w-4 text-green-600" />
-                  <span>HUD Keys</span>
+                  <span className="text-green-800 dark:text-green-200 font-medium">HUD Keys</span>
                 </div>
               )}
               {fieldRep.verifications.backgroundCheck && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950 px-3 py-2 rounded-lg">
                   <Check className="h-4 w-4 text-green-600" />
-                  <span>Background Check</span>
+                  <span className="text-green-800 dark:text-green-200 font-medium">Background Check</span>
                 </div>
               )}
             </div>
@@ -225,35 +227,35 @@ const FieldRepPublicProfile: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {fieldRep.workTypes.map((type, index) => (
-                  <Badge key={index} variant="secondary" className="mr-2 mb-2">
+                  <Badge key={index} variant="secondary" className="text-xs px-3 py-1">
                     {type}
                   </Badge>
                 ))}
               </div>
             </CardContent>
           </Card>
-
-          {/* Platforms Used */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Monitor className="h-5 w-5" />
-                Platforms Used
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {fieldRep.platforms.map((platform, index) => (
-                  <Badge key={index} variant="outline">
-                    {platform}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Platforms Used */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Platforms Used
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {fieldRep.platforms.map((platform, index) => (
+                <Badge key={index} variant="outline" className="px-3 py-1">
+                  {platform}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <Card className="mt-6">
