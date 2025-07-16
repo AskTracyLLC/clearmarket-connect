@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { CalendarIcon, Send, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface SendFieldRepNetworkAlertProps {
   open: boolean;
@@ -23,15 +25,67 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
   const [selectedDates, setSelectedDates] = useState<Date[]>([new Date()]);
   const [customMessage, setCustomMessage] = useState('');
 
-  const handleSend = () => {
-    // TODO: Implement send logic
-    console.log('Sending field rep network alert:', {
-      messageType,
-      area,
-      selectedDates,
-      customMessage
-    });
-    onOpenChange(false);
+  const { toast } = useToast();
+
+  const handleSend = async () => {
+    try {
+      // TODO: Implement actual network alert sending logic
+      console.log('Sending field rep network alert:', {
+        messageType,
+        area,
+        selectedDates,
+        customMessage
+      });
+
+      // Create calendar event for the network alert
+      const messagePreview = getMessagePreview();
+      const selectedDate = selectedDates[0] || new Date();
+      
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to send alerts.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error: calendarError } = await supabase
+        .from('calendar_events')
+        .insert({
+          user_id: user.user.id,
+          title: `Network Alert: ${messagePreview.subject}`,
+          description: messagePreview.content,
+          start_date: format(selectedDate, 'yyyy-MM-dd'),
+          end_date: format(selectedDate, 'yyyy-MM-dd'),
+          event_type: 'network_alert',
+          event_visibility: 'private'
+        });
+
+      if (calendarError) {
+        console.error('Error creating calendar event:', calendarError);
+        toast({
+          title: "Warning",
+          description: "Alert sent but failed to save to calendar.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Network alert sent and saved to your calendar.",
+        });
+      }
+
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error sending network alert:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send network alert. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {
