@@ -21,6 +21,7 @@ import { InspectionTypes } from "./InspectionTypes";
 import { ProfessionalBio } from "./ProfessionalBio";
 import { HudKeys } from "./HudKeys";
 import { ClearVueBeta } from "./ClearVueBeta";
+import { AspenGroveVerification } from "./AspenGroveVerification";
 
 const FieldRepProfile = () => {
   const { toast } = useToast();
@@ -55,6 +56,8 @@ const FieldRepProfile = () => {
       state: "",
       zipCode: "",
       aspenGroveId: "",
+      aspenGroveExpiration: undefined,
+      aspenGroveImage: "",
       platforms: [],
       otherPlatform: "",
       inspectionTypes: [],
@@ -182,6 +185,7 @@ const FieldRepProfile = () => {
                 </TabsContent>
 
                 <TabsContent value="verification" className="space-y-6 mt-6">
+                  <AspenGroveVerification form={form} />
                   <BackgroundCheck form={form} />
                   <HudKeys form={form} />
                   <ClearVueBeta form={form} />
