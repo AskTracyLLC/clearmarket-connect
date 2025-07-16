@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
 import { CalendarIcon, Send, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -17,9 +18,10 @@ interface SendFieldRepNetworkAlertProps {
 }
 
 const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendFieldRepNetworkAlertProps) => {
-  const [messageType, setMessageType] = useState('availability');
+  const [messageType, setMessageType] = useState('daily-location');
   const [area, setArea] = useState('');
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([new Date()]);
+  const [customMessage, setCustomMessage] = useState('');
 
   const handleSend = () => {
     // TODO: Implement send logic
@@ -32,14 +34,25 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
   };
 
   const handleCancel = () => {
-    setMessageType('availability');
+    setMessageType('daily-location');
     setArea('');
-    setSelectedDates([]);
+    setSelectedDates([new Date()]);
+    setCustomMessage('');
     onOpenChange(false);
   };
 
   const getMessagePreview = () => {
+    const userName = 'Field Rep'; // TODO: Get actual user name
+    const dateText = selectedDates.length > 0 ? format(selectedDates[0], 'PPP') : 'today';
+    
     switch (messageType) {
+      case 'daily-location':
+        const baseMessage = `Today I'll be in ${area || '[Location]'} and available for work.`;
+        const fullMessage = customMessage ? `${baseMessage}\n\n${customMessage}` : baseMessage;
+        return {
+          subject: `${userName} - Today I'll be in ${area || '[Location]'}`,
+          content: fullMessage
+        };
       case 'availability':
         return {
           subject: 'Available for Work - Field Rep',
@@ -91,6 +104,10 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
             <Label className="text-sm font-medium">Message Type</Label>
             <RadioGroup value={messageType} onValueChange={setMessageType} className="space-y-2">
               <div className="flex items-center space-x-2">
+                <RadioGroupItem value="daily-location" id="daily-location" />
+                <Label htmlFor="daily-location" className="cursor-pointer">Daily Location Update</Label>
+              </div>
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="availability" id="availability" />
                 <Label htmlFor="availability" className="cursor-pointer">Availability Alert</Label>
               </div>
@@ -117,9 +134,11 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
             />
           </div>
 
-          {/* Available Dates */}
+          {/* Date */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Available Dates</Label>
+            <Label className="text-sm font-medium">
+              {messageType === 'daily-location' ? 'Date' : 'Available Dates'}
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -131,23 +150,51 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDates.length > 0 
-                    ? `${selectedDates.length} date(s) selected`
+                    ? (messageType === 'daily-location' 
+                        ? format(selectedDates[0], 'PPP')
+                        : `${selectedDates.length} date(s) selected`)
                     : "Select dates"
                   }
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="multiple"
-                  selected={selectedDates}
-                  onSelect={(dates) => setSelectedDates(dates || [])}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
+                {messageType === 'daily-location' ? (
+                  <Calendar
+                    mode="single"
+                    selected={selectedDates[0]}
+                    onSelect={(date) => {
+                      setSelectedDates(date ? [date] : [new Date()]);
+                    }}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                ) : (
+                  <Calendar
+                    mode="multiple"
+                    selected={selectedDates}
+                    onSelect={(dates) => setSelectedDates(dates || [])}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                )}
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Custom Message for Daily Location Update */}
+          {messageType === 'daily-location' && (
+            <div className="space-y-2">
+              <Label htmlFor="custom-message" className="text-sm font-medium">Additional Message (Optional)</Label>
+              <Textarea
+                id="custom-message"
+                placeholder="Add any additional details about your availability..."
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                className="w-full min-h-[80px]"
+              />
+            </div>
+          )}
 
           {/* Message Preview */}
           <div className="space-y-2">
