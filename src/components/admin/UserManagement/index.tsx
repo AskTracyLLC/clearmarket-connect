@@ -17,10 +17,10 @@ export const UserManagement = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="roles" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="roles" className="flex items-center gap-2">
-            <UserCog className="h-4 w-4" />
-            Roles & Access
+            <Users className="h-4 w-4" />
+            Users & Directory
           </TabsTrigger>
           <TabsTrigger value="create" className="flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
@@ -29,10 +29,6 @@ export const UserManagement = () => {
           <TabsTrigger value="invitations" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Invitations
-          </TabsTrigger>
-          <TabsTrigger value="directory" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Directory
           </TabsTrigger>
         </TabsList>
 
@@ -46,10 +42,6 @@ export const UserManagement = () => {
 
         <TabsContent value="invitations" className="mt-6">
           <InvitationStatus key={refreshKey} />
-        </TabsContent>
-
-        <TabsContent value="directory" className="mt-6">
-          <UserDirectory />
         </TabsContent>
       </Tabs>
     </div>

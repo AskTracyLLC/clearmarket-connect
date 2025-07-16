@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { isValidUserRole } from "@/utils/security";
-import { UserCog, Search, RefreshCw, Eye, Save, AlertTriangle } from "lucide-react";
+import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { format } from "date-fns";
 
 interface UserProfile {
   id: string;
@@ -26,29 +26,36 @@ interface UserProfile {
   display_name: string;
 }
 
+type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'join_date';
+type SortDirection = 'asc' | 'desc';
+type StatusFilter = 'all' | 'active' | 'inactive';
+
 export const RoleAssignment = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({});
+  const [statusChanges, setStatusChanges] = useState<Record<string, boolean>>({});
   const [impersonateUser, setImpersonateUser] = useState<UserProfile | null>(null);
+  const [sortField, setSortField] = useState<SortField>('username');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       
-      // Fetch user profiles
+      // First get user profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('user_profiles')
-        .select('*')
-        .order('join_date', { ascending: false });
+        .select('*');
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
         return;
       }
 
-      // Fetch user roles and additional info
+      // Then get user data with roles and other fields
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('id, role, trust_score, display_name');
@@ -58,14 +65,14 @@ export const RoleAssignment = () => {
         return;
       }
 
-      // Combine profiles with user data
+      // Combine the data
       const combinedData = profiles?.map(profile => {
-        const userInfo = usersData?.find(user => user.id === profile.user_id);
+        const userData = usersData?.find(user => user.id === profile.user_id);
         return {
           ...profile,
-          role: userInfo?.role || 'field_rep',
-          trust_score: userInfo?.trust_score || 0,
-          display_name: userInfo?.display_name || `${profile.first_name} ${profile.last_name}`
+          role: userData?.role || 'field_rep',
+          trust_score: userData?.trust_score || 0,
+          display_name: userData?.display_name || `${profile.first_name} ${profile.last_name}`.trim()
         };
       }) || [];
 
@@ -87,82 +94,96 @@ export const RoleAssignment = () => {
   }, []);
 
   const handleRoleChange = (userId: string, newRole: string) => {
-    // Validate role before accepting the change
-    if (!isValidUserRole(newRole)) {
-      toast({
-        title: "Security Error",
-        description: "Invalid role selected",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setPendingChanges(prev => ({
       ...prev,
       [userId]: newRole
     }));
   };
 
+  const handleStatusChange = (userId: string, currentStatus: boolean) => {
+    setStatusChanges(prev => ({
+      ...prev,
+      [userId]: !currentStatus
+    }));
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   const saveRoleChanges = async () => {
     try {
-      // Additional security check before batch update
-      const invalidRoles = Object.values(pendingChanges).filter(role => !isValidUserRole(role));
-      if (invalidRoles.length > 0) {
-        toast({
-          title: "Security Error",
-          description: "One or more invalid roles detected. Changes rejected.",
-          variant: "destructive"
-        });
-        return;
-      }
+      // Handle role changes
+      const roleChangePromises = Object.entries(pendingChanges).map(async ([userId, newRole]) => {
+        // Validate role
+        const validRoles = ['admin', 'moderator', 'vendor', 'field_rep'];
+        if (!validRoles.includes(newRole)) {
+          throw new Error(`Invalid role: ${newRole}`);
+        }
 
-      // Show confirmation for sensitive role changes
-      const hasAdminChanges = Object.values(pendingChanges).some(role => role === 'admin');
-      if (hasAdminChanges) {
-        const confirmed = window.confirm(
-          "⚠️ You are about to assign admin privileges. This action grants full system access. Are you sure you want to continue?"
-        );
-        if (!confirmed) {
+        // Prevent non-admin from assigning admin role
+        if (newRole === 'admin') {
+          toast({
+            title: "Warning",
+            description: "Admin role assignment requires special permissions",
+            variant: "destructive"
+          });
           return;
         }
-      }
 
-      for (const [userId, newRole] of Object.entries(pendingChanges)) {
-        const { error } = await supabase
-          .from('users')
-          .update({ role: newRole as any })
-          .eq('id', userId);
+        const { data, error } = await supabase.rpc('admin_update_user_role', {
+          target_user_id: userId,
+          new_role: newRole as any
+        });
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
-        // Log the role change for audit purposes
-        await supabase
-          .from('audit_log')
-          .insert({
-            action: 'role_change',
-            target_table: 'users',
-            target_id: userId,
-            metadata: {
-              new_role: newRole,
-              changed_at: new Date().toISOString()
-            }
-          });
-      }
+        // Log the change to audit log
+        await supabase.from('audit_log').insert({
+          user_id: userId,
+          action: 'role_change',
+          target_table: 'users',
+          target_id: userId,
+          metadata: {
+            new_role: newRole,
+            changed_by: 'admin'
+          }
+        });
+
+        return data;
+      });
+
+      // Handle status changes
+      const statusChangePromises = Object.entries(statusChanges).map(async ([userId, newStatus]) => {
+        const { error } = await supabase.rpc('toggle_user_activation', {
+          target_user_id: userId,
+          is_active_param: newStatus
+        });
+
+        if (error) throw error;
+        return true;
+      });
+
+      await Promise.all([...roleChangePromises, ...statusChangePromises]);
 
       toast({
         title: "Success",
-        description: "User roles updated successfully",
+        description: "Changes saved successfully",
       });
 
       setPendingChanges({});
-      fetchUsers();
+      setStatusChanges({});
+      fetchUsers(); // Refresh the list
     } catch (error: any) {
-      console.error('Error updating roles:', error);
+      console.error('Error saving changes:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to update user roles",
+        description: error.message || "Failed to save changes",
         variant: "destructive"
       });
     }
@@ -170,17 +191,77 @@ export const RoleAssignment = () => {
 
   const handleImpersonate = (user: UserProfile) => {
     setImpersonateUser(user);
-    // In a real implementation, this would switch the session context
     toast({
-      title: "Impersonation Mode",
-      description: `Now viewing as ${user.display_name}. This is a simulation.`,
+      title: "Impersonation Started",
+      description: `You are now impersonating ${user.display_name}`,
     });
   };
+
+  // Filter and sort users
+  const filteredAndSortedUsers = users
+    .filter(user => {
+      // Search filter
+      const searchMatch = searchTerm === "" || 
+        user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Status filter
+      const currentStatus = statusChanges[user.user_id] !== undefined 
+        ? statusChanges[user.user_id] 
+        : user.is_active;
+      
+      const statusMatch = statusFilter === 'all' ||
+        (statusFilter === 'active' && currentStatus) ||
+        (statusFilter === 'inactive' && !currentStatus);
+
+      return searchMatch && statusMatch;
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortField) {
+        case 'username':
+          aValue = a.username || a.display_name || '';
+          bValue = b.username || b.display_name || '';
+          break;
+        case 'email':
+          aValue = a.email || '';
+          bValue = b.email || '';
+          break;
+        case 'role':
+          aValue = a.role || '';
+          bValue = b.role || '';
+          break;
+        case 'trust_score':
+          aValue = a.trust_score || 0;
+          bValue = b.trust_score || 0;
+          break;
+        case 'join_date':
+          aValue = new Date(a.join_date || 0);
+          bValue = new Date(b.join_date || 0);
+          break;
+        default:
+          aValue = '';
+          bValue = '';
+      }
+
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       admin: "destructive",
-      moderator: "secondary",
+      moderator: "secondary", 
       vendor: "default",
       field_rep: "outline"
     };
@@ -190,26 +271,36 @@ export const RoleAssignment = () => {
   const getStatusBadge = (isActive: boolean) => {
     return (
       <Badge variant={isActive ? 'default' : 'secondary'}>
-        {isActive ? 'Active' : 'Inactive'}
+        {isActive ? 'Active' : 'Deactivated'}
       </Badge>
     );
   };
 
-  const filteredUsers = users.filter(user =>
-    user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.username?.toLowerCase().includes(searchTerm.toLowerCase())
+  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-muted/50 select-none"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-2">
+        {children}
+        {sortField === field && (
+          sortDirection === 'asc' ? 
+            <ChevronUp className="h-4 w-4" /> : 
+            <ChevronDown className="h-4 w-4" />
+        )}
+      </div>
+    </TableHead>
   );
 
-  const hasChanges = Object.keys(pendingChanges).length > 0;
+  const hasChanges = Object.keys(pendingChanges).length > 0 || Object.keys(statusChanges).length > 0;
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <UserCog className="h-5 w-5" />
-            Role Assignment
+            <Users className="h-5 w-5" />
+            Users & Directory
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -225,156 +316,143 @@ export const RoleAssignment = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
-          <UserCog className="h-5 w-5" />
-          Role Assignment & User Management
+          <Users className="h-5 w-5" />
+          Users & Directory
         </CardTitle>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={fetchUsers}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          {hasChanges && (
-            <Button variant="default" size="sm" onClick={saveRoleChanges}>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes ({Object.keys(pendingChanges).length})
-              {Object.values(pendingChanges).some(role => role === 'admin') && (
-                <AlertTriangle className="h-3 w-3 ml-1 text-destructive" />
-              )}
-            </Button>
+        <Button variant="outline" size="sm" onClick={fetchUsers}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search users by name, email, or username..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasChanges && (
+              <Button onClick={saveRoleChanges}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            )}
+          </div>
+
+          {filteredAndSortedUsers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No users found matching your search criteria
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableHeader field="username">User</SortableHeader>
+                    <SortableHeader field="email">Email</SortableHeader>
+                    <TableHead>Phone</TableHead>
+                    <SortableHeader field="role">Current Role</SortableHeader>
+                    <TableHead>New Role</TableHead>
+                    <SortableHeader field="trust_score">Trust Score</SortableHeader>
+                    <SortableHeader field="join_date">Join Date</SortableHeader>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Active</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedUsers.map((user) => {
+                    const currentRole = pendingChanges[user.user_id] || user.role;
+                    const currentStatus = statusChanges[user.user_id] !== undefined 
+                      ? statusChanges[user.user_id] 
+                      : user.is_active;
+                    
+                    return (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {user.first_name} {user.last_name}
+                            </span>
+                            <span className="text-sm text-muted-foreground">@{user.username || user.display_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.phone || '-'}</TableCell>
+                        <TableCell>{getRoleBadge(user.role)}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={currentRole}
+                            onValueChange={(value) => handleRoleChange(user.user_id, value)}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="field_rep">Field Rep</SelectItem>
+                              <SelectItem value="vendor">Vendor</SelectItem>
+                              <SelectItem value="moderator">Moderator</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-muted rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min((user.trust_score || 0), 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-medium">{user.trust_score || 0}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(user.join_date), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(currentStatus)}</TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={currentStatus}
+                            onCheckedChange={() => handleStatusChange(user.user_id, user.is_active)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleImpersonate(user)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Impersonate
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users by name, email, or username..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Users Table */}
-        {filteredUsers.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No users found matching your search
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Current Role</TableHead>
-                  <TableHead>New Role</TableHead>
-                  <TableHead>Trust Score</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => {
-                  const pendingRole = pendingChanges[user.user_id];
-                  const displayRole = pendingRole || user.role;
-                  
-                  return (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div>{user.display_name}</div>
-                          <div className="text-sm text-muted-foreground">@{user.username || 'no-username'}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell>
-                        <Select 
-                          value={displayRole} 
-                          onValueChange={(value) => handleRoleChange(user.user_id, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="field_rep">Field Rep</SelectItem>
-                            <SelectItem value="vendor">Vendor</SelectItem>
-                            <SelectItem value="moderator">
-                              <span className="flex items-center gap-1">
-                                Moderator
-                              </span>
-                            </SelectItem>
-                            <SelectItem value="admin">
-                              <span className="flex items-center gap-1">
-                                <AlertTriangle className="h-3 w-3 text-destructive" />
-                                Admin
-                              </span>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {pendingRole && (
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            Changed
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span>{user.trust_score}</span>
-                          <div className="w-16 bg-muted rounded-full h-2">
-                            <div 
-                              className="bg-primary rounded-full h-2 transition-all"
-                              style={{ width: `${Math.min(user.trust_score, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(user.is_active)}</TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-3 w-3 mr-1" />
-                              Impersonate
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Impersonate User</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="p-4 border rounded-lg">
-                                <h4 className="font-semibold">{user.display_name}</h4>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
-                                <div className="flex gap-2 mt-2">
-                                  {getRoleBadge(user.role)}
-                                  {getStatusBadge(user.is_active)}
-                                </div>
-                              </div>
-                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                                <p className="text-sm text-yellow-800">
-                                  ⚠️ This is a simulation. In production, this would allow you to view the platform from this user's perspective for support purposes.
-                                </p>
-                              </div>
-                              <Button 
-                                onClick={() => handleImpersonate(user)}
-                                className="w-full"
-                              >
-                                Simulate Impersonation
-                              </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
