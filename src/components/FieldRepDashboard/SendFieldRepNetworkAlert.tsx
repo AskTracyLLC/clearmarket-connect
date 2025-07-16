@@ -100,6 +100,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
 
   const getMessagePreview = () => {
     const userName = 'Field Rep'; // TODO: Get actual user name
+    const userState = 'ST'; // TODO: Get actual user state
     const dateText = selectedDates.length > 0 ? format(selectedDates[0], 'PPP') : 'today';
     
     switch (messageType) {
@@ -121,7 +122,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
           ? `\n\nUnavailable until: ${format(unavailableUntilDate, 'PPP')}` 
           : '';
         return {
-          subject: `Emergency Notice - ${userName}`,
+          subject: `Emergency Notice - ${userName} (${userState})`,
           content: emergencyContent + unavailableText
         };
       case 'custom':
