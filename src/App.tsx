@@ -18,6 +18,7 @@ import FieldRepProfilePage from "./pages/FieldRepProfilePage";
 import FieldRepSearchPage from "./pages/FieldRepSearchPage";
 import FieldRepDashboard from "./pages/FieldRepDashboard";
 import FieldRepPublicProfile from "./pages/FieldRepPublicProfile";
+import VendorPublicProfile from "./pages/VendorPublicProfile";
 import FeedbackPage from "./pages/FeedbackPage";
 import FAQPage from "./pages/FAQPage";
 import MessagesPage from "./pages/MessagesPage";
@@ -59,7 +60,8 @@ const App = () => (
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
                 <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
-                <Route path="/fieldrep/profile/:id" element={<FieldRepPublicProfile />} />
+                 <Route path="/fieldrep/profile/:id" element={<FieldRepPublicProfile />} />
+                 <Route path="/vendor/profile/:id" element={<VendorPublicProfile />} />
                 <Route path="/fieldrep/dashboard" element={
                   <ProtectedRoute>
                     <FieldRepDashboard />
