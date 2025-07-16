@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Search, BookmarkPlus, MapPin, Trash2, Clock } from "lucide-react";
-import { useStates, useCountiesByState, useLocationByZip } from "@/hooks/useLocationData";
+import { useStates, useCountiesByState } from "@/hooks/useLocationData";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface SavedSearch {
   id: string;
   name: string;
-  search_type: 'county' | 'city' | 'zipcode';
+  search_type: 'county' | 'search';
   location_value: string;
   location_display: string;
   created_at: string;
@@ -25,11 +25,9 @@ const LocalNewsSearch = () => {
   const { states } = useStates();
   
   // Search form state
-  const [searchType, setSearchType] = useState<'county' | 'city' | 'zipcode'>('county');
   const [selectedState, setSelectedState] = useState('');
   const [selectedCounty, setSelectedCounty] = useState('');
-  const [cityName, setCityName] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [searchName, setSearchName] = useState('');
   
   // Saved searches state
@@ -37,7 +35,6 @@ const LocalNewsSearch = () => {
   const [loading, setLoading] = useState(false);
   
   const { counties } = useCountiesByState(selectedState);
-  const { location: zipLocation } = useLocationByZip(zipCode);
 
   // Load saved searches
   useEffect(() => {
@@ -50,7 +47,6 @@ const LocalNewsSearch = () => {
     if (!user) return;
     
     try {
-      // Use a generic query since the table type isn't in types yet
       const { data, error } = await supabase
         .from('saved_local_news_searches')
         .select('*')
@@ -73,35 +69,22 @@ const LocalNewsSearch = () => {
 
     let locationValue = '';
     let locationDisplay = '';
+    let searchType: 'county' | 'search' = 'county';
 
-    switch (searchType) {
-      case 'county':
-        if (!selectedState || !selectedCounty) {
-          toast.error("Please select state and county");
-          return;
-        }
-        locationValue = `${selectedState}:${selectedCounty}`;
-        const stateName = states.find(s => s.code === selectedState)?.name || selectedState;
-        locationDisplay = `${selectedCounty}, ${stateName}`;
-        break;
-      case 'city':
-        if (!cityName.trim()) {
-          toast.error("Please enter city name");
-          return;
-        }
-        locationValue = cityName.trim();
-        locationDisplay = cityName.trim();
-        break;
-      case 'zipcode':
-        if (!zipCode.trim()) {
-          toast.error("Please enter zip code");
-          return;
-        }
-        locationValue = zipCode.trim();
-        locationDisplay = zipLocation ? 
-          `${zipCode} (${zipLocation.county?.name}, ${zipLocation.state?.name})` : 
-          zipCode;
-        break;
+    // Check if user selected state and county
+    if (selectedState && selectedCounty) {
+      locationValue = `${selectedState}:${selectedCounty}`;
+      const stateName = states.find(s => s.code === selectedState)?.name || selectedState;
+      locationDisplay = `${selectedCounty}, ${stateName}`;
+      searchType = 'county';
+    } else if (searchInput.trim()) {
+      // User entered something in search bar
+      locationValue = searchInput.trim();
+      locationDisplay = searchInput.trim();
+      searchType = 'search';
+    } else {
+      toast.error("Please select state and county OR enter a city/zipcode");
+      return;
     }
 
     setLoading(true);
@@ -120,6 +103,9 @@ const LocalNewsSearch = () => {
 
       toast.success("Search saved successfully");
       setSearchName('');
+      setSelectedState('');
+      setSelectedCounty('');
+      setSearchInput('');
       await loadSavedSearches();
     } catch (error) {
       console.error('Error saving search:', error);
@@ -149,20 +135,15 @@ const LocalNewsSearch = () => {
 
   const handleQuickSearch = (search: SavedSearch) => {
     // Set form values based on saved search
-    setSearchType(search.search_type);
-    
-    switch (search.search_type) {
-      case 'county':
-        const [state, county] = search.location_value.split(':');
-        setSelectedState(state);
-        setSelectedCounty(county);
-        break;
-      case 'city':
-        setCityName(search.location_value);
-        break;
-      case 'zipcode':
-        setZipCode(search.location_value);
-        break;
+    if (search.search_type === 'county') {
+      const [state, county] = search.location_value.split(':');
+      setSelectedState(state);
+      setSelectedCounty(county);
+      setSearchInput('');
+    } else {
+      setSearchInput(search.location_value);
+      setSelectedState('');
+      setSelectedCounty('');
     }
     
     toast.success(`Loaded search: ${search.name}`);
@@ -201,83 +182,56 @@ const LocalNewsSearch = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Search Type Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Search Type</label>
-            <Select value={searchType} onValueChange={(value: 'county' | 'city' | 'zipcode') => setSearchType(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="county">County</SelectItem>
-                <SelectItem value="city">City</SelectItem>
-                <SelectItem value="zipcode">Zip Code</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* State and County Selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">State</label>
+              <Select value={selectedState} onValueChange={setSelectedState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {states.map((state) => (
+                    <SelectItem key={state.code} value={state.code}>
+                      {state.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">County</label>
+              <Select value={selectedCounty} onValueChange={setSelectedCounty} disabled={!selectedState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select county" />
+                </SelectTrigger>
+                <SelectContent>
+                  {counties.map((county) => (
+                    <SelectItem key={county.id} value={county.name}>
+                      {county.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Search Fields based on type */}
-          {searchType === 'county' && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">State</label>
-                <Select value={selectedState} onValueChange={setSelectedState}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {states.map((state) => (
-                      <SelectItem key={state.code} value={state.code}>
-                        {state.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">County</label>
-                <Select value={selectedCounty} onValueChange={setSelectedCounty} disabled={!selectedState}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select county" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {counties.map((county) => (
-                      <SelectItem key={county.id} value={county.name}>
-                        {county.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
+          {/* OR divider */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border"></div>
+            <span className="text-sm text-muted-foreground">OR</span>
+            <div className="flex-1 h-px bg-border"></div>
+          </div>
 
-          {searchType === 'city' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">City Name</label>
-              <Input
-                placeholder="Enter city name (e.g., Elgin, IL)"
-                value={cityName}
-                onChange={(e) => setCityName(e.target.value)}
-              />
-            </div>
-          )}
-
-          {searchType === 'zipcode' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Zip Code</label>
-              <Input
-                placeholder="Enter zip code"
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
-              />
-              {zipLocation && (
-                <p className="text-sm text-muted-foreground">
-                  {zipLocation.county?.name}, {zipLocation.state?.name}
-                </p>
-              )}
-            </div>
-          )}
+          {/* Search Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Search by City, State or Zipcode</label>
+            <Input
+              placeholder="Enter city and state (e.g., Elgin, IL) or zipcode (e.g., 60120)"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
 
           {/* Save Search Name */}
           <div className="space-y-2">
@@ -324,7 +278,7 @@ const LocalNewsSearch = () => {
                     <h4 className="font-medium">{search.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
-                        {search.search_type}
+                        {search.search_type === 'county' ? 'County' : 'Search'}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {search.location_display}
