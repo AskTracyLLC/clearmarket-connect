@@ -248,84 +248,88 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas }: CoverageAreas
               </div>
             </div>
 
-            {/* Condensed Standard & Rush Pricing */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Standard</Label>
-                <Input 
-                  placeholder="$35"
-                  value={standardPrice}
-                  onChange={(e) => setStandardPrice(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Rush</Label>
-                <Input 
-                  placeholder="$55"
-                  value={rushPrice}
-                  onChange={(e) => setRushPrice(e.target.value)}
-                  className="text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Inspection Type Pricing */}
+            {/* Single Row Pricing Layout */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Inspection Type Pricing</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={addInspectionType}
-                  className="flex items-center gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Type
-                </Button>
-              </div>
-              
-              {inspectionTypes.map((item) => (
-                <div key={item.id} className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <Select 
-                      value={item.inspectionType} 
-                      onValueChange={(value) => updateInspectionType(item.id, 'inspectionType', value)}
-                    >
-                      <SelectTrigger className="text-sm">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INSPECTION_TYPES.filter(type => 
-                          !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
-                        ).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="w-24">
-                    <Input 
-                      placeholder="$45"
-                      value={item.price}
-                      onChange={(e) => updateInspectionType(item.id, 'price', e.target.value)}
-                      className="text-sm"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeInspectionType(item.id)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              <Label>Pricing</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {/* Standard Pricing */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Standard</Label>
+                  <Input 
+                    placeholder="$35"
+                    value={standardPrice}
+                    onChange={(e) => setStandardPrice(e.target.value)}
+                    className="text-sm"
+                  />
                 </div>
-              ))}
+                
+                {/* Rush Pricing */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Rush</Label>
+                  <Input 
+                    placeholder="$55"
+                    value={rushPrice}
+                    onChange={(e) => setRushPrice(e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+                
+                {/* Inspection Type Pricing */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Insp Type</Label>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={addInspectionType}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {inspectionTypes.map((item) => (
+                      <div key={item.id} className="space-y-1">
+                        <Select 
+                          value={item.inspectionType} 
+                          onValueChange={(value) => updateInspectionType(item.id, 'inspectionType', value)}
+                        >
+                          <SelectTrigger className="text-xs h-8">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {INSPECTION_TYPES.filter(type => 
+                              !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
+                            ).map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-1">
+                          <Input 
+                            placeholder="$45"
+                            value={item.price}
+                            onChange={(e) => updateInspectionType(item.id, 'price', e.target.value)}
+                            className="text-xs h-8"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeInspectionType(item.id)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <Button type="button" onClick={addCoverageArea} className="w-full">
