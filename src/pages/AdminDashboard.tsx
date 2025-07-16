@@ -25,6 +25,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("moderation");
 
   useEffect(() => {
     // SECURITY: Removed development mode bypass for proper authorization
@@ -97,7 +98,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* Quick Actions - Left Side */}
           <div className="lg:col-span-1">
-            <AdminQuickActions />
+            <AdminQuickActions onTabChange={setActiveTab} />
           </div>
           
           {/* Main Content - Right Side */}
@@ -118,7 +119,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="moderation" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="moderation" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />

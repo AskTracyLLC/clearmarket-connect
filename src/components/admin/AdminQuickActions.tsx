@@ -16,7 +16,11 @@ import {
   Plus
 } from "lucide-react";
 
-export const AdminQuickActions = () => {
+interface AdminQuickActionsProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export const AdminQuickActions = ({ onTabChange }: AdminQuickActionsProps) => {
   return (
     <Card>
       <CardHeader>
@@ -51,7 +55,12 @@ export const AdminQuickActions = () => {
             Community Scheduler
           </h4>
           <div className="space-y-1">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start"
+              onClick={() => onTabChange?.('scheduler')}
+            >
               <Plus className="h-3 w-3 mr-2" />
               Schedule Discussion
             </Button>
