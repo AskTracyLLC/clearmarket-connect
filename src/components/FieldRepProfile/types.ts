@@ -13,6 +13,7 @@ export const fieldRepSchema = z.object({
   zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"),
   aspenGroveId: z.string().optional(),
   aspenGroveExpiration: z.date().optional(),
+  aspenGroveImage: z.string().optional(), // URL to uploaded image
   platforms: z.array(z.string()),
   otherPlatform: z.string().optional(),
   inspectionTypes: z.array(z.string()),
