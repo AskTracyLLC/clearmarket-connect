@@ -1,8 +1,9 @@
-import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Info } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DisplayIdentityProps {
   form: UseFormReturn<FieldRepFormData>;
@@ -21,17 +22,27 @@ export const DisplayIdentity = ({ form }: DisplayIdentityProps) => {
         name="displayUsername"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Display Username</FormLabel>
+            <div className="flex items-center gap-2">
+              <FormLabel>Display Username</FormLabel>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      <Info className="h-3 w-3" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-sm">
+                      Since this is a fresh platform, you can establish yourself under an alias until you become a "Trusted Field Rep". 
+                      This allows you to build your reputation without preconceived notions.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <FormControl>
               <Input placeholder="ProInspector123" {...field} />
             </FormControl>
-            <FormDescription className="flex items-start gap-2">
-              <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm">
-                Since this is a fresh platform, you can establish yourself under an alias until you become a "Trusted Field Rep". 
-                This allows you to build your reputation without preconceived notions.
-              </span>
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
