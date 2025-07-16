@@ -24,7 +24,7 @@ All colors MUST be HSL.
 
     /* Terra Cotta - earthy and grounded */
     --secondary: 17 65% 50%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary-foreground: 20 30% 15%;
 
     /* Muted warm backgrounds */
     --muted: 35 20% 90%;
