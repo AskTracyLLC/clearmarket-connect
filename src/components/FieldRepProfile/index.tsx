@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
 import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
 import CreditExplainerModal from "@/components/CreditExplainerModal";
@@ -23,6 +24,7 @@ import { ClearVueBeta } from "./ClearVueBeta";
 
 const FieldRepProfile = () => {
   const { toast } = useToast();
+  const { profile } = useUserProfile();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   
@@ -38,7 +40,7 @@ const FieldRepProfile = () => {
     defaultValues: {
       firstName: "",
       lastName: "",
-      displayUsername: "",
+      displayUsername: profile?.anonymous_username || "",
       phone: "",
       email: "",
       city: "",
@@ -54,6 +56,13 @@ const FieldRepProfile = () => {
       clearVueBeta: false,
     },
   });
+
+  // Update form when profile loads
+  useEffect(() => {
+    if (profile?.anonymous_username) {
+      form.setValue('displayUsername', profile.anonymous_username);
+    }
+  }, [profile, form]);
 
   const onSubmit = (data: FieldRepFormData) => {
     if (coverageAreas.length === 0) {

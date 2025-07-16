@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface UserProfile {
   id: string;
   display_name: string | null;
+  anonymous_username: string;
   role: 'field_rep' | 'vendor' | 'moderator' | 'admin';
   trust_score: number | null;
   profile_complete: number | null;
@@ -22,7 +23,7 @@ export const useUserProfile = () => {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, display_name, role, trust_score, profile_complete')
+        .select('id, display_name, anonymous_username, role, trust_score, profile_complete')
         .eq('id', user.id)
         .single();
 
