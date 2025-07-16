@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 interface UserProfile {
   id: string;
@@ -23,11 +23,12 @@ interface UserProfile {
   is_active: boolean;
   role: string;
   trust_score: number;
+  community_score: number;
   display_name: string;
   last_active: string | null;
 }
 
-type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'join_date' | 'last_active';
+type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'community_score' | 'join_date' | 'last_active';
 type SortDirection = 'asc' | 'desc';
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -59,7 +60,7 @@ export const RoleAssignment = () => {
       // Then get user data with roles and other fields
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, role, trust_score, display_name, last_active');
+        .select('id, role, trust_score, community_score, display_name, last_active');
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
@@ -73,6 +74,7 @@ export const RoleAssignment = () => {
           ...profile,
           role: userData?.role || 'field_rep',
           trust_score: userData?.trust_score || 0,
+          community_score: userData?.community_score || 0,
           display_name: userData?.display_name || `${profile.first_name} ${profile.last_name}`.trim(),
           last_active: userData?.last_active || null
         };
@@ -241,6 +243,10 @@ export const RoleAssignment = () => {
           aValue = a.trust_score || 0;
           bValue = b.trust_score || 0;
           break;
+        case 'community_score':
+          aValue = a.community_score || 0;
+          bValue = b.community_score || 0;
+          break;
         case 'join_date':
           aValue = new Date(a.join_date || 0);
           bValue = new Date(b.join_date || 0);
@@ -368,8 +374,8 @@ export const RoleAssignment = () => {
               No users found matching your search criteria
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
+            <div className="rounded-md border overflow-x-auto">
+              <Table className="min-w-[1200px]">
                 <TableHeader>
                   <TableRow>
                     <SortableHeader field="username">User</SortableHeader>
@@ -378,6 +384,7 @@ export const RoleAssignment = () => {
                     <SortableHeader field="role">Current Role</SortableHeader>
                     <TableHead>New Role</TableHead>
                     <SortableHeader field="trust_score">Trust Score</SortableHeader>
+                    <SortableHeader field="community_score">Pulse Score</SortableHeader>
                     <SortableHeader field="join_date">Join Date</SortableHeader>
                     <SortableHeader field="last_active">Last Active</SortableHeader>
                     <TableHead>Status</TableHead>
@@ -422,25 +429,17 @@ export const RoleAssignment = () => {
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 bg-muted rounded-full h-2">
-                              <div 
-                                className="bg-primary h-2 rounded-full transition-all"
-                                style={{ width: `${Math.min((user.trust_score || 0), 100)}%` }}
-                              />
-                            </div>
-                            <span className="text-sm font-medium">{user.trust_score || 0}</span>
-                          </div>
+                          <span className="text-sm font-medium">{user.trust_score || 0}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium">{user.community_score || 0}</span>
                         </TableCell>
                         <TableCell>
                           {format(new Date(user.join_date), 'MMM dd, yyyy')}
                         </TableCell>
                         <TableCell>
                           {user.last_active ? (
-                            <div className="flex flex-col">
-                              <span className="text-sm">{formatDistanceToNow(new Date(user.last_active), { addSuffix: true })}</span>
-                              <span className="text-xs text-muted-foreground">{format(new Date(user.last_active), 'MMM dd, yyyy')}</span>
-                            </div>
+                            <span className="text-sm">{format(new Date(user.last_active), 'MMM dd, yyyy')}</span>
                           ) : (
                             <span className="text-sm text-muted-foreground">Never</span>
                           )}
