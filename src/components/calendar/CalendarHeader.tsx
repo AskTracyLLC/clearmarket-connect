@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Plus, Calendar as CalendarIcon, Send, Eye, EyeOff } from "lucide-react";
-import BulkMessageModal from "./BulkMessageModal";
+import { Plus, Calendar as CalendarIcon, Megaphone, Eye, EyeOff } from "lucide-react";
+import SendFieldRepNetworkAlert from "@/components/FieldRepDashboard/SendFieldRepNetworkAlert";
 import EnhancedCreateEventModal from "./EnhancedCreateEventModal";
+import { useState } from "react";
 
 interface CalendarHeaderProps {
   userRole: "field_rep" | "vendor";
@@ -18,6 +19,8 @@ const CalendarHeader = ({
   onShowNetworkEventsChange,
   onEventCreated,
 }: CalendarHeaderProps) => {
+  const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
@@ -42,14 +45,10 @@ const CalendarHeader = ({
 
       <div className="flex gap-2">
         {userRole === "field_rep" && (
-          <BulkMessageModal
-            trigger={
-              <Button size="sm" variant="outline">
-                <Send className="h-4 w-4 mr-2" />
-                Network Alert
-              </Button>
-            }
-          />
+          <Button size="lg" className="flex items-center gap-2 shrink-0" onClick={() => setNetworkAlertOpen(true)}>
+            <Megaphone className="h-5 w-5" />
+            Network Alerts
+          </Button>
         )}
         <EnhancedCreateEventModal
           userRole={userRole}
@@ -62,6 +61,15 @@ const CalendarHeader = ({
           }
         />
       </div>
+
+      {/* Network Alert Modal */}
+      {userRole === "field_rep" && (
+        <SendFieldRepNetworkAlert
+          open={networkAlertOpen}
+          onOpenChange={setNetworkAlertOpen}
+          networkSize={0} // TODO: Get actual network size
+        />
+      )}
     </div>
   );
 };
