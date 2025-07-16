@@ -13,7 +13,6 @@ import CreditExplainerModal from "@/components/CreditExplainerModal";
 import { fieldRepSchema, type FieldRepFormData, type CoverageArea } from "./types";
 import { PersonalInfo } from "./PersonalInfo";
 import { LocationInfo } from "./LocationInfo";
-import { DisplayIdentity } from "./DisplayIdentity";
 import { ContactVerification } from "./ContactVerification";
 import { BackgroundCheck } from "./BackgroundCheck";
 import { CoverageAreas } from "./CoverageAreas";
@@ -122,7 +121,6 @@ const FieldRepProfile = () => {
                   <PersonalInfo form={form} />
                   <LocationInfo form={form} />
                   <ContactVerification form={form} />
-                  <DisplayIdentity form={form} />
                   <ProfessionalBio form={form} />
                 </TabsContent>
 
