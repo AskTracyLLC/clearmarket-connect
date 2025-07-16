@@ -15,7 +15,8 @@ const postTypes = [
   "Platform Help", 
   "Warnings",
   "Tips",
-  "Industry News"
+  "Industry News",
+  "Poll"
 ];
 
 interface PostCreationModalProps {
