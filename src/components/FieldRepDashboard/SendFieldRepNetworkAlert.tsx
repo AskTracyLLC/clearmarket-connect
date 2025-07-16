@@ -47,7 +47,7 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
     
     switch (messageType) {
       case 'daily-location':
-        const baseMessage = `Today I'll be in ${area || '[Location]'} and available for work.`;
+        const baseMessage = `Today I'll be in ${area || '[Location]'}.`;
         const fullMessage = customMessage ? `${baseMessage}\n\n${customMessage}` : baseMessage;
         return {
           subject: `${userName} - Today I'll be in ${area || '[Location]'}`,
