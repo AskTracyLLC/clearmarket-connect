@@ -19,7 +19,10 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
   // Check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
+      console.log('🔍 ProtectedRouteWithNDA - Starting admin check...');
+      
       if (!user) {
+        console.log('❌ No user found');
         setIsAdmin(false);
         return;
       }
@@ -27,7 +30,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
       // Debug logging
       console.log('🔍 Checking admin status for user:', user.id, user.email);
 
-      // Check if email is admin email (fallback check)
+      // Check if email is admin email (primary check)
       const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
       if (adminEmails.includes(user.email || '')) {
         console.log('✅ User is admin by email:', user.email);
@@ -58,8 +61,11 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     checkAdminStatus();
   }, [user]);
 
+  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA);
+
   // Show loading state while checking auth, NDA status, and admin status
   if (authLoading || ndaLoading || isAdmin === null) {
+    console.log('⏳ Showing loading state...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <Card className="p-8 max-w-md mx-auto text-center">
@@ -75,11 +81,13 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
 
   // Redirect to login if not authenticated
   if (!user) {
+    console.log('❌ User not authenticated, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   // Admin users bypass all restrictions
   if (isAdmin) {
+    console.log('✅ Admin user detected, bypassing all restrictions');
     return <>{children}</>;
   }
 
