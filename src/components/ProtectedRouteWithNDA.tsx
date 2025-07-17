@@ -59,7 +59,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     };
 
     checkAdminStatus();
-  }, [user]);
+  }, [user?.id, user?.email]); // Use stable user properties instead of entire user object
 
   console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA);
 
