@@ -57,11 +57,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const publicRoutes = ['/', '/prelaunch', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success'];
           const isOnPublicRoute = publicRoutes.includes(window.location.pathname);
           
+          // Don't redirect if on a public route
+          if (isOnPublicRoute) {
+            return;
+          }
+          
           // If not verified and not already on verification page, redirect
           if (!isVerified && !window.location.pathname.includes('verify-email')) {
             window.location.href = '/verify-email';
-          } else if (isVerified && !window.location.pathname.includes('beta-nda') && !isOnPublicRoute) {
-            // Only redirect to NDA if verified, not already on NDA page, and not on a public route
+          } else if (isVerified && !window.location.pathname.includes('beta-nda')) {
+            // Only redirect to NDA if verified and not already on NDA page
             window.location.href = '/beta-nda';
           }
         }
