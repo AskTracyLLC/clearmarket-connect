@@ -268,130 +268,94 @@ const Prelaunch = () => {
   useEffect(() => {
     const loadStates = async () => {
       try {
-        console.log('Loading states from Supabase...');
+        console.log('🔍 Loading states from Supabase...');
         const { data, error } = await supabase.from('states').select('code, name').order('name');
+        
         if (error) {
-          console.error('Error loading states from Supabase:', error);
-          // Fallback to hardcoded states if Supabase fails
-          const fallbackStates = [
-            { code: 'AL', name: 'Alabama' },
-            { code: 'AK', name: 'Alaska' },
-            { code: 'AZ', name: 'Arizona' },
-            { code: 'AR', name: 'Arkansas' },
-            { code: 'CA', name: 'California' },
-            { code: 'CO', name: 'Colorado' },
-            { code: 'CT', name: 'Connecticut' },
-            { code: 'DE', name: 'Delaware' },
-            { code: 'FL', name: 'Florida' },
-            { code: 'GA', name: 'Georgia' },
-            { code: 'HI', name: 'Hawaii' },
-            { code: 'ID', name: 'Idaho' },
-            { code: 'IL', name: 'Illinois' },
-            { code: 'IN', name: 'Indiana' },
-            { code: 'IA', name: 'Iowa' },
-            { code: 'KS', name: 'Kansas' },
-            { code: 'KY', name: 'Kentucky' },
-            { code: 'LA', name: 'Louisiana' },
-            { code: 'ME', name: 'Maine' },
-            { code: 'MD', name: 'Maryland' },
-            { code: 'MA', name: 'Massachusetts' },
-            { code: 'MI', name: 'Michigan' },
-            { code: 'MN', name: 'Minnesota' },
-            { code: 'MS', name: 'Mississippi' },
-            { code: 'MO', name: 'Missouri' },
-            { code: 'MT', name: 'Montana' },
-            { code: 'NE', name: 'Nebraska' },
-            { code: 'NV', name: 'Nevada' },
-            { code: 'NH', name: 'New Hampshire' },
-            { code: 'NJ', name: 'New Jersey' },
-            { code: 'NM', name: 'New Mexico' },
-            { code: 'NY', name: 'New York' },
-            { code: 'NC', name: 'North Carolina' },
-            { code: 'ND', name: 'North Dakota' },
-            { code: 'OH', name: 'Ohio' },
-            { code: 'OK', name: 'Oklahoma' },
-            { code: 'OR', name: 'Oregon' },
-            { code: 'PA', name: 'Pennsylvania' },
-            { code: 'RI', name: 'Rhode Island' },
-            { code: 'SC', name: 'South Carolina' },
-            { code: 'SD', name: 'South Dakota' },
-            { code: 'TN', name: 'Tennessee' },
-            { code: 'TX', name: 'Texas' },
-            { code: 'UT', name: 'Utah' },
-            { code: 'VT', name: 'Vermont' },
-            { code: 'VA', name: 'Virginia' },
-            { code: 'WA', name: 'Washington' },
-            { code: 'WV', name: 'West Virginia' },
-            { code: 'WI', name: 'Wisconsin' },
-            { code: 'WY', name: 'Wyoming' },
-            { code: 'DC', name: 'District of Columbia' }
-          ];
-          setStates(fallbackStates);
+          console.error('❌ Error loading states from Supabase:', error);
         } else {
-          console.log('States loaded successfully:', data?.length);
-          setStates(data || []);
+          console.log('✅ Raw states data from Supabase:', data);
+          if (data && data.length > 0) {
+            console.log(`✅ States loaded successfully: ${data.length} states`);
+            setStates(data);
+            console.log('✅ States set in component state');
+            return;
+          } else {
+            console.warn('⚠️ No states data returned from Supabase');
+          }
         }
       } catch (error) {
-        console.error('Failed to load states:', error);
-        // Use fallback states in case of any error
-        const fallbackStates = [
-          { code: 'AL', name: 'Alabama' },
-          { code: 'AK', name: 'Alaska' },
-          { code: 'AZ', name: 'Arizona' },
-          { code: 'AR', name: 'Arkansas' },
-          { code: 'CA', name: 'California' },
-          { code: 'CO', name: 'Colorado' },
-          { code: 'CT', name: 'Connecticut' },
-          { code: 'DE', name: 'Delaware' },
-          { code: 'FL', name: 'Florida' },
-          { code: 'GA', name: 'Georgia' },
-          { code: 'HI', name: 'Hawaii' },
-          { code: 'ID', name: 'Idaho' },
-          { code: 'IL', name: 'Illinois' },
-          { code: 'IN', name: 'Indiana' },
-          { code: 'IA', name: 'Iowa' },
-          { code: 'KS', name: 'Kansas' },
-          { code: 'KY', name: 'Kentucky' },
-          { code: 'LA', name: 'Louisiana' },
-          { code: 'ME', name: 'Maine' },
-          { code: 'MD', name: 'Maryland' },
-          { code: 'MA', name: 'Massachusetts' },
-          { code: 'MI', name: 'Michigan' },
-          { code: 'MN', name: 'Minnesota' },
-          { code: 'MS', name: 'Mississippi' },
-          { code: 'MO', name: 'Missouri' },
-          { code: 'MT', name: 'Montana' },
-          { code: 'NE', name: 'Nebraska' },
-          { code: 'NV', name: 'Nevada' },
-          { code: 'NH', name: 'New Hampshire' },
-          { code: 'NJ', name: 'New Jersey' },
-          { code: 'NM', name: 'New Mexico' },
-          { code: 'NY', name: 'New York' },
-          { code: 'NC', name: 'North Carolina' },
-          { code: 'ND', name: 'North Dakota' },
-          { code: 'OH', name: 'Ohio' },
-          { code: 'OK', name: 'Oklahoma' },
-          { code: 'OR', name: 'Oregon' },
-          { code: 'PA', name: 'Pennsylvania' },
-          { code: 'RI', name: 'Rhode Island' },
-          { code: 'SC', name: 'South Carolina' },
-          { code: 'SD', name: 'South Dakota' },
-          { code: 'TN', name: 'Tennessee' },
-          { code: 'TX', name: 'Texas' },
-          { code: 'UT', name: 'Utah' },
-          { code: 'VT', name: 'Vermont' },
-          { code: 'VA', name: 'Virginia' },
-          { code: 'WA', name: 'Washington' },
-          { code: 'WV', name: 'West Virginia' },
-          { code: 'WI', name: 'Wisconsin' },
-          { code: 'WY', name: 'Wyoming' },
-          { code: 'DC', name: 'District of Columbia' }
-        ];
-        setStates(fallbackStates);
+        console.error('❌ Failed to load states:', error);
       }
+      
+      // Fallback to hardcoded states
+      console.log('🔄 Using fallback states');
+      const fallbackStates = [
+        { code: 'AL', name: 'Alabama' },
+        { code: 'AK', name: 'Alaska' },
+        { code: 'AZ', name: 'Arizona' },
+        { code: 'AR', name: 'Arkansas' },
+        { code: 'CA', name: 'California' },
+        { code: 'CO', name: 'Colorado' },
+        { code: 'CT', name: 'Connecticut' },
+        { code: 'DE', name: 'Delaware' },
+        { code: 'FL', name: 'Florida' },
+        { code: 'GA', name: 'Georgia' },
+        { code: 'HI', name: 'Hawaii' },
+        { code: 'ID', name: 'Idaho' },
+        { code: 'IL', name: 'Illinois' },
+        { code: 'IN', name: 'Indiana' },
+        { code: 'IA', name: 'Iowa' },
+        { code: 'KS', name: 'Kansas' },
+        { code: 'KY', name: 'Kentucky' },
+        { code: 'LA', name: 'Louisiana' },
+        { code: 'ME', name: 'Maine' },
+        { code: 'MD', name: 'Maryland' },
+        { code: 'MA', name: 'Massachusetts' },
+        { code: 'MI', name: 'Michigan' },
+        { code: 'MN', name: 'Minnesota' },
+        { code: 'MS', name: 'Mississippi' },
+        { code: 'MO', name: 'Missouri' },
+        { code: 'MT', name: 'Montana' },
+        { code: 'NE', name: 'Nebraska' },
+        { code: 'NV', name: 'Nevada' },
+        { code: 'NH', name: 'New Hampshire' },
+        { code: 'NJ', name: 'New Jersey' },
+        { code: 'NM', name: 'New Mexico' },
+        { code: 'NY', name: 'New York' },
+        { code: 'NC', name: 'North Carolina' },
+        { code: 'ND', name: 'North Dakota' },
+        { code: 'OH', name: 'Ohio' },
+        { code: 'OK', name: 'Oklahoma' },
+        { code: 'OR', name: 'Oregon' },
+        { code: 'PA', name: 'Pennsylvania' },
+        { code: 'RI', name: 'Rhode Island' },
+        { code: 'SC', name: 'South Carolina' },
+        { code: 'SD', name: 'South Dakota' },
+        { code: 'TN', name: 'Tennessee' },
+        { code: 'TX', name: 'Texas' },
+        { code: 'UT', name: 'Utah' },
+        { code: 'VT', name: 'Vermont' },
+        { code: 'VA', name: 'Virginia' },
+        { code: 'WA', name: 'Washington' },
+        { code: 'WV', name: 'West Virginia' },
+        { code: 'WI', name: 'Wisconsin' },
+        { code: 'WY', name: 'Wyoming' },
+        { code: 'DC', name: 'District of Columbia' }
+      ];
+      setStates(fallbackStates);
+      console.log('✅ Fallback states set:', fallbackStates.length);
     };
     loadStates();
   }, []);
+
+  // Debug log when states change
+  useEffect(() => {
+    console.log('🔄 States array updated:', states.length, 'states available');
+    if (states.length > 0) {
+      console.log('🔍 First few states:', states.slice(0, 3));
+    }
+  }, [states]);
   useEffect(() => {
     // Get client IP for rate limiting
     getClientIP().then(ip => setClientIP(ip));
@@ -974,14 +938,24 @@ const Prelaunch = () => {
                           </Label>
                           <Select value={primaryState} onValueChange={setPrimaryState}>
                             <SelectTrigger id="primary-state" className="mt-1">
-                              <SelectValue placeholder="Select your primary state" />
+                              <SelectValue placeholder={states.length > 0 ? "Select your primary state" : "Loading states..."} />
                             </SelectTrigger>
-                            <SelectContent>
-                              {states.map(state => <SelectItem key={state.code} value={state.code}>
-                                  {state.name}
-                                </SelectItem>)}
+                            <SelectContent className="z-[9999] bg-background border">
+                              {states.length > 0 ? (
+                                states.map(state => (
+                                  <SelectItem key={state.code} value={state.code}>
+                                    {state.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="loading" disabled>Loading states...</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
+                          {/* Debug info */}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Debug: {states.length} states loaded
+                          </p>
                         </div>
 
                         <div>
@@ -1062,18 +1036,34 @@ const Prelaunch = () => {
                         <div>
                           <Label className="text-sm font-medium">State(s) You Cover</Label>
                           <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
-                          <div className="max-h-32 overflow-y-auto border rounded-md p-3">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-                              {states.map(state => <div key={state.code} className="flex items-center space-x-2">
-                                  <Checkbox id={`state-${state.code}`} checked={statesCovered.includes(state.code)} onCheckedChange={() => handleStateToggle(state.code)} />
-                                  <Label htmlFor={`state-${state.code}`} className="text-sm cursor-pointer">
-                                    {state.name}
-                                  </Label>
-                                </div>)}
-                            </div>
-                          </div>
-                          {statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
-                              Selected: {statesCovered.length} state{statesCovered.length !== 1 ? 's' : ''}
+                           <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                             <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                               {states.length > 0 ? (
+                                 states.map(state => (
+                                   <div key={state.code} className="flex items-center space-x-2">
+                                     <Checkbox 
+                                       id={`state-${state.code}`} 
+                                       checked={statesCovered.includes(state.code)} 
+                                       onCheckedChange={() => handleStateToggle(state.code)} 
+                                     />
+                                     <Label htmlFor={`state-${state.code}`} className="text-sm cursor-pointer">
+                                       {state.name}
+                                     </Label>
+                                   </div>
+                                 ))
+                               ) : (
+                                 <div className="col-span-full text-center text-muted-foreground">
+                                   Loading states...
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+                           {/* Debug info */}
+                           <p className="text-xs text-muted-foreground mt-1">
+                             Debug: {states.length} states available
+                           </p>
+                           {statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
+                               Selected: {statesCovered.length} state{statesCovered.length !== 1 ? 's' : ''}
                             </p>}
                         </div>
                       </div>}
