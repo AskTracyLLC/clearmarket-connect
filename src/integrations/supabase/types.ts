@@ -2085,6 +2085,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          anonymous_username: string | null
           created_at: string
           email: string
           first_name: string | null
@@ -2098,6 +2099,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          anonymous_username?: string | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -2111,6 +2113,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          anonymous_username?: string | null
           created_at?: string
           email?: string
           first_name?: string | null

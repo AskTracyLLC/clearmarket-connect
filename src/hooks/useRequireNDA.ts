@@ -36,8 +36,8 @@ export const useRequireNDA = () => {
     // Don't redirect if already on NDA page
     if (location.pathname === '/beta-nda') return;
 
-    // Redirect to NDA if user hasn't signed it and trying to access protected content
-    if (!hasSignedNDA) {
+    // Only redirect if user is on a protected route AND hasn't signed NDA
+    if (!hasSignedNDA && !PUBLIC_ROUTES.includes(location.pathname)) {
       console.log('Redirecting to NDA - user has not signed agreement');
       navigate('/beta-nda', { 
         replace: true,
