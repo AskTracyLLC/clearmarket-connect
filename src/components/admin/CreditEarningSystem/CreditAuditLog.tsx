@@ -42,12 +42,13 @@ export const CreditAuditLog = () => {
   const loadAuditLog = async () => {
     try {
       const { data, error } = await supabase
-        .from("credit_earning_audit_log")
-        .select(`
-          *,
-          credit_earning_rules (rule_name),
-          users (display_name)
-        `)
+const { data, error } = await supabase
+  .from("credit_earning_audit_log")
+  .select(`
+    *,
+    credit_earning_rules (rule_name),
+    users!credit_earning_audit_log_admin_id_fkey (display_name, anonymous_username)
+  `)
         .order("created_at", { ascending: false })
         .limit(100);
 
@@ -56,7 +57,7 @@ export const CreditAuditLog = () => {
       const entriesWithDetails = data?.map(entry => ({
         ...entry,
         rule_name: entry.credit_earning_rules?.rule_name,
-        admin_name: entry.users?.display_name || "Unknown Admin",
+        admin_name: entry.users?.display_name || entry.users?.anonymous_username || "Unknown Admin",
         before_values: entry.before_values ? 
           (typeof entry.before_values === 'string' ? JSON.parse(entry.before_values) : entry.before_values) : null,
         after_values: entry.after_values ? 
