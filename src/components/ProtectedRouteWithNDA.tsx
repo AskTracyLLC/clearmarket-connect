@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRequireNDA } from '@/hooks/useRequireNDA';
 import { Card } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteWithNDAProps {
   children: React.ReactNode;
@@ -13,9 +14,37 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
   const { user, loading: authLoading } = useAuth();
   const { hasSignedNDA, loading: ndaLoading } = useRequireNDA();
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
-  // Show loading state while checking auth and NDA status
-  if (authLoading || ndaLoading) {
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const { data: userRole, error } = await supabase
+          .rpc('get_user_role', { user_id: user.id });
+        
+        if (error) {
+          console.error('Error checking user role:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(userRole === 'admin');
+        }
+      } catch (error) {
+        console.error('Error in admin check:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  // Show loading state while checking auth, NDA status, and admin status
+  if (authLoading || ndaLoading || isAdmin === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <Card className="p-8 max-w-md mx-auto text-center">
@@ -32,6 +61,11 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
   // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+  }
+
+  // Admin users bypass all restrictions
+  if (isAdmin) {
+    return <>{children}</>;
   }
 
   // Redirect to NDA if not signed (handled by useRequireNDA hook)

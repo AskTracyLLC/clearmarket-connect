@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -39,6 +39,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event === 'SIGNED_IN' && session?.user) {
           const user = session.user;
           const isVerified = !!user.email_confirmed_at;
+          
+          // Check if user is admin - admins bypass all redirects
+          try {
+            const { data: userRole, error } = await supabase
+              .rpc('get_user_role', { user_id: user.id });
+            
+            if (userRole === 'admin') {
+              // Admin users bypass all redirects
+              return;
+            }
+          } catch (error) {
+            console.error('Error checking user role:', error);
+          }
           
           // Define public routes that should not trigger redirects
           const publicRoutes = ['/', '/prelaunch', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success'];
