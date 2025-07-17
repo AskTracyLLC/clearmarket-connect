@@ -82,23 +82,30 @@ const BetaNDA = () => {
 
   // Scroll detection to enable the agree button
   const handleScroll = () => {
-    const element = scrollAreaRef.current;
-    if (element) {
-      const { scrollTop, scrollHeight, clientHeight } = element;
-      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px tolerance
-      if (isAtBottom && !hasScrolledToBottom) {
-        setHasScrolledToBottom(true);
+    const scrollArea = scrollAreaRef.current;
+    if (scrollArea) {
+      // Get the viewport div inside ScrollArea
+      const viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        const { scrollTop, scrollHeight, clientHeight } = viewport;
+        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 20; // 20px tolerance
+        if (isAtBottom && !hasScrolledToBottom) {
+          setHasScrolledToBottom(true);
+        }
       }
     }
   };
 
   useEffect(() => {
-    const element = scrollAreaRef.current;
-    if (element) {
-      element.addEventListener('scroll', handleScroll);
-      return () => element.removeEventListener('scroll', handleScroll);
+    const scrollArea = scrollAreaRef.current;
+    if (scrollArea) {
+      const viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.addEventListener('scroll', handleScroll);
+        return () => viewport.removeEventListener('scroll', handleScroll);
+      }
     }
-  }, []);
+  }, [hasScrolledToBottom]);
 
   // Signature validation
   const validateSignature = (value: string): string[] => {
@@ -529,26 +536,13 @@ const BetaNDA = () => {
                 </section>
 
                 <section className="border-t pt-6">
-                  <h2 className="text-xl font-semibold text-foreground mb-3">Signatures</h2>
+                  <h2 className="text-xl font-semibold text-foreground mb-3">Beta Tester Signature</h2>
                   
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-2">Beta Tester:</h3>
-                      <div className="space-y-2 text-sm text-foreground">
-                        <p><strong>Name:</strong> ________________________________</p>
-                        <p><strong>Signature:</strong> _____________________________</p>
-                        <p><strong>Date:</strong> _________________________________</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold text-foreground mb-2">ClearMarket Representative:</h3>
-                      <div className="space-y-2 text-sm text-foreground">
-                        <p><strong>Name:</strong> ________________________________</p>
-                        <p><strong>Title:</strong> ________________________________</p>
-                        <p><strong>Signature:</strong> _____________________________</p>
-                        <p><strong>Date:</strong> _________________________________</p>
-                      </div>
+                  <div className="max-w-md">
+                    <div className="space-y-2 text-sm text-foreground">
+                      <p><strong>Name:</strong> {firstName || lastName ? `${firstName} ${lastName}`.trim() : '[To be completed above]'}</p>
+                      <p><strong>Signature:</strong> [To be completed below]</p>
+                      <p><strong>Date:</strong> {getCurrentDate()}</p>
                     </div>
                   </div>
                 </section>
