@@ -18,21 +18,29 @@ const AuthPage2 = () => {
     e.preventDefault();
     setLoading(true);
     
+    console.log('Starting sign in process...');
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
+      console.log('Sign in response:', { data, error });
+      
       if (error) {
+        console.error('Sign in error:', error);
         toast.error(error.message);
       } else {
+        console.log('Sign in successful:', data);
         toast.success('Signed in successfully!');
         navigate('/'); // Redirect to home after successful sign in
       }
     } catch (error) {
+      console.error('Unexpected sign in error:', error);
       toast.error('An unexpected error occurred');
     } finally {
+      console.log('Sign in process completed, setting loading to false');
       setLoading(false);
     }
   };
