@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';
 import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
 import { AlertTriangle, FileText, Scroll, PenTool, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,11 +29,15 @@ const BetaNDA = () => {
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userDisplayName, setUserDisplayName] = useState<string>('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [anonymousUsername, setAnonymousUsername] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Fetch user's display name for auto-fill
+  // Fetch user's display name and details for auto-fill
   useEffect(() => {
-    const fetchUserDisplayName = async () => {
+    const fetchUserDetails = async () => {
       if (!user) return;
       
       try {
@@ -46,15 +51,18 @@ const BetaNDA = () => {
 
         const displayName = data?.display_name || data?.anonymous_username || 'User';
         setUserDisplayName(displayName);
+        setAnonymousUsername(data?.anonymous_username || '');
+        setUserEmail(user.email || '');
         setSignature(displayName); // Auto-fill signature field
       } catch (err) {
-        console.error('Error fetching user display name:', err);
+        console.error('Error fetching user details:', err);
         setUserDisplayName('User');
+        setUserEmail(user?.email || '');
         setSignature('User');
       }
     };
 
-    fetchUserDisplayName();
+    fetchUserDetails();
   }, [user]);
 
   // Redirect if already signed
@@ -215,6 +223,56 @@ const BetaNDA = () => {
         </div>
 
         <Card className="p-8">
+          {/* User Information Form */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold">Agreement Information</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Enter your first name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Enter your last name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  value={userEmail}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="anonymousUsername">Anonymous Username</Label>
+                <Input
+                  id="anonymousUsername"
+                  value={anonymousUsername}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* NDA Content */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
@@ -236,15 +294,16 @@ const BetaNDA = () => {
               ref={scrollAreaRef}
             >
               <div className="prose prose-slate max-w-none dark:prose-invert space-y-6">
-                <div className="text-center border-b pb-4 mb-6">
-                  <h1 className="text-2xl font-bold text-foreground mb-4">ClearMarket Beta Tester Non-Disclosure Agreement</h1>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p><strong>Effective Date:</strong> {getCurrentDate()}</p>
-                    <p><strong>Beta Tester:</strong> [To be completed upon signature]</p>
-                    <p><strong>Email:</strong> [To be completed upon signature]</p>
-                    <p><strong>Company/Organization:</strong> [If Applicable]</p>
+                  <div className="text-center border-b pb-4 mb-6">
+                    <h1 className="text-2xl font-bold text-foreground mb-4">ClearMarket Beta Tester Non-Disclosure Agreement</h1>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p><strong>Effective Date:</strong> {getCurrentDate()}</p>
+                      <p><strong>Beta Tester:</strong> {firstName || lastName ? `${firstName} ${lastName}`.trim() : '[To be completed above]'}</p>
+                      <p><strong>Email:</strong> {userEmail || '[Email not available]'}</p>
+                      <p><strong>Username:</strong> {anonymousUsername || '[Username not available]'}</p>
+                      <p><strong>Company/Organization:</strong> [If Applicable]</p>
+                    </div>
                   </div>
-                </div>
 
                 <section>
                   <h2 className="text-xl font-semibold text-foreground mb-3">Agreement Overview</h2>

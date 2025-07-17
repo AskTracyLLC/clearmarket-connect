@@ -2012,6 +2012,7 @@ export type Database = {
       users: {
         Row: {
           anonymous_username: string | null
+          boost_expiration: string | null
           community_score: number | null
           created_at: string | null
           display_name: string | null
@@ -2019,12 +2020,14 @@ export type Database = {
           id: string
           last_active: string | null
           profile_complete: number | null
+          referred_by: string | null
           role: Database["public"]["Enums"]["user_role"]
           trust_score: number | null
           updated_at: string | null
         }
         Insert: {
           anonymous_username?: string | null
+          boost_expiration?: string | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
@@ -2032,12 +2035,14 @@ export type Database = {
           id: string
           last_active?: string | null
           profile_complete?: number | null
+          referred_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           trust_score?: number | null
           updated_at?: string | null
         }
         Update: {
           anonymous_username?: string | null
+          boost_expiration?: string | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
@@ -2045,6 +2050,7 @@ export type Database = {
           id?: string
           last_active?: string | null
           profile_complete?: number | null
+          referred_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           trust_score?: number | null
           updated_at?: string | null
@@ -2271,7 +2277,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      users_with_display_names: {
+        Row: {
+          anonymous_username: string | null
+          boost_expiration: string | null
+          community_score: number | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          last_active: string | null
+          profile_complete: number | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          trust_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          anonymous_username?: string | null
+          boost_expiration?: string | null
+          community_score?: number | null
+          created_at?: string | null
+          display_name?: never
+          id?: string | null
+          last_active?: string | null
+          profile_complete?: number | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          trust_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          anonymous_username?: string | null
+          boost_expiration?: string | null
+          community_score?: number | null
+          created_at?: string | null
+          display_name?: never
+          id?: string | null
+          last_active?: string | null
+          profile_complete?: number | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          trust_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_new_role_type: {
