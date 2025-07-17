@@ -40,16 +40,25 @@ export const CreditOverrides = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data: credits, error: creditsError } = await supabase
+      const { data, error } = await supabase
         .from('credits')
         .select(`
           *,
-          user:users(display_name, role, trust_score)
+          users!credits_user_id_fkey (display_name, anonymous_username, role)
         `)
         .order('updated_at', { ascending: false });
 
-      if (creditsError) throw creditsError;
-      setUsers(credits || []);
+      if (error) throw error;
+      
+      const formattedData = data?.map(credit => ({
+        ...credit,
+        user: {
+          display_name: credit.users?.display_name || credit.users?.anonymous_username || "Anonymous User",
+          role: credit.users?.role || "field_rep"
+        }
+      })) || [];
+      
+      setUsers(formattedData);
     } catch (error: any) {
       console.error('Error fetching user credits:', error);
       toast({
