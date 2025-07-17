@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -18,55 +18,30 @@ const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // TEMPORARILY DISABLED: Redirect to prelaunch page immediately when component mounts
+  // Redirect to prelaunch page immediately when component mounts
   // unless there's a bypass parameter indicating admin access
-  // useEffect(() => {
-  //   const bypass = searchParams.get('bypass');
-  //   if (bypass === 'admin') {
-  //     // Bypass the redirect for admin access
-  //     navigate('/auth', { replace: true });
-  //   } else {
-  //     navigate('/prelaunch', { replace: true });
-  //   }
-  // }, [navigate, searchParams]);
+  useEffect(() => {
+    const bypass = searchParams.get('bypass');
+    if (bypass === 'admin') {
+      // Bypass the redirect for admin access
+      navigate('/auth', { replace: true });
+    } else {
+      navigate('/prelaunch', { replace: true });
+    }
+  }, [navigate, searchParams]);
 
-  // Show temporary content instead of loading state
-  // DEBUG: Log current location
-  console.log('Index component rendering on path:', window.location.pathname);
-  
+  // Show loading state while redirecting
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
       <Card className="p-8 max-w-md mx-auto text-center">
-        <h2 className="text-xl font-semibold mb-4">ClearMarket</h2>
-        <p className="text-muted-foreground text-sm mb-4">
-          Temporary landing page - redirects disabled for admin access
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">ClearMarket</h2>
+        <p className="text-muted-foreground text-sm">
+          Redirecting to the pre-launch page...
         </p>
-        <p className="text-xs text-muted-foreground mb-4">
-          Current path: {window.location.pathname}
-        </p>
-        <div className="space-y-2">
-          <button 
-            onClick={() => window.location.href = '/auth2'} 
-            className="block w-full text-primary hover:underline cursor-pointer"
-          >
-            Go to New Auth Page (/auth2)
-          </button>
-          <button 
-            onClick={() => window.location.href = '/test-auth'} 
-            className="block w-full text-primary hover:underline cursor-pointer"
-          >
-            Go to Test Auth Page
-          </button>
-          <button 
-            onClick={() => window.location.href = '/auth'} 
-            className="block w-full text-primary hover:underline cursor-pointer"
-          >
-            Go to Auth Page (Force Reload)
-          </button>
-          <Link to="/prelaunch" className="block text-primary hover:underline">Go to Prelaunch</Link>
-        </div>
       </Card>
     </div>
   );
 };
+
 export default Index;
