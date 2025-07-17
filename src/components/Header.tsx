@@ -5,17 +5,19 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import MobileNav from "@/components/ui/mobile-nav";
 import NotificationBell from "@/components/ui/NotificationBell";
 import ProfileDropdown from "@/components/ui/ProfileDropdown";
-import { ChevronDown, UserPlus, Building, MessageSquare, Calendar, Home } from "lucide-react";
+import { ChevronDown, UserPlus, Building, MessageSquare, Calendar, Home, AlertTriangle, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useNDAStatus } from "@/hooks/useNDAStatus";
 import CreditBalance from "@/components/ui/CreditBalance";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { profile } = useUserProfile();
   const { unreadCount } = useNotifications();
+  const { hasSignedNDA, loading: ndaLoading } = useNDAStatus();
 
   const getDashboardPath = () => {
     const role = profile?.role || "field_rep";
@@ -83,6 +85,23 @@ const Header = () => {
             <div className="hidden md:flex items-center space-x-3">
               {user ? (
                 <>
+                  {/* NDA Status Indicator for authenticated users */}
+                  {!ndaLoading && !hasSignedNDA && (
+                    <Link to="/beta-nda">
+                      <Button variant="outline" size="sm" className="text-orange-600 border-orange-600 hover:bg-orange-50">
+                        <AlertTriangle className="h-4 w-4 mr-2" />
+                        Complete Legal Agreement
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {!ndaLoading && hasSignedNDA && (
+                    <div className="flex items-center space-x-1 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-xs font-medium">Agreement Signed</span>
+                    </div>
+                  )}
+                  
                   {/* Circular Icon Layout */}
                   <div className="flex items-center space-x-2">
                     {/* Notification Bell */}

@@ -36,6 +36,7 @@ import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import BetaNDA from "./pages/BetaNDA";
+import ProtectedRouteWithNDA from "./components/ProtectedRouteWithNDA";
 import NotFound from "./pages/NotFound";
 import { TestingDashboard } from "./components/TestingDashboard";
 
@@ -57,54 +58,54 @@ const App = () => (
                 <Route path="/prelaunch" element={<Prelaunch />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/admin-auth" element={<AdminAuthPage />} />
-                <Route path="/vendor/search" element={<VendorSearchPage />} />
-                <Route path="/vendor/profile" element={<VendorProfilePage />} />
-                <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
-                <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
+                <Route path="/vendor/search" element={<ProtectedRouteWithNDA><VendorSearchPage /></ProtectedRouteWithNDA>} />
+                <Route path="/vendor/profile" element={<ProtectedRouteWithNDA><VendorProfilePage /></ProtectedRouteWithNDA>} />
+                <Route path="/fieldrep/search" element={<ProtectedRouteWithNDA><FieldRepSearchPage /></ProtectedRouteWithNDA>} />
+                <Route path="/fieldrep/profile" element={<ProtectedRouteWithNDA><FieldRepProfilePage /></ProtectedRouteWithNDA>} />
                  <Route path="/fieldrep/profile/:id" element={<FieldRepPublicProfile />} />
                  <Route path="/vendor/profile/:id" element={<VendorPublicProfile />} />
                 <Route path="/fieldrep/dashboard" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <FieldRepDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/testing" element={<TestingDashboard />} />
                 <Route path="/community" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <CommunityBoard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/messages" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <MessagesPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/calendar" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <CalendarPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/settings" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <SettingsPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/vendor/dashboard" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <VendorDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/admin" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <AdminDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/moderator" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <ModeratorDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

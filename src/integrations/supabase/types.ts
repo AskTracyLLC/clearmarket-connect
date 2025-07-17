@@ -1459,6 +1459,39 @@ export type Database = {
           },
         ]
       }
+      nda_signatures: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          signature_name: string
+          signature_version: string
+          signed_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          signature_name: string
+          signature_version?: string
+          signed_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          signature_name?: string
+          signature_version?: string
+          signed_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       poll_votes: {
         Row: {
           choice_index: number
@@ -2616,6 +2649,10 @@ export type Database = {
           tag_count: number
         }[]
       }
+      get_user_display_name: {
+        Args: { target_user_id: string }
+        Returns: string
+      }
       get_user_email: {
         Args: { user_id: string }
         Returns: string
@@ -2645,6 +2682,10 @@ export type Database = {
           saved_at: string
           post_created_at: string
         }[]
+      }
+      has_signed_nda: {
+        Args: { target_user_id: string }
+        Returns: boolean
       }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }

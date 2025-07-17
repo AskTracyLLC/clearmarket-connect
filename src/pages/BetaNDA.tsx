@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,15 +9,68 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
-import { AlertTriangle, FileText, Scroll, PenTool } from 'lucide-react';
+import { AlertTriangle, FileText, Scroll, PenTool, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNDAStatus } from '@/hooks/useNDAStatus';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const BetaNDA = () => {
+  const { user } = useAuth();
+  const { hasSignedNDA, signNDA, loading: ndaLoading } = useNDAStatus();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(false);
   const [signature, setSignature] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userDisplayName, setUserDisplayName] = useState<string>('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user's display name for auto-fill
+  useEffect(() => {
+    const fetchUserDisplayName = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('display_name, anonymous_username')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        const displayName = data?.display_name || data?.anonymous_username || 'User';
+        setUserDisplayName(displayName);
+        setSignature(displayName); // Auto-fill signature field
+      } catch (err) {
+        console.error('Error fetching user display name:', err);
+        setUserDisplayName('User');
+        setSignature('User');
+      }
+    };
+
+    fetchUserDisplayName();
+  }, [user]);
+
+  // Redirect if already signed
+  useEffect(() => {
+    if (!ndaLoading && hasSignedNDA) {
+      const redirectTo = location.state?.from || '/fieldrep/dashboard';
+      navigate(redirectTo, { replace: true });
+    }
+  }, [hasSignedNDA, ndaLoading, navigate, location.state]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user && !ndaLoading) {
+      navigate('/auth', { replace: true });
+    }
+  }, [user, ndaLoading, navigate]);
 
   // Scroll detection to enable the agree button
   const handleScroll = () => {
@@ -69,14 +123,28 @@ const BetaNDA = () => {
     if (!canSubmit) return;
     
     setIsSubmitting(true);
-    // TODO: Implement NDA submission logic
-    console.log('NDA signed with signature:', signature);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await signNDA(signature);
+      
+      toast({
+        title: "NDA Successfully Signed",
+        description: "Welcome to ClearMarket Beta! You now have full access to the platform.",
+      });
+      
+      // Redirect to the intended destination or dashboard
+      const redirectTo = location.state?.from || '/fieldrep/dashboard';
+      navigate(redirectTo, { replace: true });
+    } catch (error) {
+      console.error('Error signing NDA:', error);
+      toast({
+        title: "Error Signing NDA",
+        description: error instanceof Error ? error.message : "Failed to sign NDA. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-      alert('NDA successfully signed! Redirecting to platform...');
-    }, 2000);
+    }
   };
 
   const getCurrentDate = () => {
@@ -86,6 +154,36 @@ const BetaNDA = () => {
       day: 'numeric'
     });
   };
+
+  // Show loading state while checking NDA status
+  if (ndaLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
+        <Card className="p-8 max-w-md mx-auto text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold mb-2">Checking Agreement Status...</h2>
+          <p className="text-muted-foreground text-sm">
+            Please wait while we verify your legal agreement status.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show success state if already signed (shouldn't normally see this due to redirect)
+  if (hasSignedNDA) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
+        <Card className="p-8 max-w-md mx-auto text-center">
+          <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Agreement Already Signed</h2>
+          <p className="text-muted-foreground text-sm">
+            You have already signed the Beta Tester Agreement. Redirecting to platform...
+          </p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
@@ -97,7 +195,11 @@ const BetaNDA = () => {
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Beta Tester Agreement</h1>
           <p className="text-muted-foreground">Required step before accessing ClearMarket Beta</p>
-          
+          {userDisplayName && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Welcome, <span className="font-medium text-foreground">{userDisplayName}</span>
+            </p>
+          )}
           {/* Progress indicator */}
           <div className="flex items-center justify-center gap-4 mt-6">
             <Badge variant="secondary" className="flex items-center gap-2">
@@ -433,7 +535,10 @@ const BetaNDA = () => {
                 Digital Signature <span className="text-destructive">*</span>
               </label>
               <p className="text-xs text-muted-foreground">
-                Type your full legal name below as your digital signature. This serves as your electronic signature on this agreement.
+                Your signature: <span className="font-medium text-foreground">{userDisplayName}</span> (from your profile)
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Confirm or edit your full legal name below as your digital signature. This serves as your electronic signature on this agreement.
               </p>
               <Input
                 id="signature"

@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Handle email verification redirects
+        // Handle post-authentication redirects
         if (event === 'SIGNED_IN' && session?.user) {
           const user = session.user;
           const isVerified = !!user.email_confirmed_at;
@@ -43,6 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // If not verified and not already on verification page, redirect
           if (!isVerified && !window.location.pathname.includes('verify-email')) {
             window.location.href = '/verify-email';
+          } else if (isVerified && !window.location.pathname.includes('beta-nda')) {
+            // If verified but not on NDA page, redirect to NDA
+            window.location.href = '/beta-nda';
           }
         }
       }
@@ -67,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/beta-nda`;
     
     const { error } = await supabase.auth.signUp({
       email,
