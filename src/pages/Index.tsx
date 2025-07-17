@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -39,8 +39,8 @@ const Index = () => {
           Temporary landing page - redirects disabled for admin access
         </p>
         <div className="space-y-2">
-          <a href="/auth" className="block text-primary hover:underline">Go to Auth Page</a>
-          <a href="/prelaunch" className="block text-primary hover:underline">Go to Prelaunch</a>
+          <Link to="/auth" className="block text-primary hover:underline">Go to Auth Page</Link>
+          <Link to="/prelaunch" className="block text-primary hover:underline">Go to Prelaunch</Link>
         </div>
       </Card>
     </div>
