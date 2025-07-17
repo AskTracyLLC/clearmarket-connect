@@ -31,6 +31,12 @@ export const useRequireNDA = () => {
     // Don't redirect if still loading or user is not authenticated
     if (loading || !user) return;
 
+    // Don't redirect if on a public route (check this FIRST before any other logic)
+    if (PUBLIC_ROUTES.includes(location.pathname)) return;
+
+    // Don't redirect if already on NDA page
+    if (location.pathname === '/beta-nda') return;
+
     // Check if user is admin - admins bypass all restrictions
     const checkAdminStatus = async () => {
       try {
@@ -45,12 +51,6 @@ export const useRequireNDA = () => {
         if (userRole === 'admin') {
           return;
         }
-
-        // Don't redirect if on a public route
-        if (PUBLIC_ROUTES.includes(location.pathname)) return;
-
-        // Don't redirect if already on NDA page
-        if (location.pathname === '/beta-nda') return;
 
         // Only redirect if user is on a protected route AND hasn't signed NDA
         if (!hasSignedNDA && !PUBLIC_ROUTES.includes(location.pathname)) {
