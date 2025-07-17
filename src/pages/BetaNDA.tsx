@@ -262,7 +262,7 @@ const BetaNDA = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="anonymousUsername">Anonymous Username</Label>
+                <Label htmlFor="anonymousUsername">Username</Label>
                 <Input
                   id="anonymousUsername"
                   value={anonymousUsername}
