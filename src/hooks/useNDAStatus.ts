@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { isAdminByEmail } from '@/utils/adminCheck';
 
 interface NDASignature {
   id: string;
@@ -17,8 +18,18 @@ export const useNDAStatus = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const checkNDAStatus = async () => {
+  const checkNDAStatus = useCallback(async () => {
     if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Skip NDA check for admin users - they always have access
+    if (isAdminByEmail(user.email)) {
+      console.log('✅ Admin user detected, skipping NDA check:', user.email);
+      setHasSignedNDA(true);
+      setNdaSignature(null);
+      setError(null);
       setLoading(false);
       return;
     }
@@ -43,7 +54,7 @@ export const useNDAStatus = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const signNDA = async (signatureName: string) => {
     if (!user) {
@@ -74,7 +85,7 @@ export const useNDAStatus = () => {
 
   useEffect(() => {
     checkNDAStatus();
-  }, [user]);
+  }, [checkNDAStatus]);
 
   return {
     hasSignedNDA,

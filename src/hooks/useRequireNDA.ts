@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNDAStatus } from './useNDAStatus';
 import { supabase } from '@/integrations/supabase/client';
+import { isAdminByEmail } from '@/utils/adminCheck';
 
 // Pages that don't require NDA (public pages)
 const PUBLIC_ROUTES = [
@@ -45,16 +46,15 @@ export const useRequireNDA = () => {
       return;
     }
 
-    // Check if user is admin - admins bypass all restrictions
+    // Immediate admin email check - bypass all restrictions
+    if (isAdminByEmail(user.email)) {
+      console.log('✅ User is admin by email:', user.email, '- bypassing all restrictions');
+      return;
+    }
+
+    // Check if user is admin by database role for non-email admin users
     const checkAdminStatus = async () => {
       try {
-        // Check if email is admin email (primary check - same as ProtectedRouteWithNDA)
-        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
-        if (adminEmails.includes(user.email || '')) {
-          console.log('✅ User is admin by email:', user.email, '- bypassing all restrictions');
-          return;
-        }
-
         // Fallback: Check database role
         const { data: userRole, error } = await supabase
           .rpc('get_user_role', { user_id: user.id });

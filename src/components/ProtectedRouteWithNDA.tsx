@@ -5,6 +5,7 @@ import { useRequireNDA } from '@/hooks/useRequireNDA';
 import { Card } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { isAdminByEmail } from '@/utils/adminCheck';
 
 interface ProtectedRouteWithNDAProps {
   children: React.ReactNode;
@@ -12,31 +13,36 @@ interface ProtectedRouteWithNDAProps {
 
 const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
-  const { hasSignedNDA, loading: ndaLoading } = useRequireNDA();
   const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  
+  // Immediate admin check by email - no async delay
+  const isAdminEmail = user ? isAdminByEmail(user.email) : false;
+  
+  // Always call NDA hook but it will be optimized internally for admin users
+  const { hasSignedNDA, loading: ndaLoading } = useRequireNDA();
+  
+  const [isAdminByRole, setIsAdminByRole] = useState<boolean | null>(null);
 
-  // Check if user is admin
+  // Check if user is admin by database role (fallback for non-email admin users)
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      console.log('🔍 ProtectedRouteWithNDA - Starting admin check...');
+    const checkAdminRole = async () => {
+      console.log('🔍 ProtectedRouteWithNDA - Starting database role check...');
       
       if (!user) {
         console.log('❌ No user found');
-        setIsAdmin(false);
+        setIsAdminByRole(false);
+        return;
+      }
+
+      // Skip database check if already admin by email
+      if (isAdminEmail) {
+        console.log('✅ User is admin by email, skipping database check:', user.email);
+        setIsAdminByRole(true);
         return;
       }
 
       // Debug logging
-      console.log('🔍 Checking admin status for user:', user.id, user.email);
-
-      // Check if email is admin email (primary check)
-      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
-      if (adminEmails.includes(user.email || '')) {
-        console.log('✅ User is admin by email:', user.email);
-        setIsAdmin(true);
-        return;
-      }
+      console.log('🔍 Checking database role for user:', user.id, user.email);
 
       try {
         const { data: userRole, error } = await supabase
@@ -46,25 +52,40 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
         
         if (error) {
           console.error('❌ Error checking user role:', error);
-          setIsAdmin(false);
+          setIsAdminByRole(false);
         } else {
           const isAdminRole = userRole === 'admin';
           console.log('🔍 Is admin role?', isAdminRole);
-          setIsAdmin(isAdminRole);
+          setIsAdminByRole(isAdminRole);
         }
       } catch (error) {
         console.error('❌ Error in admin check:', error);
-        setIsAdmin(false);
+        setIsAdminByRole(false);
       }
     };
 
-    checkAdminStatus();
-  }, [user?.id, user?.email]); // Use stable user properties instead of entire user object
+    checkAdminRole();
+  }, [user?.id, user?.email, isAdminEmail]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA);
+  // Determine final admin status
+  const isAdmin = isAdminEmail || isAdminByRole;
 
-  // Show loading state while checking auth, NDA status, and admin status
-  if (authLoading || ndaLoading || isAdmin === null) {
+  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'isAdminEmail:', isAdminEmail, 'isAdminByRole:', isAdminByRole, 'hasSignedNDA:', hasSignedNDA);
+
+  // Admin users with email bypass all loading states and checks
+  if (isAdminEmail) {
+    console.log('✅ Admin user detected by email, bypassing all restrictions');
+    return <>{children}</>;
+  }
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    console.log('❌ User not authenticated, redirecting to auth');
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
+  }
+
+  // Show loading state while checking auth, NDA status, and admin role (only for non-admin emails)
+  if (authLoading || ndaLoading || isAdminByRole === null) {
     console.log('⏳ Showing loading state...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
@@ -77,12 +98,6 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
         </Card>
       </div>
     );
-  }
-
-  // Redirect to login if not authenticated
-  if (!user) {
-    console.log('❌ User not authenticated, redirecting to auth');
-    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   // Admin users bypass all restrictions
