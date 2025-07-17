@@ -31,12 +31,18 @@ const Index = () => {
   // }, [navigate, searchParams]);
 
   // Show temporary content instead of loading state
+  // DEBUG: Log current location
+  console.log('Index component rendering on path:', window.location.pathname);
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
       <Card className="p-8 max-w-md mx-auto text-center">
         <h2 className="text-xl font-semibold mb-4">ClearMarket</h2>
         <p className="text-muted-foreground text-sm mb-4">
           Temporary landing page - redirects disabled for admin access
+        </p>
+        <p className="text-xs text-muted-foreground mb-4">
+          Current path: {window.location.pathname}
         </p>
         <div className="space-y-2">
           <button 
