@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { 
   Upload, 
   FileText, 
@@ -22,7 +23,9 @@ import {
   Clock, 
   AlertCircle,
   Eye,
-  Plus
+  Plus,
+  Crown,
+  HardDrive
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,13 +37,20 @@ interface UserDocument {
   file_path: string;
   file_size: number;
   mime_type: string;
-  upload_date: string;
+  upload_date?: string;
+  created_at?: string;
   expiration_date?: string;
-  status: 'active' | 'expired' | 'revoked' | 'pending';
+  status?: 'active' | 'expired' | 'revoked' | 'pending';
   verified_by?: string;
   verified_at?: string;
   verification_notes?: string;
   metadata: any;
+}
+
+interface UserStorageInfo {
+  subscription_tier: string;
+  storage_limit_mb: number;
+  storage_used_mb: number;
 }
 
 interface DocumentTypeConfig {
@@ -62,10 +72,12 @@ interface DocumentUploadProps {
 
 const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const { toast } = useToast();
   
   const [documents, setDocuments] = useState<UserDocument[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentTypeConfig[]>([]);
+  const [storageInfo, setStorageInfo] = useState<UserStorageInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -82,8 +94,29 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
     if (user) {
       loadDocuments();
       loadDocumentTypes();
+      loadStorageInfo();
     }
   }, [user]);
+
+  const loadStorageInfo = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('subscription_tier, storage_limit_mb, storage_used_mb')
+        .eq('id', user!.id)
+        .single();
+
+      if (error) throw error;
+      
+      setStorageInfo({
+        subscription_tier: data.subscription_tier || 'standard',
+        storage_limit_mb: data.storage_limit_mb || 100,
+        storage_used_mb: data.storage_used_mb || 0
+      });
+    } catch (error: any) {
+      console.error('Error loading storage info:', error);
+    }
+  };
 
   const loadDocuments = async () => {
     try {
@@ -94,7 +127,11 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDocuments(data || []);
+      setDocuments((data || []).map(doc => ({
+        ...doc,
+        upload_date: doc.upload_date || doc.created_at,
+        status: doc.status as 'active' | 'expired' | 'revoked' | 'pending' || 'pending'
+      })));
     } catch (error: any) {
       toast({
         title: "Error loading documents",
@@ -163,6 +200,21 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       return;
     }
 
+    // Check storage limits
+    if (storageInfo) {
+      const fileSizeMB = selectedFile.size / (1024 * 1024);
+      const availableSpace = storageInfo.storage_limit_mb - storageInfo.storage_used_mb;
+      
+      if (fileSizeMB > availableSpace) {
+        toast({
+          title: "Storage limit exceeded",
+          description: `File size (${fileSizeMB.toFixed(1)}MB) exceeds available storage (${availableSpace.toFixed(1)}MB). Please upgrade your plan or remove unused documents.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     setUploading(true);
     setUploadProgress(0);
 
@@ -175,11 +227,7 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       // Upload file to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('user-documents')
-        .upload(filePath, selectedFile, {
-          onUploadProgress: (progress) => {
-            setUploadProgress((progress.loaded / progress.total) * 100);
-          }
-        });
+        .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
 
@@ -222,9 +270,14 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
 
       // Reload documents
       loadDocuments();
+      loadStorageInfo(); // Refresh storage usage
       
       // Notify parent component
-      onDocumentAdded?.(docData);
+      onDocumentAdded?.({
+        ...docData,
+        upload_date: docData.upload_date || docData.created_at,
+        status: docData.status as 'active' | 'expired' | 'revoked' | 'pending' || 'pending'
+      });
 
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -249,7 +302,7 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
 
       // Create download link
       const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
       a.download = document.document_name;
       a.click();
@@ -337,6 +390,72 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
     const sizes = ['Bytes', 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Function to automatically store NDA when signed
+  const storeSignedNDA = async (firstName: string, lastName: string, email: string, signatureDate: string) => {
+    try {
+      // Generate PDF content for the NDA (simplified - in production this would be more complete)
+      const ndaContent = `
+CLEARMARKET BETA TESTER NON-DISCLOSURE AGREEMENT
+
+Signed by: ${firstName} ${lastName}
+Email: ${email}
+Date: ${signatureDate}
+
+This agreement was digitally signed and automatically stored.
+      `;
+      
+      // Create a simple text-based "PDF" (in production, you'd use a proper PDF library)
+      const blob = new Blob([ndaContent], { type: 'text/plain' });
+      const fileName = `NDA_${firstName}_${lastName}_${signatureDate.replace(/\//g, '-')}.txt`;
+      const filePath = `${user!.id}/nda/${fileName}`;
+
+      // Upload to storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('user-documents')
+        .upload(filePath, blob);
+
+      if (uploadError) throw uploadError;
+
+      // Save document metadata
+      const documentData = {
+        user_id: user!.id,
+        document_type: 'nda',
+        document_name: `Beta Tester NDA - ${signatureDate}`,
+        file_path: uploadData.path,
+        file_size: blob.size,
+        mime_type: 'text/plain',
+        status: 'active',
+        verified_by: 'system',
+        verified_at: new Date().toISOString(),
+        metadata: {
+          signature_date: signatureDate,
+          signer_name: `${firstName} ${lastName}`,
+          signer_email: email,
+          auto_generated: true
+        }
+      };
+
+      const { error: docError } = await supabase
+        .from('user_documents')
+        .insert([documentData]);
+
+      if (docError) throw docError;
+
+      // Refresh documents and storage
+      loadDocuments();
+      loadStorageInfo();
+
+      toast({
+        title: "NDA stored successfully",
+        description: "A copy of your signed NDA has been automatically stored in your documents"
+      });
+
+    } catch (error: any) {
+      console.error('Error storing NDA:', error);
+      // Don't show error to user as this is automatic
+    }
   };
 
   const selectedDocTypeConfig = documentTypes.find(dt => dt.document_type === selectedDocType);
@@ -482,6 +601,50 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Storage Usage Display */}
+          {storageInfo && (
+            <div className="mb-6 p-4 bg-muted/30 rounded-lg">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  <span className="font-medium">Storage Usage</span>
+                  {storageInfo.subscription_tier === 'premium' && (
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Premium
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {storageInfo.storage_used_mb.toFixed(1)} MB / {storageInfo.storage_limit_mb} MB
+                </div>
+              </div>
+              
+              <Progress 
+                value={(storageInfo.storage_used_mb / storageInfo.storage_limit_mb) * 100} 
+                className="h-2 mb-2"
+              />
+              
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  {((storageInfo.storage_used_mb / storageInfo.storage_limit_mb) * 100).toFixed(1)}% used
+                </span>
+                {storageInfo.subscription_tier === 'standard' && (
+                  <Button variant="outline" size="sm" className="h-6 text-xs">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Upgrade to Premium (500MB)
+                  </Button>
+                )}
+              </div>
+              
+              {storageInfo.storage_used_mb / storageInfo.storage_limit_mb > 0.9 && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                  <AlertCircle className="h-3 w-3 inline mr-1" />
+                  Storage nearly full. Consider upgrading or removing unused documents.
+                </div>
+              )}
+            </div>
+          )}
           {documents.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

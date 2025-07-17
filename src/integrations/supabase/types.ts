@@ -925,6 +925,54 @@ export type Database = {
         }
         Relationships: []
       }
+      document_type_config: {
+        Row: {
+          allowed_mime_types: string[] | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          display_order: number | null
+          document_type: string
+          id: string
+          is_active: boolean | null
+          max_file_size: number | null
+          required_for_roles: string[] | null
+          requires_expiration: boolean | null
+          updated_at: string | null
+          verification_required: boolean | null
+        }
+        Insert: {
+          allowed_mime_types?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          display_order?: number | null
+          document_type: string
+          id?: string
+          is_active?: boolean | null
+          max_file_size?: number | null
+          required_for_roles?: string[] | null
+          requires_expiration?: boolean | null
+          updated_at?: string | null
+          verification_required?: boolean | null
+        }
+        Update: {
+          allowed_mime_types?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          display_order?: number | null
+          document_type?: string
+          id?: string
+          is_active?: boolean | null
+          max_file_size?: number | null
+          required_for_roles?: string[] | null
+          requires_expiration?: boolean | null
+          updated_at?: string | null
+          verification_required?: boolean | null
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           created_at: string
@@ -1859,6 +1907,92 @@ export type Database = {
         }
         Relationships: []
       }
+      user_documents: {
+        Row: {
+          created_at: string | null
+          document_name: string
+          document_type: string
+          expiration_date: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          metadata: Json | null
+          mime_type: string | null
+          status: string | null
+          updated_at: string | null
+          upload_date: string | null
+          user_id: string
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_name: string
+          document_type: string
+          expiration_date?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+          upload_date?: string | null
+          user_id: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_name?: string
+          document_type?: string
+          expiration_date?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string | null
+          status?: string | null
+          updated_at?: string | null
+          upload_date?: string | null
+          user_id?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_documents_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_documents_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_invitations: {
         Row: {
           created_at: string
@@ -2016,12 +2150,16 @@ export type Database = {
           community_score: number | null
           created_at: string | null
           display_name: string | null
+          document_expiration_notifications: boolean | null
           email: string | null
           id: string
           last_active: string | null
           profile_complete: number | null
           referred_by: string | null
           role: Database["public"]["Enums"]["user_role"]
+          storage_limit_mb: number | null
+          storage_used_mb: number | null
+          subscription_tier: string | null
           trust_score: number | null
           updated_at: string | null
         }
@@ -2031,12 +2169,16 @@ export type Database = {
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
+          document_expiration_notifications?: boolean | null
           email?: string | null
           id: string
           last_active?: string | null
           profile_complete?: number | null
           referred_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          storage_limit_mb?: number | null
+          storage_used_mb?: number | null
+          subscription_tier?: string | null
           trust_score?: number | null
           updated_at?: string | null
         }
@@ -2046,12 +2188,16 @@ export type Database = {
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
+          document_expiration_notifications?: boolean | null
           email?: string | null
           id?: string
           last_active?: string | null
           profile_complete?: number | null
           referred_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          storage_limit_mb?: number | null
+          storage_used_mb?: number | null
+          subscription_tier?: string | null
           trust_score?: number | null
           updated_at?: string | null
         }
@@ -2354,8 +2500,20 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      calculate_user_storage_usage: {
+        Args: { target_user_id: string }
+        Returns: number
+      }
       can_create_flag: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      check_document_expiration: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      check_storage_available: {
+        Args: { target_user_id: string; file_size_bytes: number }
         Returns: boolean
       }
       cleanup_expired_ai_data: {
@@ -2416,6 +2574,16 @@ export type Database = {
       get_user_display_name: {
         Args: { target_user_id: string }
         Returns: string
+      }
+      get_user_document_stats: {
+        Args: { target_user_id: string }
+        Returns: {
+          total_documents: number
+          verified_documents: number
+          pending_documents: number
+          expired_documents: number
+          document_types: Json
+        }[]
       }
       get_user_email: {
         Args: { user_id: string }
