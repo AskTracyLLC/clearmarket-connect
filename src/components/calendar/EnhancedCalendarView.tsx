@@ -61,21 +61,33 @@ const EnhancedCalendarView = ({ userRole }: EnhancedCalendarViewProps) => {
       if (showNetworkEvents) {
         const { data: networkEventsData, error: networkError } = await supabase
           .from("calendar_events")
-          .select(`
-            *,
-            users!calendar_events_user_id_fkey(display_name, anonymous_username, role)
-          `)
+          .select("*")
           .eq("event_visibility", "network")
           .neq("user_id", (await supabase.auth.getUser()).data.user?.id);
 
         if (networkError) throw networkError;
         
+        // Get user data for event owners
+        const ownerIds = networkEventsData?.map(event => event.user_id) || [];
+        let ownersData = [];
+        
+        if (ownerIds.length > 0) {
+          const { data: userData } = await supabase
+            .from("users")
+            .select("id, display_name, anonymous_username, role")
+            .in("id", ownerIds);
+          ownersData = userData || [];
+        }
+
         // Transform network events with owner info
-        const transformedNetworkEvents: NetworkEvent[] = (networkEventsData || []).map(event => ({
-          ...event,
-          owner_name: event.users?.display_name || event.users?.anonymous_username || "Unknown User",
-          owner_role: (event.users?.role === "vendor" ? "vendor" : "field_rep") as "field_rep" | "vendor"
-        }));
+        const transformedNetworkEvents: NetworkEvent[] = (networkEventsData || []).map(event => {
+          const owner = ownersData.find(o => o.id === event.user_id);
+          return {
+            ...event,
+            owner_name: owner?.display_name || owner?.anonymous_username || "Unknown User",
+            owner_role: (owner?.role === "vendor" ? "vendor" : "field_rep") as "field_rep" | "vendor"
+          };
+        });
 
         // Filter events based on user role preferences
         const filteredEvents = transformedNetworkEvents.filter(event => {
