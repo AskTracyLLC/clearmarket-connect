@@ -49,9 +49,9 @@ const AuthPage2 = () => {
       if (error.message === 'Request timeout') {
         toast.error('Authentication is taking too long. Let me try a different approach...');
         
-        // Try the simpler approach - just navigate and let auth state handle it
-        console.log('Attempting fallback navigation...');
-        navigate('/');
+        // Try the simpler approach - navigate to admin dashboard for admin users
+        console.log('Attempting fallback navigation to admin dashboard...');
+        navigate('/admin');
       } else {
         toast.error('An unexpected error occurred: ' + error.message);
       }
