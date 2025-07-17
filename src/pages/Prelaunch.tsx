@@ -530,7 +530,7 @@ const Prelaunch = () => {
           company_website: companyWebsite || null,
           states_covered: statesCovered,
           primary_service: finalServices,
-          current_challenges: currentChallenges || null,
+          current_challenges: currentChallenges ? [currentChallenges] : [],
           interested_features: finalFeatures,
           interested_in_beta_testing: interestedInBetaTesting,
           agreed_to_analytics: agreedToAnalytics
