@@ -71,13 +71,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "admin_discussions_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "admin_discussions_posted_post_id_fkey"
             columns: ["posted_post_id"]
             isOneToOne: false
@@ -123,15 +116,7 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "audit_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       auto_reply_settings: {
         Row: {
@@ -164,15 +149,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "auto_reply_settings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       beta_testers: {
         Row: {
@@ -234,13 +211,6 @@ export type Database = {
             referencedRelation: "bulk_messages"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "bulk_message_recipients_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       bulk_messages: {
@@ -274,15 +244,7 @@ export type Database = {
           sender_id?: string
           subject?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "bulk_messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       calendar_events: {
         Row: {
@@ -324,15 +286,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "calendar_events_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       community_analytics: {
         Row: {
@@ -400,13 +354,6 @@ export type Database = {
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "community_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       community_posts: {
@@ -467,15 +414,7 @@ export type Database = {
           user_id?: string
           user_tags?: string[] | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "community_posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       contact_unlocks: {
         Row: {
@@ -499,22 +438,7 @@ export type Database = {
           unlocked_user_id?: string
           unlocker_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "contact_unlocks_unlocked_user_id_fkey"
-            columns: ["unlocked_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contact_unlocks_unlocker_id_fkey"
-            columns: ["unlocker_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       content_similarity_cache: {
         Row: {
@@ -761,13 +685,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "credit_earning_audit_log_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "credit_earning_audit_log_rule_id_fkey"
             columns: ["rule_id"]
             isOneToOne: false
@@ -863,13 +780,6 @@ export type Database = {
             referencedRelation: "credit_earning_rules"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "credit_transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       credits: {
@@ -894,15 +804,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "credits_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       daily_credit_earnings: {
         Row: {
@@ -935,13 +837,6 @@ export type Database = {
             columns: ["rule_id"]
             isOneToOne: false
             referencedRelation: "credit_earning_rules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_credit_earnings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -989,15 +884,7 @@ export type Database = {
           used_at?: string | null
           used_by_admin?: boolean | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "discussion_suggestions_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       discussion_templates: {
         Row: {
@@ -1222,15 +1109,7 @@ export type Database = {
           target_id?: string
           target_type?: Database["public"]["Enums"]["flag_target_type"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "flags_flagged_by_fkey"
-            columns: ["flagged_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       helpful_votes: {
         Row: {
@@ -1254,15 +1133,7 @@ export type Database = {
           target_type?: string
           voter_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "helpful_votes_voter_id_fkey"
-            columns: ["voter_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       internal_users: {
         Row: {
@@ -1307,15 +1178,7 @@ export type Database = {
           role?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "internal_users_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       launch_notifications: {
         Row: {
@@ -1405,15 +1268,7 @@ export type Database = {
           wants_progress_reports?: boolean
           website_url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "launch_notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       moderation_actions: {
         Row: {
@@ -1449,15 +1304,7 @@ export type Database = {
           target_id?: string
           target_type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "moderation_actions_moderator_id_fkey"
-            columns: ["moderator_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       nda_signatures: {
         Row: {
@@ -1525,13 +1372,6 @@ export type Database = {
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "poll_votes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       post_acknowledgments: {
@@ -1564,13 +1404,6 @@ export type Database = {
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "post_acknowledgments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       referrals: {
@@ -1598,22 +1431,7 @@ export type Database = {
           referrer_id?: string
           reward_claimed?: boolean | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "referrals_joined_user_id_fkey"
-            columns: ["joined_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "referrals_referrer_id_fkey"
-            columns: ["referrer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reviews: {
         Row: {
@@ -1655,29 +1473,7 @@ export type Database = {
           verified_by?: string | null
           work_completed_date?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_reviewed_user_id_fkey"
-            columns: ["reviewed_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_verified_by_fkey"
-            columns: ["verified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       saved_local_news_searches: {
         Row: {
@@ -1739,13 +1535,6 @@ export type Database = {
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "saved_posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       scheduled_discussion_posts: {
@@ -1792,13 +1581,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "scheduled_discussion_posts_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "scheduled_discussion_posts_conflict_post_id_fkey"
             columns: ["conflict_post_id"]
@@ -1862,15 +1644,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "scheduler_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       sent_emails: {
         Row: {
@@ -1966,15 +1740,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "system_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       system_templates: {
         Row: {
@@ -2019,22 +1785,7 @@ export type Database = {
           updated_at?: string
           variables?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "system_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "system_templates_last_modified_by_fkey"
-            columns: ["last_modified_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       transactions: {
         Row: {
@@ -2079,15 +1830,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_comments: {
         Row: {
@@ -2268,56 +2011,45 @@ export type Database = {
       }
       users: {
         Row: {
-          anonymous_username: string
-          boost_expiration: string | null
+          anonymous_username: string | null
           community_score: number | null
           created_at: string | null
           display_name: string | null
+          email: string | null
           id: string
           last_active: string | null
           profile_complete: number | null
-          referred_by: string | null
           role: Database["public"]["Enums"]["user_role"]
           trust_score: number | null
           updated_at: string | null
         }
         Insert: {
-          anonymous_username: string
-          boost_expiration?: string | null
+          anonymous_username?: string | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
+          email?: string | null
           id: string
           last_active?: string | null
           profile_complete?: number | null
-          referred_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           trust_score?: number | null
           updated_at?: string | null
         }
         Update: {
-          anonymous_username?: string
-          boost_expiration?: string | null
+          anonymous_username?: string | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
+          email?: string | null
           id?: string
           last_active?: string | null
           profile_complete?: number | null
-          referred_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           trust_score?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "users_referred_by_fkey"
-            columns: ["referred_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vendor_network_alert_recipients: {
         Row: {
@@ -2350,13 +2082,6 @@ export type Database = {
             columns: ["alert_id"]
             isOneToOne: false
             referencedRelation: "vendor_network_alerts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_vendor_network_alert_recipients_recipient_id"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -2407,15 +2132,7 @@ export type Database = {
           updated_at?: string
           vendor_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_vendor_network_alerts_vendor_id"
-            columns: ["vendor_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vendor_signups: {
         Row: {
@@ -2424,7 +2141,7 @@ export type Database = {
           company_name: string | null
           company_website: string | null
           created_at: string
-          current_challenges: string | null
+          current_challenges: string[] | null
           email: string
           feedback_access_token: string | null
           feedback_token_expires_at: string | null
@@ -2443,7 +2160,7 @@ export type Database = {
           company_name?: string | null
           company_website?: string | null
           created_at?: string
-          current_challenges?: string | null
+          current_challenges?: string[] | null
           email: string
           feedback_access_token?: string | null
           feedback_token_expires_at?: string | null
@@ -2462,7 +2179,7 @@ export type Database = {
           company_name?: string | null
           company_website?: string | null
           created_at?: string
-          current_challenges?: string | null
+          current_challenges?: string[] | null
           email?: string
           feedback_access_token?: string | null
           feedback_token_expires_at?: string | null
