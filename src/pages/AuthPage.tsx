@@ -38,46 +38,59 @@ const AuthPage = () => {
         variant: "destructive",
       });
     } else {
-      // Fetch user role and redirect to appropriate dashboard
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', (await supabase.auth.getUser()).data.user?.id)
-          .single();
+      // Check if this is an admin email before checking database
+      const user = (await supabase.auth.getUser()).data.user;
+      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
+      
+      if (user && adminEmails.includes(user.email || '')) {
+        // Admin user - redirect directly to admin dashboard
+        navigate('/admin-dashboard');
+        toast({
+          title: "Welcome back, Admin!",
+          description: "You have successfully signed in.",
+        });
+      } else {
+        // Fetch user role from database and redirect to appropriate dashboard
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user?.id)
+            .single();
 
-        if (userError) throw userError;
+          if (userError) throw userError;
 
-        // Redirect based on role
-        switch (userData.role) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'moderator':
-            navigate('/moderator');
-            break;
-          case 'vendor':
-            navigate('/vendor/dashboard');
-            break;
-          case 'field_rep':
-            navigate('/fieldrep/dashboard');
-            break;
-          default:
-            navigate('/');
+          // Redirect based on role
+          switch (userData.role) {
+            case 'admin':
+              navigate('/admin-dashboard');
+              break;
+            case 'moderator':
+              navigate('/moderator-dashboard');
+              break;
+            case 'vendor':
+              navigate('/vendor/dashboard');
+              break;
+            case 'field_rep':
+              navigate('/fieldrep/dashboard');
+              break;
+            default:
+              navigate('/');
+          }
+
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        } catch (roleError) {
+          console.error('Error fetching user role:', roleError);
+          // Fallback to home page if role fetch fails
+          navigate('/');
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
         }
-
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        });
-      } catch (roleError) {
-        console.error('Error fetching user role:', roleError);
-        // Fallback to home page if role fetch fails
-        navigate('/');
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        });
       }
     }
 
