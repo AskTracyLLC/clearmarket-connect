@@ -63,7 +63,7 @@ const EnhancedCalendarView = ({ userRole }: EnhancedCalendarViewProps) => {
           .from("calendar_events")
           .select(`
             *,
-            users!calendar_events_user_id_fkey(display_name, role)
+            users!calendar_events_user_id_fkey(display_name, anonymous_username, role)
           `)
           .eq("event_visibility", "network")
           .neq("user_id", (await supabase.auth.getUser()).data.user?.id);
@@ -73,7 +73,7 @@ const EnhancedCalendarView = ({ userRole }: EnhancedCalendarViewProps) => {
         // Transform network events with owner info
         const transformedNetworkEvents: NetworkEvent[] = (networkEventsData || []).map(event => ({
           ...event,
-          owner_name: event.users?.display_name || "Unknown User",
+          owner_name: event.users?.display_name || event.users?.anonymous_username || "Unknown User",
           owner_role: (event.users?.role === "vendor" ? "vendor" : "field_rep") as "field_rep" | "vendor"
         }));
 
