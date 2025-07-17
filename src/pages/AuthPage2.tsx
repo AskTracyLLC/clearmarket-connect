@@ -21,10 +21,17 @@ const AuthPage2 = () => {
     console.log('Starting sign in process...');
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Add a timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      
+      const authPromise = supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      const { data, error } = await Promise.race([authPromise, timeoutPromise]) as any;
       
       console.log('Sign in response:', { data, error });
       
@@ -34,11 +41,19 @@ const AuthPage2 = () => {
       } else {
         console.log('Sign in successful:', data);
         toast.success('Signed in successfully!');
-        navigate('/'); // Redirect to home after successful sign in
+        
+        // Small delay to let the toast show
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Unexpected sign in error:', error);
-      toast.error('An unexpected error occurred');
+      if (error.message === 'Request timeout') {
+        toast.error('Sign in request timed out. Please try again.');
+      } else {
+        toast.error('An unexpected error occurred');
+      }
     } finally {
       console.log('Sign in process completed, setting loading to false');
       setLoading(false);
