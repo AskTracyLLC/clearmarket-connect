@@ -44,7 +44,7 @@ const AuthPage = () => {
       
       if (user && adminEmails.includes(user.email || '')) {
         // Admin user - redirect directly to admin dashboard
-        navigate('/admin-dashboard');
+        navigate('/admin');
         toast({
           title: "Welcome back, Admin!",
           description: "You have successfully signed in.",
@@ -60,14 +60,14 @@ const AuthPage = () => {
 
           if (userError) throw userError;
 
-          // Redirect based on role
-          switch (userData.role) {
-            case 'admin':
-              navigate('/admin-dashboard');
-              break;
-            case 'moderator':
-              navigate('/moderator-dashboard');
-              break;
+           // Redirect based on role
+           switch (userData.role) {
+             case 'admin':
+               navigate('/admin');
+               break;
+             case 'moderator':
+               navigate('/moderator');
+               break;
             case 'vendor':
               navigate('/vendor/dashboard');
               break;
