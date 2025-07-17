@@ -31,7 +31,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
       console.log('🔍 Checking admin status for user:', user.id, user.email);
 
       // Check if email is admin email (primary check)
-      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
+      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
       if (adminEmails.includes(user.email || '')) {
         console.log('✅ User is admin by email:', user.email);
         setIsAdmin(true);
