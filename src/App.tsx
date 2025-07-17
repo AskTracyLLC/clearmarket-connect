@@ -25,6 +25,7 @@ import MessagesPage from "./pages/MessagesPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
+import AuthPage2 from "./pages/AuthPage2";
 import AdminAuthPage from "./pages/AdminAuthPage";
 import VendorDashboard from "./pages/VendorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -57,6 +58,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/prelaunch" element={<Prelaunch />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/auth2" element={<AuthPage2 />} />
                   <Route path="/test-auth" element={<div><h1>TEST AUTH PAGE WORKING</h1></div>} />
                 <Route path="/admin-auth" element={<AdminAuthPage />} />
                 <Route path="/vendor/search" element={<ProtectedRouteWithNDA><VendorSearchPage /></ProtectedRouteWithNDA>} />

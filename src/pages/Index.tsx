@@ -46,6 +46,12 @@ const Index = () => {
         </p>
         <div className="space-y-2">
           <button 
+            onClick={() => window.location.href = '/auth2'} 
+            className="block w-full text-primary hover:underline cursor-pointer"
+          >
+            Go to New Auth Page (/auth2)
+          </button>
+          <button 
             onClick={() => window.location.href = '/test-auth'} 
             className="block w-full text-primary hover:underline cursor-pointer"
           >
