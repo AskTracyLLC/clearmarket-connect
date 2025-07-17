@@ -55,7 +55,7 @@ export const CreditAuditLog = () => {
 
       // Get admin names separately
       const adminIds = auditData?.map(entry => entry.admin_id).filter(Boolean) || [];
-      let adminsData = [];
+      let adminsData: any[] = [];
       
       if (adminIds.length > 0) {
         const { data: adminUsers } = await supabase
