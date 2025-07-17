@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -28,14 +28,72 @@ import { Users, MapPin, Star, Shield, MessageSquare, Mail, CheckCircle, ArrowRig
  * Separated from Index.tsx to allow the main page to redirect here
  * while keeping all pre-launch logic intact and maintainable.
  */
+interface FormState {
+  email: string;
+  userType: string;
+  primaryState: string;
+  companyName: string;
+  companyWebsite: string;
+  statesCovered: string[];
+  fieldRepName: string;
+  workTypes: string[];
+  otherWorkType: string;
+  experienceLevel: string;
+  currentChallenges: string;
+  interestedFeatures: string[];
+  otherFeature: string;
+  interestedInBetaTesting: boolean;
+  agreedToAnalytics: boolean;
+  primaryService: string;
+  primaryServices: string[];
+  otherService: string;
+}
+
+const initialFormState: FormState = {
+  email: '',
+  userType: '',
+  primaryState: '',
+  companyName: '',
+  companyWebsite: '',
+  statesCovered: [],
+  fieldRepName: '',
+  workTypes: [],
+  otherWorkType: '',
+  experienceLevel: '',
+  currentChallenges: '',
+  interestedFeatures: [],
+  otherFeature: '',
+  interestedInBetaTesting: false,
+  agreedToAnalytics: false,
+  primaryService: '',
+  primaryServices: [],
+  otherService: '',
+};
+
+type FormAction = 
+  | { type: 'SET_FIELD'; field: keyof FormState; value: any }
+  | { type: 'TOGGLE_ARRAY_ITEM'; field: keyof FormState; item: string }
+  | { type: 'RESET' };
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
+    case 'TOGGLE_ARRAY_ITEM':
+      const currentArray = state[action.field] as string[];
+      const newArray = currentArray.includes(action.item)
+        ? currentArray.filter(item => item !== action.item)
+        : [...currentArray, action.item];
+      return { ...state, [action.field]: newArray };
+    case 'RESET':
+      return initialFormState;
+    default:
+      return state;
+  }
+}
+
 const Prelaunch = () => {
-  // Existing state
-  const [email, setEmail] = useState('');
-  const [userType, setUserType] = useState('');
-  const [primaryState, setPrimaryState] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [companyWebsite, setCompanyWebsite] = useState('');
-  const [statesCovered, setStatesCovered] = useState([]);
+  const [formState, dispatch] = useReducer(formReducer, initialFormState);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
@@ -45,20 +103,6 @@ const Prelaunch = () => {
     fullUsername: ''
   });
   const [states, setStates] = useState([]);
-
-  // New research fields
-  const [primaryService, setPrimaryService] = useState('');
-  const [primaryServices, setPrimaryServices] = useState([]);
-  const [otherService, setOtherService] = useState('');
-  const [fieldRepName, setFieldRepName] = useState('');
-  const [workTypes, setWorkTypes] = useState([]);
-  const [otherWorkType, setOtherWorkType] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
-  const [currentChallenges, setCurrentChallenges] = useState('');
-  const [interestedFeatures, setInterestedFeatures] = useState([]);
-  const [otherFeature, setOtherFeature] = useState('');
-  const [interestedInBetaTesting, setInterestedInBetaTesting] = useState(false);
-  const [agreedToAnalytics, setAgreedToAnalytics] = useState(false);
 
   // Anti-spam states
   const [honeypotField, setHoneypotField] = useState('');
@@ -362,24 +406,24 @@ const Prelaunch = () => {
   }, []);
 
   // Helper functions for multi-select
-  const handleWorkTypeToggle = workType => {
-    setWorkTypes(prev => prev.includes(workType) ? prev.filter(w => w !== workType) : [...prev, workType]);
+  const handleWorkTypeToggle = (workType: string) => {
+    dispatch({ type: 'TOGGLE_ARRAY_ITEM', field: 'workTypes', item: workType });
   };
-  const handleServiceToggle = service => {
-    setPrimaryServices(prev => prev.includes(service) ? prev.filter(s => s !== service) : [...prev, service]);
+  const handleServiceToggle = (service: string) => {
+    dispatch({ type: 'TOGGLE_ARRAY_ITEM', field: 'primaryServices', item: service });
   };
-  const handleFeatureToggle = feature => {
-    setInterestedFeatures(prev => prev.includes(feature) ? prev.filter(f => f !== feature) : [...prev, feature]);
+  const handleFeatureToggle = (feature: string) => {
+    dispatch({ type: 'TOGGLE_ARRAY_ITEM', field: 'interestedFeatures', item: feature });
   };
-  const handleStateToggle = state => {
-    setStatesCovered(prev => prev.includes(state) ? prev.filter(s => s !== state) : [...prev, state]);
+  const handleStateToggle = (state: string) => {
+    dispatch({ type: 'TOGGLE_ARRAY_ITEM', field: 'statesCovered', item: state });
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !userType || !agreedToAnalytics) return;
+    if (!formState.email || !formState.userType || !formState.agreedToAnalytics) return;
 
     // Field rep validation
-    if (userType === 'field-rep' && (!primaryState || !fieldRepName)) {
+    if (formState.userType === 'field-rep' && (!formState.primaryState || !formState.fieldRepName)) {
       toast({
         title: "Missing Information",
         description: "Please complete all required fields.",
@@ -389,7 +433,7 @@ const Prelaunch = () => {
     }
 
     // Vendor validation
-    if (userType === 'vendor' && !companyName) {
+    if (formState.userType === 'vendor' && !formState.companyName) {
       toast({
         title: "Missing Information",
         description: "Please enter your company name.",
@@ -402,8 +446,8 @@ const Prelaunch = () => {
    // Debug logging for mobile signup issues
    console.log("=== SIGNUP ATTEMPT DEBUG ===");
    console.log("Form data:", {
-     email,
-     userType,
+     email: formState.email,
+     userType: formState.userType,
      clientIP,
      recaptchaToken: recaptchaToken ? "present" : "missing",
      userAgent: navigator.userAgent,
@@ -417,8 +461,8 @@ const Prelaunch = () => {
       // 1. Validate honeypot field (should be empty)
       if (!validateHoneypot(honeypotField)) {
         await logSignupAttempt({
-          email,
-          userType: userType as 'field-rep' | 'vendor',
+          email: formState.email,
+          userType: formState.userType as 'field-rep' | 'vendor',
           ipAddress: clientIP,
           userAgent,
           success: false,
@@ -457,10 +501,10 @@ const Prelaunch = () => {
       */
 
       // 3. Check for disposable email
-      if (isDisposableEmail(email)) {
+      if (isDisposableEmail(formState.email)) {
         await logSignupAttempt({
-          email,
-          userType: userType as 'field-rep' | 'vendor',
+          email: formState.email,
+          userType: formState.userType as 'field-rep' | 'vendor',
           ipAddress: clientIP,
           userAgent,
           success: false,
@@ -488,8 +532,8 @@ const Prelaunch = () => {
       const isWithinRateLimit = await checkRateLimit(clientIP);
       if (!isWithinRateLimit) {
         await logSignupAttempt({
-          email,
-          userType: userType as 'field-rep' | 'vendor',
+          email: formState.email,
+          userType: formState.userType as 'field-rep' | 'vendor',
           ipAddress: clientIP,
           userAgent,
           success: false,
@@ -505,11 +549,11 @@ const Prelaunch = () => {
       }
 
       // 5. Check for duplicate email across both tables
-      const duplicateCheck = await checkDuplicateEmail(email);
+      const duplicateCheck = await checkDuplicateEmail(formState.email);
       if (duplicateCheck.exists) {
         await logSignupAttempt({
-          email,
-          userType: userType as 'field-rep' | 'vendor',
+          email: formState.email,
+          userType: formState.userType as 'field-rep' | 'vendor',
           ipAddress: clientIP,
           userAgent,
           success: false,
@@ -531,23 +575,23 @@ const Prelaunch = () => {
       let generatedUsername = '';
       let betaCredentials = null;
       
-      if (userType === 'field-rep') {
+      if (formState.userType === 'field-rep') {
         // Include the custom work type if "other" was selected
-        const finalWorkTypes = workTypes.includes('other') && otherWorkType ? [...workTypes.filter(w => w !== 'other'), otherWorkType] : workTypes;
+        const finalWorkTypes = formState.workTypes.includes('other') && formState.otherWorkType ? [...formState.workTypes.filter(w => w !== 'other'), formState.otherWorkType] : formState.workTypes;
 
         // Include the custom feature if "other" was selected
-        const finalFeatures = interestedFeatures.includes('other') && otherFeature ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature] : interestedFeatures;
+        const finalFeatures = formState.interestedFeatures.includes('other') && formState.otherFeature ? [...formState.interestedFeatures.filter(f => f !== 'other'), formState.otherFeature] : formState.interestedFeatures;
 
         const signupData = {
-          email,
-          primary_state: primaryState,
-          field_rep_name: fieldRepName,
+          email: formState.email,
+          primary_state: formState.primaryState,
+          field_rep_name: formState.fieldRepName,
           work_types: finalWorkTypes,
-          experience_level: experienceLevel,
-          current_challenges: currentChallenges ? [currentChallenges] : [],
+          experience_level: formState.experienceLevel,
+          current_challenges: formState.currentChallenges ? [formState.currentChallenges] : [],
           interested_features: finalFeatures,
-          interested_in_beta_testing: interestedInBetaTesting,
-          agreed_to_analytics: agreedToAnalytics
+          interested_in_beta_testing: formState.interestedInBetaTesting,
+          agreed_to_analytics: formState.agreedToAnalytics
           // Don't set anonymous_username - let the database generate it
         };
         
@@ -561,9 +605,9 @@ const Prelaunch = () => {
         generatedUsername = insertedData.anonymous_username;
 
         // 🆕 BETA TESTER FLOW - Create auth account for beta testers
-        if (interestedInBetaTesting) {
+        if (formState.interestedInBetaTesting) {
           const betaResult = await createBetaTesterAccount({
-            email,
+            email: formState.email,
             anonymous_username: generatedUsername,
             signupType: 'field-rep'
           });
@@ -579,9 +623,9 @@ const Prelaunch = () => {
         // 🆕 SEND EMAIL (beta or regular)
         const emailResult = await sendSignupEmail({
           signupType: 'field-rep',
-          email: email,
+          email: formState.email,
           anonymous_username: generatedUsername,
-          interested_in_beta_testing: interestedInBetaTesting,
+          interested_in_beta_testing: formState.interestedInBetaTesting,
           credentials: betaCredentials
         });
 
@@ -592,7 +636,7 @@ const Prelaunch = () => {
 
         // Log successful signup
         await logSignupAttempt({
-          email,
+          email: formState.email,
           userType: 'field-rep',
           ipAddress: clientIP,
           userAgent,
@@ -601,21 +645,21 @@ const Prelaunch = () => {
         });
       } else {
         // Include the custom service type if "other" was selected
-        const finalServices = primaryServices.includes('other') && otherService ? [...primaryServices.filter(s => s !== 'other'), otherService] : primaryServices;
+        const finalServices = formState.primaryServices.includes('other') && formState.otherService ? [...formState.primaryServices.filter(s => s !== 'other'), formState.otherService] : formState.primaryServices;
 
         // Include the custom feature if "other" was selected
-        const finalFeatures = interestedFeatures.includes('other') && otherFeature ? [...interestedFeatures.filter(f => f !== 'other'), otherFeature] : interestedFeatures;
+        const finalFeatures = formState.interestedFeatures.includes('other') && formState.otherFeature ? [...formState.interestedFeatures.filter(f => f !== 'other'), formState.otherFeature] : formState.interestedFeatures;
 
         const signupData = {
-          email,
-          company_name: companyName,
-          company_website: companyWebsite || null,
-          states_covered: statesCovered,
+          email: formState.email,
+          company_name: formState.companyName,
+          company_website: formState.companyWebsite || null,
+          states_covered: formState.statesCovered,
           primary_service: finalServices,
-          current_challenges: currentChallenges ? [currentChallenges] : [],
+          current_challenges: formState.currentChallenges ? [formState.currentChallenges] : [],
           interested_features: finalFeatures,
-          interested_in_beta_testing: interestedInBetaTesting,
-          agreed_to_analytics: agreedToAnalytics
+          interested_in_beta_testing: formState.interestedInBetaTesting,
+          agreed_to_analytics: formState.agreedToAnalytics
           // Don't set anonymous_username - let the database generate it
         };
         
@@ -629,9 +673,9 @@ const Prelaunch = () => {
         generatedUsername = insertedData.anonymous_username;
 
         // 🆕 BETA TESTER FLOW - Create auth account for beta testers
-        if (interestedInBetaTesting) {
+        if (formState.interestedInBetaTesting) {
           const betaResult = await createBetaTesterAccount({
-            email,
+            email: formState.email,
             anonymous_username: generatedUsername,
             signupType: 'vendor'
           });
@@ -647,9 +691,9 @@ const Prelaunch = () => {
         // 🆕 SEND EMAIL (beta or regular)
         const emailResult = await sendSignupEmail({
           signupType: 'vendor',
-          email: email,
+          email: formState.email,
           anonymous_username: generatedUsername,
-          interested_in_beta_testing: interestedInBetaTesting,
+          interested_in_beta_testing: formState.interestedInBetaTesting,
           credentials: betaCredentials
         });
 
@@ -660,7 +704,7 @@ const Prelaunch = () => {
 
         // Log successful signup
         await logSignupAttempt({
-          email,
+          email: formState.email,
           userType: 'vendor',
           ipAddress: clientIP,
           userAgent,
@@ -691,11 +735,11 @@ const Prelaunch = () => {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         try {
-          const tableName = userType === 'vendor' ? 'vendor_signups' : 'field_rep_signups';
+          const tableName = formState.userType === 'vendor' ? 'vendor_signups' : 'field_rep_signups';
           const { data: signupData } = await supabase
             .from(tableName)
             .select('anonymous_username')
-            .eq('email', email)
+            .eq('email', formState.email)
             .order('created_at', { ascending: false })
             .limit(1)
             .single();
@@ -740,15 +784,15 @@ const Prelaunch = () => {
        stack: error instanceof Error ? error.stack : "No stack trace",
        userAgent: navigator.userAgent,
        timestamp: new Date().toISOString(),
-       userType: userType,
-       email: email,
+        userType: formState.userType,
+       email: formState.email,
        clientIP: clientIP,
        recaptchaToken: recaptchaToken ? "present" : "missing",
        formData: {
-         userType,
-         fieldRepName: userType === "field-rep" ? fieldRepName : undefined,
-         companyName: userType === "vendor" ? companyName : undefined,
-         primaryState: userType === "field-rep" ? primaryState : undefined
+         userType: formState.userType,
+        fieldRepName: formState.userType === "field-rep" ? formState.fieldRepName : undefined,
+        companyName: formState.userType === "vendor" ? formState.companyName : undefined,
+        primaryState: formState.userType === "field-rep" ? formState.primaryState : undefined
        }
      });
 
@@ -775,8 +819,8 @@ const Prelaunch = () => {
 
      // Log failed signup attempt with enhanced metadata
       await logSignupAttempt({
-        email,
-        userType: userType as "field-rep" | "vendor",
+        email: formState.email,
+        userType: formState.userType as "field-rep" | "vendor",
         ipAddress: clientIP,
         userAgent: navigator.userAgent,
         success: false,
@@ -789,11 +833,11 @@ const Prelaunch = () => {
           timestamp: new Date().toISOString(),
           recaptchaStatus: recaptchaToken ? "verified" : "missing",
           formValidation: {
-            emailValid: !!email,
-            userTypeValid: !!userType,
-            analyticsAgreed: agreedToAnalytics,
-            fieldRepDataValid: userType === "field-rep" ? !!(primaryState && fieldRepName) : true,
-            vendorDataValid: userType === "vendor" ? !!companyName : true
+            emailValid: !!formState.email,
+            userTypeValid: !!formState.userType,
+            analyticsAgreed: formState.agreedToAnalytics,
+            fieldRepDataValid: formState.userType === "field-rep" ? !!(formState.primaryState && formState.fieldRepName) : true,
+            vendorDataValid: formState.userType === "vendor" ? !!formState.companyName : true
           }
         }
       });
@@ -808,9 +852,9 @@ const Prelaunch = () => {
     }
   };
   const isFormValid = () => {
-    if (!email || !userType || !agreedToAnalytics) return false; // Removed reCAPTCHA requirement temporarily
-    if (userType === 'field-rep' && (!primaryState || !fieldRepName)) return false;
-    if (userType === 'vendor' && !companyName) return false;
+    if (!formState.email || !formState.userType || !formState.agreedToAnalytics) return false; // Removed reCAPTCHA requirement temporarily
+    if (formState.userType === 'field-rep' && (!formState.primaryState || !formState.fieldRepName)) return false;
+    if (formState.userType === 'vendor' && !formState.companyName) return false;
     return true;
   };
   const features = [{
@@ -897,7 +941,7 @@ const Prelaunch = () => {
               <div className="space-y-6">
                 {/* User Type Selection */}
                 <div className="grid md:grid-cols-2 gap-4">
-                  <Button type="button" variant={userType === 'field-rep' ? 'default' : 'outline'} className="p-6 h-auto flex-col space-y-2" onClick={() => setUserType('field-rep')}>
+                  <Button type="button" variant={formState.userType === 'field-rep' ? 'default' : 'outline'} className="p-6 h-auto flex-col space-y-2" onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'field-rep' })}>
                     <UserCheck className="h-6 w-6" />
                     <div>
                       <div className="font-semibold">I'm a Field Rep</div>
@@ -905,7 +949,7 @@ const Prelaunch = () => {
                     </div>
                   </Button>
                   
-                  <Button type="button" variant={userType === 'vendor' ? 'default' : 'outline'} className="p-6 h-auto flex-col space-y-2" onClick={() => setUserType('vendor')}>
+                  <Button type="button" variant={formState.userType === 'vendor' ? 'default' : 'outline'} className="p-6 h-auto flex-col space-y-2" onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'vendor' })}>
                     <Building className="h-6 w-6" />
                     <div>
                       <div className="font-semibold">I'm a Vendor</div>
@@ -920,23 +964,23 @@ const Prelaunch = () => {
                       <Label htmlFor="email" className="text-sm font-medium">
                         Professional Email *
                       </Label>
-                      <Input id="email" type="email" placeholder="Enter your professional email" value={email} onChange={e => setEmail(e.target.value)} className="mt-1 p-3" required />
+                      <Input id="email" type="email" placeholder="Enter your professional email" value={formState.email} onChange={e => dispatch({ type: 'SET_FIELD', field: 'email', value: e.target.value })} className="mt-1 p-3" required />
                     </div>
 
                     {/* Field Rep Specific Fields */}
-                    {userType === 'field-rep' && <div className="space-y-4">
+                    {formState.userType === 'field-rep' && <div className="space-y-4">
                         <div>
                           <Label htmlFor="field-rep-name" className="text-sm font-medium">
                             Your Name or Business Name *
                           </Label>
-                          <Input id="field-rep-name" value={fieldRepName} onChange={e => setFieldRepName(e.target.value)} placeholder="Enter your name or business name" className="mt-1 p-3" required />
+                          <Input id="field-rep-name" value={formState.fieldRepName} onChange={e => dispatch({ type: 'SET_FIELD', field: 'fieldRepName', value: e.target.value })} placeholder="Enter your name or business name" className="mt-1 p-3" required />
                         </div>
 
                         <div>
                           <Label htmlFor="primary-state" className="text-sm font-medium">
                             Primary State *
                           </Label>
-                          <Select value={primaryState} onValueChange={setPrimaryState}>
+                          <Select value={formState.primaryState} onValueChange={(value) => dispatch({ type: 'SET_FIELD', field: 'primaryState', value })}>
                             <SelectTrigger id="primary-state" className="mt-1">
                               <SelectValue placeholder={states.length > 0 ? "Select your primary state" : "Loading states..."} />
                             </SelectTrigger>
@@ -973,39 +1017,39 @@ const Prelaunch = () => {
                            <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                                {fieldRepWorkTypes.map(workType => <div key={workType.value} className="flex items-center space-x-2">
-                                   <Checkbox id={workType.value} checked={workTypes.includes(workType.value)} onCheckedChange={() => handleWorkTypeToggle(workType.value)} />
+                                   <Checkbox id={workType.value} checked={formState.workTypes.includes(workType.value)} onCheckedChange={() => handleWorkTypeToggle(workType.value)} />
                                    <Label htmlFor={workType.value} className="text-sm cursor-pointer">
                                      {workType.label}
                                    </Label>
                                  </div>)}
                              </div>
                            </div>
-                           {workTypes.includes('other') && <div className="mt-3">
+                           {formState.workTypes.includes('other') && <div className="mt-3">
                                <Label htmlFor="other-work-type" className="text-sm font-medium">
                                  Specify Other Work Type
                                </Label>
-                               <Input id="other-work-type" value={otherWorkType} onChange={e => setOtherWorkType(e.target.value)} placeholder="Enter your specific work type" className="mt-1" />
+                               <Input id="other-work-type" value={formState.otherWorkType} onChange={e => dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: e.target.value })} placeholder="Enter your specific work type" className="mt-1" />
                              </div>}
-                           {workTypes.length > 0 && <p className="text-xs text-muted-foreground mt-1">
-                               Selected: {workTypes.length} work type{workTypes.length !== 1 ? 's' : ''}
+                           {formState.workTypes.length > 0 && <p className="text-xs text-muted-foreground mt-1">
+                               Selected: {formState.workTypes.length} work type{formState.workTypes.length !== 1 ? 's' : ''}
                              </p>}
                          </div>
                       </div>}
 
                     {/* Vendor Specific Fields */}
-                    {userType === 'vendor' && <div className="space-y-4">
+                    {formState.userType === 'vendor' && <div className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="company-name" className="text-sm font-medium">
                               Company Name *
                             </Label>
-                            <Input id="company-name" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Enter your company name" className="mt-1 p-3" required />
+                            <Input id="company-name" value={formState.companyName} onChange={e => dispatch({ type: 'SET_FIELD', field: 'companyName', value: e.target.value })} placeholder="Enter your company name" className="mt-1 p-3" required />
                           </div>
                           <div>
                             <Label htmlFor="company-website" className="text-sm font-medium">
                               Company Website <span className="text-muted-foreground">(Optional)</span>
                             </Label>
-                            <Input id="company-website" value={companyWebsite} onChange={e => setCompanyWebsite(e.target.value)} placeholder="https://yourcompany.com" className="mt-1 p-3" />
+                            <Input id="company-website" value={formState.companyWebsite} onChange={e => dispatch({ type: 'SET_FIELD', field: 'companyWebsite', value: e.target.value })} placeholder="https://yourcompany.com" className="mt-1 p-3" />
                           </div>
                         </div>
 
@@ -1015,21 +1059,21 @@ const Prelaunch = () => {
                            <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                                {serviceTypes.map(service => <div key={service.value} className="flex items-center space-x-2">
-                                   <Checkbox id={service.value} checked={primaryServices.includes(service.value)} onCheckedChange={() => handleServiceToggle(service.value)} />
+                                   <Checkbox id={service.value} checked={formState.primaryServices.includes(service.value)} onCheckedChange={() => handleServiceToggle(service.value)} />
                                    <Label htmlFor={service.value} className="text-sm cursor-pointer">
                                      {service.label}
                                    </Label>
                                  </div>)}
                              </div>
                            </div>
-                           {primaryServices.includes('other') && <div className="mt-3">
+                           {formState.primaryServices.includes('other') && <div className="mt-3">
                                <Label htmlFor="other-service" className="text-sm font-medium">
                                  Specify Other Service Type
                                </Label>
-                               <Input id="other-service" value={otherService} onChange={e => setOtherService(e.target.value)} placeholder="Enter your specific service type" className="mt-1" />
+                               <Input id="other-service" value={formState.otherService} onChange={e => dispatch({ type: 'SET_FIELD', field: 'otherService', value: e.target.value })} placeholder="Enter your specific service type" className="mt-1" />
                              </div>}
-                           {primaryServices.length > 0 && <p className="text-xs text-muted-foreground mt-1">
-                               Selected: {primaryServices.length} service type{primaryServices.length !== 1 ? 's' : ''}
+                           {formState.primaryServices.length > 0 && <p className="text-xs text-muted-foreground mt-1">
+                               Selected: {formState.primaryServices.length} service type{formState.primaryServices.length !== 1 ? 's' : ''}
                              </p>}
                          </div>
 
@@ -1043,7 +1087,7 @@ const Prelaunch = () => {
                                    <div key={state.code} className="flex items-center space-x-2">
                                      <Checkbox 
                                        id={`state-${state.code}`} 
-                                       checked={statesCovered.includes(state.code)} 
+                                       checked={formState.statesCovered.includes(state.code)} 
                                        onCheckedChange={() => handleStateToggle(state.code)} 
                                      />
                                      <Label htmlFor={`state-${state.code}`} className="text-sm cursor-pointer">
@@ -1073,7 +1117,7 @@ const Prelaunch = () => {
                       <Label htmlFor="challenges" className="text-sm font-medium">
                         Current Challenges <span className="text-muted-foreground">(Optional)</span>
                       </Label>
-                      <Textarea id="challenges" placeholder={userType === 'vendor' ? 'What are your biggest challenges in finding reliable field representatives?' : 'What are your biggest challenges in finding consistent work or working with vendors?'} value={currentChallenges} onChange={e => setCurrentChallenges(e.target.value)} className="mt-1" rows={3} />
+                      <Textarea id="challenges" placeholder={formState.userType === 'vendor' ? 'What are your biggest challenges in finding reliable field representatives?' : 'What are your biggest challenges in finding consistent work or working with vendors?'} value={formState.currentChallenges} onChange={e => dispatch({ type: 'SET_FIELD', field: 'currentChallenges', value: e.target.value })} className="mt-1" rows={3} />
                     </div>
 
                      <div>
@@ -1081,25 +1125,25 @@ const Prelaunch = () => {
                        <p className="text-xs text-muted-foreground mb-2">Select features you'd find most valuable</p>
                        <div className="max-h-32 overflow-y-auto border rounded-md p-3">
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                           {(userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map(feature => <div key={feature.value} className="flex items-center space-x-2">
-                               <Checkbox id={feature.value} checked={interestedFeatures.includes(feature.value)} onCheckedChange={() => handleFeatureToggle(feature.value)} />
+                           {(formState.userType === 'vendor' ? vendorFeatureOptions : fieldRepFeatureOptions).map(feature => <div key={feature.value} className="flex items-center space-x-2">
+                               <Checkbox id={feature.value} checked={formState.interestedFeatures.includes(feature.value)} onCheckedChange={() => handleFeatureToggle(feature.value)} />
                                <Label htmlFor={feature.value} className="text-sm cursor-pointer">
                                  {feature.label}
                                </Label>
                              </div>)}
                          </div>
                        </div>
-                       {interestedFeatures.includes('other') && <div className="mt-3">
+                       {formState.interestedFeatures.includes('other') && <div className="mt-3">
                            <Label htmlFor="other-feature" className="text-sm font-medium">
                              Specify Other Feature
                            </Label>
-                           <Input id="other-feature" value={otherFeature} onChange={e => setOtherFeature(e.target.value)} placeholder="Enter your specific feature interest" className="mt-1" />
+                           <Input id="other-feature" value={formState.otherFeature} onChange={e => dispatch({ type: 'SET_FIELD', field: 'otherFeature', value: e.target.value })} placeholder="Enter your specific feature interest" className="mt-1" />
                          </div>}
                      </div>
 
                     {/* Progress Reports */}
                     <div className="flex items-start space-x-3 p-4 bg-primary/5 rounded-lg border">
-                      <Checkbox id="progress-reports" checked={interestedInBetaTesting} onCheckedChange={checked => setInterestedInBetaTesting(checked === true)} className="mt-0.5" />
+                      <Checkbox id="progress-reports" checked={formState.interestedInBetaTesting} onCheckedChange={checked => dispatch({ type: 'SET_FIELD', field: 'interestedInBetaTesting', value: checked === true })} className="mt-0.5" />
                        <div className="flex-1">
                          <Label htmlFor="progress-reports" className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2">
                            <BarChart3 className="h-4 w-4 text-primary" />
@@ -1114,7 +1158,7 @@ const Prelaunch = () => {
 
                     {/* Privacy Agreement */}
                     <div className="flex items-start space-x-3 p-4 bg-accent/10 rounded-lg border border-accent/20">
-                      <Checkbox id="analytics-agreement" checked={agreedToAnalytics} onCheckedChange={checked => setAgreedToAnalytics(checked === true)} className="mt-0.5" required />
+                      <Checkbox id="analytics-agreement" checked={formState.agreedToAnalytics} onCheckedChange={checked => dispatch({ type: 'SET_FIELD', field: 'agreedToAnalytics', value: checked === true })} className="mt-0.5" required />
                       <div className="flex-1">
                         <Label htmlFor="analytics-agreement" className="text-sm font-medium cursor-pointer text-foreground flex items-center gap-2">
                           <Shield className="h-4 w-4 text-accent" />
