@@ -39,7 +39,12 @@ const Index = () => {
           Temporary landing page - redirects disabled for admin access
         </p>
         <div className="space-y-2">
-          <Link to="/auth" className="block text-primary hover:underline">Go to Auth Page</Link>
+          <button 
+            onClick={() => window.location.href = '/auth'} 
+            className="block w-full text-primary hover:underline cursor-pointer"
+          >
+            Go to Auth Page (Force Reload)
+          </button>
           <Link to="/prelaunch" className="block text-primary hover:underline">Go to Prelaunch</Link>
         </div>
       </Card>
