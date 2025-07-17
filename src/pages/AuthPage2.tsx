@@ -21,39 +21,47 @@ const AuthPage2 = () => {
     console.log('Starting sign in process...');
     
     try {
-      // Add a timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
-      );
-      
-      const authPromise = supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Use fetch directly to avoid Promise hanging issues
+      const response = await fetch(`https://bgqlhaqwsnfhhatxhtfx.supabase.co/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJncWxoYXF3c25maGhhdHhodGZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5Mzk1MDksImV4cCI6MjA2NzUxNTUwOX0.El8dESk86p4-yb8gIIoheKHRMl2YTegQb9BIfaKIhAU'
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        })
       });
-      
-      const { data, error } = await Promise.race([authPromise, timeoutPromise]) as any;
-      
-      console.log('Sign in response:', { data, error });
-      
-      if (error) {
-        console.error('Sign in error:', error);
-        toast.error(error.message);
-      } else {
-        console.log('Sign in successful:', data);
-        toast.success('Signed in successfully!');
-        
-        // Small delay to let the toast show
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
+
+      const data = await response.json();
+      console.log('Direct auth response:', data);
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error?.message || 'Authentication failed');
       }
+
+      // Set the session manually
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token
+      });
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      console.log('Sign in successful');
+      toast.success('Signed in successfully!');
+      
+      // Navigate to home
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+
     } catch (error: any) {
-      console.error('Unexpected sign in error:', error);
-      if (error.message === 'Request timeout') {
-        toast.error('Sign in request timed out. Please try again.');
-      } else {
-        toast.error('An unexpected error occurred');
-      }
+      console.error('Sign in error:', error);
+      toast.error(error.message || 'An unexpected error occurred');
     } finally {
       console.log('Sign in process completed, setting loading to false');
       setLoading(false);
