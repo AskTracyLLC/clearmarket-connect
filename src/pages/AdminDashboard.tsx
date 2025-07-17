@@ -31,30 +31,42 @@ const AdminDashboard = () => {
     // SECURITY: Removed development mode bypass for proper authorization
 
     const checkAdminAccess = async () => {
+      console.log('🔍 AdminDashboard - Starting admin access check for user:', user?.id, user?.email);
+      
       if (!user) {
+        console.log('❌ AdminDashboard - No user found, redirecting to auth');
         navigate("/auth");
         return;
       }
 
       try {
+        console.log('🔍 AdminDashboard - Querying user role from database...');
         const { data, error } = await supabase
           .from("users")
           .select("role")
           .eq("id", user.id)
           .single();
 
-        if (error) throw error;
+        console.log('🔍 AdminDashboard - Database query result:', { data, error });
+
+        if (error) {
+          console.error('❌ AdminDashboard - Database error:', error);
+          throw error;
+        }
 
         if (data?.role !== "admin") {
+          console.log('❌ AdminDashboard - User role is not admin:', data?.role);
           navigate("/");
           return;
         }
 
+        console.log('✅ AdminDashboard - User confirmed as admin');
         setUserRole(data.role);
       } catch (error) {
-        console.error("Error checking admin access:", error);
+        console.error("❌ AdminDashboard - Error checking admin access:", error);
         navigate("/");
       } finally {
+        console.log('🔄 AdminDashboard - Setting loading to false');
         setIsLoading(false);
       }
     };
