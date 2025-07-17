@@ -49,7 +49,7 @@ export const useRequireNDA = () => {
     const checkAdminStatus = async () => {
       try {
         // Check if email is admin email (primary check - same as ProtectedRouteWithNDA)
-        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
+        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
         if (adminEmails.includes(user.email || '')) {
           console.log('✅ User is admin by email:', user.email, '- bypassing all restrictions');
           return;
