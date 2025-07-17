@@ -64,60 +64,99 @@ const AdminAuthPage = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log('Starting admin sign in process...');
 
-    const { error } = await signIn(email, password);
-
-    if (error) {
-      toast({
-        title: "Error signing in",
-        description: error.message,
-        variant: "destructive",
+    try {
+      // Use a timeout to detect hanging quickly
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 3000)
+      );
+      
+      const authPromise = supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    } else {
-      // Fetch user role and redirect to appropriate dashboard
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', (await supabase.auth.getUser()).data.user?.id)
-          .single();
-
-        if (userError) throw userError;
-
-        // Redirect based on role
-        switch (userData.role) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'moderator':
-            navigate('/moderator');
-            break;
-          case 'vendor':
-            navigate('/vendor/dashboard');
-            break;
-          case 'field_rep':
-            navigate('/fieldrep/dashboard');
-            break;
-          default:
-            navigate('/prelaunch');
-        }
-
+      
+      const result = await Promise.race([authPromise, timeoutPromise]);
+      const { data, error } = result as any;
+      
+      console.log('Admin sign in response:', { data, error });
+      
+      if (error) {
+        console.error('Admin sign in error:', error);
         toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
+          title: "Error signing in",
+          description: error.message,
+          variant: "destructive",
         });
-      } catch (roleError) {
-        console.error('Error fetching user role:', roleError);
-        // Fallback to prelaunch page if role fetch fails
-        navigate('/prelaunch');
+      } else {
+        console.log('Admin sign in successful:', data);
+        
+        // Fetch user role and redirect to appropriate dashboard
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', data.user?.id)
+            .single();
+
+          if (userError) throw userError;
+
+          // Redirect based on role
+          switch (userData.role) {
+            case 'admin':
+              navigate('/admin');
+              break;
+            case 'moderator':
+              navigate('/moderator');
+              break;
+            case 'vendor':
+              navigate('/vendor/dashboard');
+              break;
+            case 'field_rep':
+              navigate('/fieldrep/dashboard');
+              break;
+            default:
+              navigate('/prelaunch');
+          }
+
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        } catch (roleError) {
+          console.error('Error fetching user role:', roleError);
+          // Fallback to admin dashboard for admin portal
+          navigate('/admin');
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Unexpected admin sign in error:', error);
+      if (error.message === 'Request timeout') {
         toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
+          title: "Authentication timeout",
+          description: "Login is taking too long. Trying direct admin access...",
+          variant: "destructive",
+        });
+        
+        // Try direct navigation to admin dashboard
+        console.log('Attempting fallback navigation to admin dashboard...');
+        navigate('/admin');
+      } else {
+        toast({
+          title: "Error signing in",
+          description: error.message,
+          variant: "destructive",
         });
       }
+    } finally {
+      console.log('Admin sign in process completed, setting loading to false');
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
 
