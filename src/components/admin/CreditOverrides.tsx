@@ -40,21 +40,37 @@ export const CreditOverrides = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Get credits data first
+      const { data: creditsData, error: creditsError } = await supabase
         .from('credits')
-        .select(`
-          *,
-          users!credits_user_id_fkey (display_name, anonymous_username, role)
-        `)
+        .select('*')
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (creditsError) throw creditsError;
+
+      // Get user data separately
+      const userIds = creditsData?.map(credit => credit.user_id) || [];
+      let usersData = [];
       
-      const formattedData = data?.map(credit => ({
+      if (userIds.length > 0) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, display_name, anonymous_username, role')
+          .in('id', userIds);
+        usersData = userData || [];
+      }
+      
+      const formattedData = creditsData?.map(credit => ({
         ...credit,
         user: {
-          display_name: credit.users?.display_name || credit.users?.anonymous_username || "Anonymous User",
-          role: credit.users?.role || "field_rep"
+          display_name: (() => {
+            const user = usersData.find(u => u.id === credit.user_id);
+            return user?.display_name || user?.anonymous_username || "Anonymous User";
+          })(),
+          role: (() => {
+            const user = usersData.find(u => u.id === credit.user_id);
+            return user?.role || "field_rep";
+          })()
         }
       })) || [];
       
