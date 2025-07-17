@@ -47,12 +47,33 @@ const BulkMessageModal = ({ trigger }: BulkMessageModalProps) => {
 
   const loadNetworkContacts = async () => {
     try {
-      const { data, error } = await supabase
-        .from("contact_unlocks")
-        .select(`
-          unlocked_user_id,
-          users!contact_unlocks_unlocked_user_id_fkey(id, display_name)
-        `)
+const loadNetworkContacts = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("contact_unlocks")
+      .select(`
+        unlocked_user_id,
+        users!contact_unlocks_unlocked_user_id_fkey(id, display_name, anonymous_username)
+      `)
+      .eq("unlocker_id", (await supabase.auth.getUser()).data.user?.id);
+
+    if (error) throw error;
+    
+    const contacts = data?.map(item => ({
+      id: item.users?.id || "",
+      display_name: item.users?.display_name || item.users?.anonymous_username || "Anonymous User",
+      unlocked_user_id: item.unlocked_user_id
+    })) || [];
+    
+    setNetworkContacts(contacts);
+  } catch (error: any) {
+    toast({
+      title: "Error loading contacts",
+      description: error.message,
+      variant: "destructive",
+    });
+  }
+};
         .eq("unlocker_id", (await supabase.auth.getUser()).data.user?.id);
 
       if (error) throw error;
