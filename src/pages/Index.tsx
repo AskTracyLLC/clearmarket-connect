@@ -30,15 +30,18 @@ const Index = () => {
   //   }
   // }, [navigate, searchParams]);
 
-  // Show loading state while redirect is happening
+  // Show temporary content instead of loading state
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
       <Card className="p-8 max-w-md mx-auto text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-        <h2 className="text-xl font-semibold mb-2">Redirecting to ClearMarket...</h2>
-        <p className="text-muted-foreground text-sm">
-          Taking you to our pre-launch signup page
+        <h2 className="text-xl font-semibold mb-4">ClearMarket</h2>
+        <p className="text-muted-foreground text-sm mb-4">
+          Temporary landing page - redirects disabled for admin access
         </p>
+        <div className="space-y-2">
+          <a href="/auth" className="block text-primary hover:underline">Go to Auth Page</a>
+          <a href="/prelaunch" className="block text-primary hover:underline">Go to Prelaunch</a>
+        </div>
       </Card>
     </div>
   );
