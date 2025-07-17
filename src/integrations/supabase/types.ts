@@ -2740,6 +2740,14 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      upgrade_user_to_admin: {
+        Args: {
+          target_email: string
+          new_display_name?: string
+          new_anonymous_username?: string
+        }
+        Returns: boolean
+      }
       urlencode: {
         Args: { data: Json } | { string: string } | { string: string }
         Returns: string
