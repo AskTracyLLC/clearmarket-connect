@@ -54,9 +54,10 @@ const App = () => (
               <LoadingBar />
               <ErrorBoundary>
                 <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/prelaunch" element={<Prelaunch />} />
-                <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/" element={<Index />} />
+                  <Route path="/prelaunch" element={<Prelaunch />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/test-auth" element={<div><h1>TEST AUTH PAGE WORKING</h1></div>} />
                 <Route path="/admin-auth" element={<AdminAuthPage />} />
                 <Route path="/vendor/search" element={<ProtectedRouteWithNDA><VendorSearchPage /></ProtectedRouteWithNDA>} />
                 <Route path="/vendor/profile" element={<ProtectedRouteWithNDA><VendorProfilePage /></ProtectedRouteWithNDA>} />
