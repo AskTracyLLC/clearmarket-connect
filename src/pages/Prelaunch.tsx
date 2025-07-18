@@ -958,7 +958,7 @@ const Prelaunch = () => {
                   </Button>
                 </div>
                 
-                {userType && <>
+                {formState.userType && <>
                     {/* Email Input */}
                     <div>
                       <Label htmlFor="email" className="text-sm font-medium">
@@ -1005,7 +1005,7 @@ const Prelaunch = () => {
                         <div>
                           <Label className="text-sm font-medium">Experience Level</Label>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                            {experienceLevels.map(level => <Button key={level.value} type="button" variant={experienceLevel === level.value ? 'default' : 'outline'} className="text-left justify-start text-sm" onClick={() => setExperienceLevel(level.value)}>
+                            {experienceLevels.map(level => <Button key={level.value} type="button" variant={formState.experienceLevel === level.value ? 'default' : 'outline'} className="text-left justify-start text-sm" onClick={() => dispatch({ type: 'SET_FIELD', field: 'experienceLevel', value: level.value })}>
                                 {level.label}
                               </Button>)}
                           </div>
@@ -1106,8 +1106,8 @@ const Prelaunch = () => {
                            <p className="text-xs text-muted-foreground mt-1">
                              Debug: {states.length} states available
                            </p>
-                           {statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
-                               Selected: {statesCovered.length} state{statesCovered.length !== 1 ? 's' : ''}
+                            {formState.statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
+                                Selected: {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''}
                             </p>}
                         </div>
                       </div>}
