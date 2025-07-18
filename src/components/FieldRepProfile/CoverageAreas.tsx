@@ -18,7 +18,9 @@ interface CoverageAreasProps {
 
 export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [] }: CoverageAreasProps) => {
   const { toast } = useToast();
-  const { states } = useStates();
+  const { states, loading: statesLoading, error: statesError } = useStates();
+  
+  console.log('🔍 CoverageAreas - States data:', { states: states.length, loading: statesLoading, error: statesError });
   const [selectedState, setSelectedState] = useState<State | null>(null);
   const { counties } = useCountiesByState(selectedState?.code);
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
