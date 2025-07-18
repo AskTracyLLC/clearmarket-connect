@@ -17,16 +17,19 @@ const CalendarPage = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        console.log('🔍 CalendarPage: Fetching user role...');
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError) {
-          console.error('❌ Auth error:', authError);
           throw authError;
         }
         
         if (user) {
-          console.log('✅ User found:', user.id);
+          const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
+          if (adminEmails.includes(user.email || '')) {
+            setUserRole("field_rep");
+            return;
+          }
+          
           const { data: userData, error } = await supabase
             .from("users")
             .select("role")
@@ -34,25 +37,26 @@ const CalendarPage = () => {
             .single();
           
           if (error) {
-            console.error('❌ Error fetching user role:', error);
+            if (error.code === 'PGRST116') {
+              setUserRole("field_rep");
+              return;
+            }
             throw error;
           }
           
-          console.log('✅ User role loaded:', userData.role);
           setUserRole(userData.role as "field_rep" | "vendor");
         } else {
-          console.warn('⚠️ No authenticated user found');
+          setUserRole("field_rep");
         }
       } catch (error: any) {
-        console.error('❌ Calendar page error:', error);
+        setUserRole("field_rep");
         toast({
           title: "Error loading user data",
-          description: error.message,
+          description: "Using default settings. " + error.message,
           variant: "destructive",
         });
       } finally {
         setLoading(false);
-        console.log('🏁 CalendarPage: Loading complete');
       }
     };
 
@@ -81,7 +85,7 @@ const CalendarPage = () => {
       <main className="pt-20 pb-8">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Calendar & Alerts</h1>
+            <h1 className="text-3xl font-bold mb-2">Calendar &amp; Alerts</h1>
             <p className="text-muted-foreground">
               Manage your availability, send network alerts, and configure auto-replies.
             </p>
