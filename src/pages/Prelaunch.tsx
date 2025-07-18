@@ -162,7 +162,7 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Prepare insert data - convert text fields to arrays where expected by database
+      // Prepare insert data
       const insertData = {
         email: formState.email,
         user_type: formState.userType,
@@ -171,10 +171,8 @@ const Prelaunch = () => {
         work_types: formState.typeOfWork.map(work => 
           work === "Other" ? `Other: ${formState.otherWorkType}` : work
         ),
-        current_challenges: formState.challenges || null,
-        interested_features: formState.mostInterestedFeatures 
-          ? formState.mostInterestedFeatures.split(',').map(f => f.trim()).filter(Boolean)
-          : null,
+        current_challenges: formState.challenges ? [formState.challenges] : null,
+        most_interested_features: formState.mostInterestedFeatures || null,
         interested_in_beta_testing: formState.betaTesting,
         anonymous_username: null, // Let the trigger generate this
       };
