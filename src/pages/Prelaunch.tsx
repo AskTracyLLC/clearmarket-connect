@@ -18,11 +18,11 @@ interface FormState {
   email: string;
   userType: 'field-rep' | 'vendor' | '';
   experienceLevel: string;
-  statesCovered: string[];
-  typeOfWork: string[];
+  primaryState: string;
+  workType: string[];
   otherWorkType: string;
   challenges: string;
-  mostInterestedFeatures: string;
+  interestedFeatures: string;
   betaTesting: boolean;
   privacyConsent: boolean;
 }
@@ -31,11 +31,11 @@ const initialState: FormState = {
   email: '',
   userType: '',
   experienceLevel: '',
-  statesCovered: [],
-  typeOfWork: [],
+  primaryState: '',
+  workType: [],
   otherWorkType: '',
   challenges: '',
-  mostInterestedFeatures: '',
+  interestedFeatures: '',
   betaTesting: false,
   privacyConsent: false,
 };
@@ -51,20 +51,15 @@ function formReducer(state: FormState, action: Action): FormState {
     case 'SET_FIELD':
       return { ...state, [action.field]: action.value };
     case 'TOGGLE_STATE':
-      const isSelected = state.statesCovered.includes(action.stateCode);
-      return {
-        ...state,
-        statesCovered: isSelected
-          ? state.statesCovered.filter(code => code !== action.stateCode)
-          : [...state.statesCovered, action.stateCode]
-      };
+      // For primaryState, we just set it directly since it's a single state
+      return { ...state, primaryState: action.stateCode };
     case 'TOGGLE_WORK_TYPE':
-      const isWorkTypeSelected = state.typeOfWork.includes(action.workType);
+      const isWorkTypeSelected = state.workType.includes(action.workType);
       return {
         ...state,
-        typeOfWork: isWorkTypeSelected
-          ? state.typeOfWork.filter(w => w !== action.workType)
-          : [...state.typeOfWork, action.workType]
+        workType: isWorkTypeSelected
+          ? state.workType.filter(w => w !== action.workType)
+          : [...state.workType, action.workType]
       };
     case 'RESET':
       return initialState;
@@ -148,10 +143,10 @@ const Prelaunch = () => {
     return formState.email && 
            formState.userType && 
            formState.experienceLevel &&
-           formState.statesCovered.length > 0 &&
-           formState.typeOfWork.length > 0 &&
+           formState.primaryState &&
+           formState.workType.length > 0 &&
            // If "Other" is selected, require the other field to be filled
-           (!formState.typeOfWork.includes("Other") || formState.otherWorkType.trim() !== '') &&
+           (!formState.workType.includes("Other") || formState.otherWorkType.trim() !== '') &&
            formState.privacyConsent;
   };
 
@@ -166,13 +161,13 @@ const Prelaunch = () => {
       const insertData = {
         email: formState.email,
         user_type: formState.userType,
-        primary_state: formState.statesCovered[0] || null,
+        primary_state: formState.primaryState || null,
         experience_level: formState.experienceLevel,
-        work_types: formState.typeOfWork.map(work => 
+        work_type: formState.workType.map(work => 
           work === "Other" ? `Other: ${formState.otherWorkType}` : work
         ),
         current_challenges: formState.challenges || null,
-        most_interested_features: formState.mostInterestedFeatures || null,
+        interested_features: formState.interestedFeatures ? [formState.interestedFeatures] : null,
         interested_in_beta_testing: formState.betaTesting,
         anonymous_username: null, // Let the trigger generate this
       };
@@ -212,16 +207,10 @@ const Prelaunch = () => {
     dispatch({ type: 'TOGGLE_WORK_TYPE', workType: workTypeToRemove });
   };
 
-  // Get unselected states for the checkbox grid
-  const unselectedStates = availableStates.filter(state => 
-    !formState.statesCovered.includes(state.code)
-  );
-
-  const getSelectedStateNames = () => {
-    return formState.statesCovered.map(code => {
-      const state = availableStates.find(s => s.code === code);
-      return state ? state.name : code;
-    });
+  const getSelectedStateName = () => {
+    if (!formState.primaryState) return '';
+    const state = availableStates.find(s => s.code === formState.primaryState);
+    return state ? state.name : formState.primaryState;
   };
 
   return (
@@ -518,58 +507,31 @@ const Prelaunch = () => {
                   </Select>
                 </div>
 
-                {/* States You Work In */}
+                {/* Primary State */}
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
-                    States You Work In <span className="text-red-500">*</span>
+                    Primary State <span className="text-red-500">*</span>
                   </Label>
                   
-                  {/* Selected States Count */}
-                  <div className="text-sm text-muted-foreground mb-2">
-                    {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''} selected
-                  </div>
-
-                  {/* Selected States */}
-                  {formState.statesCovered.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg mb-3">
-                      {getSelectedStateNames().map((stateName, index) => (
-                        <Badge key={stateName} variant="secondary" className="pr-1">
-                          {stateName}
-                          <button
-                            type="button"
-                            onClick={() => removeState(formState.statesCovered[index])}
-                            className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* 3-Column State Checkbox Grid */}
-                  <div className="border border-border rounded-lg p-4 max-h-64 overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <Select 
+                    value={formState.primaryState} 
+                    onValueChange={(value) => dispatch({ type: 'SET_FIELD', field: 'primaryState', value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select your primary state" />
+                    </SelectTrigger>
+                    <SelectContent>
                       {availableStates.map((state) => (
-                        <div key={state.code} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`state-${state.code}`}
-                            checked={formState.statesCovered.includes(state.code)}
-                            onCheckedChange={() => dispatch({ type: 'TOGGLE_STATE', stateCode: state.code })}
-                          />
-                          <Label 
-                            htmlFor={`state-${state.code}`} 
-                            className="text-sm cursor-pointer flex-1"
-                          >
-                            {state.name}
-                          </Label>
-                        </div>
+                        <SelectItem key={state.code} value={state.code}>
+                          {state.name}
+                        </SelectItem>
                       ))}
-                    </div>
-                  </div>
-                  {formState.statesCovered.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Please select at least one state</p>
+                    </SelectContent>
+                  </Select>
+                  
+                  {!formState.primaryState && (
+                    <p className="text-sm text-muted-foreground">Please select your primary state</p>
                   )}
                 </div>
 
@@ -586,11 +548,11 @@ const Prelaunch = () => {
                   </p>
                   
                   {/* Selected Work Types Display */}
-                  {formState.typeOfWork.length > 0 && (
+                  {formState.workType.length > 0 && (
                     <div className="p-3 bg-muted/50 rounded-lg mb-3">
-                      <p className="text-sm font-medium mb-2">Selected Work Types ({formState.typeOfWork.length}):</p>
+                      <p className="text-sm font-medium mb-2">Selected Work Types ({formState.workType.length}):</p>
                       <div className="flex flex-wrap gap-2">
-                        {formState.typeOfWork.map((workType) => (
+                        {formState.workType.map((workType) => (
                           <Badge key={workType} variant="secondary" className="pr-1">
                             {workType}
                             <button
@@ -618,7 +580,7 @@ const Prelaunch = () => {
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                       {workTypes.map((workType, index) => {
                         const checkboxId = `work-${workType.replace(/\s+/g, '-').toLowerCase()}`;
-                        const isChecked = formState.typeOfWork.includes(workType);
+                        const isChecked = formState.workType.includes(workType);
                         
                         console.log(`Rendering work type: ${workType}, checked: ${isChecked}`);
                         
@@ -653,7 +615,7 @@ const Prelaunch = () => {
                   </div>
 
                   {/* Other Work Type Text Field */}
-                  {formState.typeOfWork.includes("Other") && (
+                  {formState.workType.includes("Other") && (
                     <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <Label htmlFor="otherWorkType" className="text-sm font-medium text-blue-900">
                         Please specify other work type: <span className="text-red-500">*</span>
@@ -668,7 +630,7 @@ const Prelaunch = () => {
                     </div>
                   )}
 
-                  {formState.typeOfWork.length === 0 && (
+                  {formState.workType.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one work type</p>
                   )}
                 </div>
@@ -690,14 +652,14 @@ const Prelaunch = () => {
 
                 {/* Most Interested Features */}
                 <div>
-                  <Label htmlFor="mostInterestedFeatures" className="text-sm font-medium">
+                  <Label htmlFor="interestedFeatures" className="text-sm font-medium">
                     Most Interested Features
                   </Label>
                   <Textarea
-                    id="mostInterestedFeatures"
+                    id="interestedFeatures"
                     placeholder="Which features are you most excited about? (e.g., trust scores, coverage mapping, direct messaging, credit system, etc.)"
-                    value={formState.mostInterestedFeatures}
-                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'mostInterestedFeatures', value: e.target.value })}
+                    value={formState.interestedFeatures}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'interestedFeatures', value: e.target.value })}
                     className="mt-1 resize-none"
                     rows={3}
                   />

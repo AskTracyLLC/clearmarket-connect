@@ -1405,13 +1405,10 @@ export type Database = {
           id: string
           interested_features: string[] | null
           interested_in_beta_testing: boolean
-          most_interested_features: string | null
           primary_state: string | null
-          states_covered: string[]
-          type_of_work: string[]
           updated_at: string
           user_type: string
-          work_types: string[] | null
+          work_type: string[]
         }
         Insert: {
           agreed_to_analytics?: boolean | null
@@ -1423,13 +1420,10 @@ export type Database = {
           id?: string
           interested_features?: string[] | null
           interested_in_beta_testing?: boolean
-          most_interested_features?: string | null
           primary_state?: string | null
-          states_covered?: string[]
-          type_of_work?: string[]
           updated_at?: string
           user_type: string
-          work_types?: string[] | null
+          work_type?: string[]
         }
         Update: {
           agreed_to_analytics?: boolean | null
@@ -1441,13 +1435,10 @@ export type Database = {
           id?: string
           interested_features?: string[] | null
           interested_in_beta_testing?: boolean
-          most_interested_features?: string | null
           primary_state?: string | null
-          states_covered?: string[]
-          type_of_work?: string[]
           updated_at?: string
           user_type?: string
-          work_types?: string[] | null
+          work_type?: string[]
         }
         Relationships: []
       }
