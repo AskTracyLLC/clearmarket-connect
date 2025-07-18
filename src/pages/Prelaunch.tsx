@@ -639,4 +639,3 @@ const Prelaunch = () => {
 };
 
 export default Prelaunch;
-Smart, efficient model for everyday us
