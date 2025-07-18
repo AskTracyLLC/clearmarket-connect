@@ -168,7 +168,7 @@ const Prelaunch = () => {
         user_type: formState.userType,
         primary_state: formState.statesCovered[0] || null,
         experience_level: formState.experienceLevel,
-        type_of_work: formState.typeOfWork.map(work => 
+        work_types: formState.typeOfWork.map(work => 
           work === "Other" ? `Other: ${formState.otherWorkType}` : work
         ),
         current_challenges: formState.challenges || null,
