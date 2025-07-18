@@ -713,7 +713,7 @@ const Prelaunch = () => {
                     onCheckedChange={(checked) => dispatch({ type: 'SET_FIELD', field: 'betaTesting', value: checked })}
                   />
                   <Label htmlFor="beta" className="text-sm">
-                    I'm interested in beta testing new features
+                    I'm interested in beta testing before the official launch
                   </Label>
                 </div>
 
