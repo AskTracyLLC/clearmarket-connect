@@ -184,11 +184,21 @@ const Prelaunch = () => {
         });
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from(tableName)
-        .insert(insertData);
+        .insert(insertData)
+        .select('anonymous_username')
+        .single();
 
       if (error) throw error;
+
+      // Set the anonymous username from the signup
+      if (data?.anonymous_username) {
+        setUserPosition(prev => ({
+          ...prev,
+          fullUsername: data.anonymous_username
+        }));
+      }
 
       setIsSubmitted(true);
       toast.success("Successfully joined the waitlist! Check your email for a welcome message.");
@@ -756,9 +766,11 @@ const Prelaunch = () => {
                 <p className="text-accent/80 mb-4">
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
-                <Badge className="bg-accent/20 text-accent">
-                  {userPosition.fullUsername || `Member ${emailCount + 1}`}
-                </Badge>
+                {userPosition.fullUsername && (
+                  <Badge className="bg-accent/20 text-accent">
+                    {userPosition.fullUsername}
+                  </Badge>
+                )}
               </div>
             </Card>
           )}
