@@ -20,6 +20,7 @@ interface FormState {
   experienceLevel: string;
   statesCovered: string[];
   typeOfWork: string[];
+  otherWorkType: string;
   challenges: string;
   mostInterestedFeatures: string;
   betaTesting: boolean;
@@ -32,6 +33,7 @@ const initialState: FormState = {
   experienceLevel: '',
   statesCovered: [],
   typeOfWork: [],
+  otherWorkType: '',
   challenges: '',
   mostInterestedFeatures: '',
   betaTesting: false,
@@ -76,7 +78,6 @@ const Prelaunch = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
-  const [workTypeSearch, setWorkTypeSearch] = useState("");
   
   // Debug the states loading
   const { states, loading: statesLoading, error: statesError } = useStates();
@@ -139,7 +140,8 @@ const Prelaunch = () => {
     "Property Preservation",
     "Appraisal Services",
     "Insurance Inspections",
-    "Compliance Checks"
+    "Compliance Checks",
+    "Other"
   ];
 
   const isFormValid = () => {
@@ -148,6 +150,8 @@ const Prelaunch = () => {
            formState.experienceLevel &&
            formState.statesCovered.length > 0 &&
            formState.typeOfWork.length > 0 &&
+           // If "Other" is selected, require the other field to be filled
+           (!formState.typeOfWork.includes("Other") || formState.otherWorkType.trim() !== '') &&
            formState.privacyConsent;
   };
 
@@ -158,33 +162,23 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Use the appropriate signup table based on user type
-      if (formState.userType === 'field-rep') {
-        const { error } = await supabase
-          .from('field_rep_signups')
-          .insert({
-            email: formState.email,
-            experience_level: formState.experienceLevel,
-            primary_state: formState.statesCovered[0] || '',
-            work_types: formState.typeOfWork,
-            current_challenges: formState.challenges.split(',').map(c => c.trim()).filter(Boolean),
-            interested_features: formState.mostInterestedFeatures.split(',').map(f => f.trim()).filter(Boolean),
-            interested_in_beta_testing: formState.betaTesting,
-          });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('vendor_signups')
-          .insert({
-            email: formState.email,
-            primary_service: formState.typeOfWork,
-            states_covered: formState.statesCovered,
-            current_challenges: formState.challenges.split(',').map(c => c.trim()).filter(Boolean),
-            interested_features: formState.mostInterestedFeatures.split(',').map(f => f.trim()).filter(Boolean),
-            interested_in_beta_testing: formState.betaTesting,
-          });
-        if (error) throw error;
-      }
+      // Use the new consolidated table
+      const { error } = await supabase
+        .from('pre_launch_signups')
+        .insert({
+          email: formState.email,
+          user_type: formState.userType,
+          experience_level: formState.experienceLevel,
+          states_covered: formState.statesCovered,
+          type_of_work: formState.typeOfWork.map(work => 
+            work === "Other" ? `Other: ${formState.otherWorkType}` : work
+          ),
+          current_challenges: formState.challenges,
+          most_interested_features: formState.mostInterestedFeatures,
+          interested_in_beta_testing: formState.betaTesting,
+        });
+
+      if (error) throw error;
 
       setIsSubmitted(true);
       toast.success("Successfully joined the waitlist! Check your email for a welcome message.");
@@ -209,10 +203,9 @@ const Prelaunch = () => {
     dispatch({ type: 'TOGGLE_WORK_TYPE', workType: workTypeToRemove });
   };
 
-
-  const filteredWorkTypes = workTypes.filter(type => 
-    type.toLowerCase().includes(workTypeSearch.toLowerCase()) &&
-    !formState.typeOfWork.includes(type)
+  const filteredStates = availableStates.filter(state => 
+    state.name.toLowerCase().includes(stateSearch.toLowerCase()) &&
+    !formState.statesCovered.includes(state.code)
   );
 
   const getSelectedStateNames = () => {
@@ -370,25 +363,39 @@ const Prelaunch = () => {
                     </div>
                   )}
 
-                  {/* 3-Column State Checkbox Layout */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-medium">Select Coverage States ({formState.statesCovered.length} selected)</p>
-                    <div className="border border-border rounded-md p-4 max-h-64 overflow-y-auto">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {availableStates.map((state) => (
-                          <label 
-                            key={state.code} 
-                            className="flex items-center space-x-2 cursor-pointer hover:bg-muted p-2 rounded text-sm"
+                  {/* State Search */}
+                  <div className="relative">
+                    <Input
+                      placeholder="Search and select states..."
+                      value={stateSearch}
+                      onChange={(e) => {
+                        console.log('State search changed:', e.target.value);
+                        setStateSearch(e.target.value);
+                      }}
+                    />
+                    {stateSearch && filteredStates.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
+                        {filteredStates.slice(0, 5).map((state) => (
+                          <button
+                            key={state.code}
+                            type="button"
+                            onClick={() => {
+                              console.log('Selecting state:', state.name, state.code);
+                              dispatch({ type: 'TOGGLE_STATE', stateCode: state.code });
+                              setStateSearch("");
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
                           >
-                            <Checkbox
-                              checked={formState.statesCovered.includes(state.code)}
-                              onCheckedChange={() => dispatch({ type: 'TOGGLE_STATE', stateCode: state.code })}
-                            />
-                            <span className="select-none">{state.name}</span>
-                          </label>
+                            {state.name}
+                          </button>
                         ))}
                       </div>
-                    </div>
+                    )}
+                    {stateSearch && filteredStates.length === 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 p-3">
+                        <p className="text-sm text-muted-foreground">No states found matching "{stateSearch}"</p>
+                      </div>
+                    )}
                   </div>
                   {formState.statesCovered.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one state</p>
@@ -402,49 +409,74 @@ const Prelaunch = () => {
                     Type of Work <span className="text-red-500">*</span>
                   </Label>
                   
-                  {/* Selected Work Types */}
+                  {/* Selected Work Types Display */}
                   {formState.typeOfWork.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg">
-                      {formState.typeOfWork.map((workType) => (
-                        <Badge key={workType} variant="secondary" className="pr-1">
-                          {workType}
-                          <button
-                            type="button"
-                            onClick={() => removeWorkType(workType)}
-                            className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
+                    <div className="p-3 bg-muted/50 rounded-lg mb-3">
+                      <p className="text-sm font-medium mb-2">Selected Work Types ({formState.typeOfWork.length}):</p>
+                      <div className="flex flex-wrap gap-2">
+                        {formState.typeOfWork.map((workType) => (
+                          <Badge key={workType} variant="secondary" className="pr-1">
+                            {workType}
+                            <button
+                              type="button"
+                              onClick={() => removeWorkType(workType)}
+                              className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {/* Work Type Search */}
-                  <div className="relative">
-                    <Input
-                      placeholder="Search and select work types..."
-                      value={workTypeSearch}
-                      onChange={(e) => setWorkTypeSearch(e.target.value)}
-                    />
-                    {workTypeSearch && (
-                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
-                        {filteredWorkTypes.slice(0, 5).map((workType) => (
-                          <button
-                            key={workType}
-                            type="button"
-                            onClick={() => {
-                              dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
-                              setWorkTypeSearch("");
+                  {/* Work Types Checkbox Grid */}
+                  <div className="border rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                      {workTypes.map((workType) => (
+                        <div key={workType} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`work-${workType.replace(/\s+/g, '-').toLowerCase()}`}
+                            checked={formState.typeOfWork.includes(workType)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
+                              } else {
+                                removeWorkType(workType);
+                                // Clear other field if "Other" is unchecked
+                                if (workType === "Other") {
+                                  dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: '' });
+                                }
+                              }
                             }}
-                            className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
+                          />
+                          <Label 
+                            htmlFor={`work-${workType.replace(/\s+/g, '-').toLowerCase()}`} 
+                            className="text-sm cursor-pointer leading-tight"
                           >
                             {workType}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Other Work Type Text Field */}
+                  {formState.typeOfWork.includes("Other") && (
+                    <div className="space-y-2">
+                      <Label htmlFor="otherWorkType" className="text-sm font-medium">
+                        Please specify other work type:
+                      </Label>
+                      <Input
+                        id="otherWorkType"
+                        placeholder="e.g., Environmental Inspections, Code Compliance, etc."
+                        value={formState.otherWorkType}
+                        onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: e.target.value })}
+                        className="max-w-md"
+                      />
+                    </div>
+                  )}
+
                   {formState.typeOfWork.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one work type</p>
                   )}
@@ -607,3 +639,4 @@ const Prelaunch = () => {
 };
 
 export default Prelaunch;
+Smart, efficient model for everyday us
