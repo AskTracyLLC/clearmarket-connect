@@ -309,15 +309,6 @@ const Prelaunch = () => {
     label: 'Other'
   }];
 
-  useEffect(() => {
-    console.log('🔄 States array updated:', states.length, 'states available');
-    if (states.length > 0) {
-      console.log('🔍 First few states:', states.slice(0, 3));
-    }
-    if (statesError) {
-      console.error('❌ States error:', statesError);
-    }
-  }, [states, statesError]);
 
   // Debug log when states change
   useEffect(() => {
@@ -906,29 +897,28 @@ const Prelaunch = () => {
                           <Label htmlFor="primary-state" className="text-sm font-medium">
                             Primary State *
                           </Label>
-                          <Select value={formState.primaryState} onValueChange={(value) => dispatch({ type: 'SET_FIELD', field: 'primaryState', value })}>
-                            <SelectTrigger id="primary-state" className="mt-1">
-                              <SelectValue placeholder={statesLoading ? "Loading states..." : states.length > 0 ? "Select your primary state" : "No states available"} />
-                            </SelectTrigger>
-                            <SelectContent className="z-[9999] bg-background border">
-                              {statesLoading ? (
-                                <SelectItem value="loading" disabled>Loading states...</SelectItem>
-                              ) : states.length > 0 ? (
-                                states.map(state => (
+                          {statesLoading || states.length === 0 ? (
+                            <div className="mt-1 p-3 border rounded-md bg-muted text-muted-foreground">
+                              Loading states...
+                            </div>
+                          ) : statesError ? (
+                            <div className="mt-1 p-3 border rounded-md bg-destructive/10 text-destructive">
+                              Failed to load states. Please refresh the page.
+                            </div>
+                          ) : states.length > 0 ? (
+                            <Select key="primary-state-select" value={formState.primaryState} onValueChange={(value) => dispatch({ type: 'SET_FIELD', field: 'primaryState', value })}>
+                              <SelectTrigger id="primary-state" className="mt-1">
+                                <SelectValue placeholder="Select your primary state" />
+                              </SelectTrigger>
+                              <SelectContent className="z-[9999] bg-background border">
+                                {states.map(state => (
                                   <SelectItem key={state.code} value={state.code}>
                                     {state.name}
                                   </SelectItem>
-                                ))
-                              ) : (
-                                <SelectItem value="error" disabled>Failed to load states</SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                          {/* Debug info */}
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Debug: {statesLoading ? 'Loading...' : `${states.length} states loaded`}
-                            {statesError && ` (Error: ${statesError})`}
-                          </p>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : null}
                         </div>
 
                         <div>
@@ -1009,32 +999,32 @@ const Prelaunch = () => {
                         <div>
                           <Label className="text-sm font-medium">State(s) You Cover</Label>
                           <p className="text-xs text-muted-foreground mb-2">Select all that apply</p>
-                           <div className="max-h-32 overflow-y-auto border rounded-md p-3">
-                             <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-                               {states.length > 0 ? (
-                                 states.map(state => (
+                           {statesLoading || states.length === 0 ? (
+                             <div className="p-3 border rounded-md bg-muted text-muted-foreground">
+                               Loading states...
+                             </div>
+                           ) : statesError ? (
+                             <div className="p-3 border rounded-md bg-destructive/10 text-destructive">
+                               Failed to load states. Please refresh the page.
+                             </div>
+                           ) : (
+                             <div className="max-h-32 overflow-y-auto border rounded-md p-3">
+                               <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                                 {states.map(state => (
                                    <div key={state.code} className="flex items-center space-x-2">
                                      <Checkbox 
                                        id={`state-${state.code}`} 
                                        checked={formState.statesCovered.includes(state.code)} 
                                        onCheckedChange={() => handleStateToggle(state.code)} 
                                      />
-                                     <Label htmlFor={`state-${state.code}`} className="text-sm cursor-pointer">
+                                     <Label htmlFor={`state-${state.code}`} className="text-xs cursor-pointer">
                                        {state.name}
                                      </Label>
                                    </div>
-                                 ))
-                               ) : (
-                                 <div className="col-span-full text-center text-muted-foreground">
-                                   Loading states...
-                                 </div>
-                               )}
+                                 ))}
+                               </div>
                              </div>
-                           </div>
-                           {/* Debug info */}
-                           <p className="text-xs text-muted-foreground mt-1">
-                             Debug: {states.length} states available
-                           </p>
+                           )}
                             {formState.statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
                                 Selected: {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''}
                             </p>}
