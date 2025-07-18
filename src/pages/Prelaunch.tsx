@@ -627,7 +627,7 @@ const Prelaunch = () => {
               <TrendingUp className="h-12 w-12 text-secondary mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Credit-Based System</h3>
               <p className="text-muted-foreground">
-                Fair, transparent pricing with no hidden fees or subscription costs
+                Fair, transparent pricing with flexible options including credits and premium subscriptions
               </p>
             </Card>
           </div>
