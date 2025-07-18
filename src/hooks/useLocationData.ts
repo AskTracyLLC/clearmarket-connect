@@ -32,17 +32,31 @@ export const useStates = () => {
   useEffect(() => {
     const fetchStates = async () => {
       try {
+        console.log('🔍 useStates: Starting to fetch states from Supabase...');
+        setLoading(true);
+        setError(null);
+        
         const { data, error } = await supabase
           .from("states")
           .select("*")
           .order("name");
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ useStates: Supabase error:', error);
+          throw error;
+        }
+        
+        console.log('✅ useStates: Raw data from Supabase:', data?.length || 0, 'states');
         setStates(data || []);
+        console.log('✅ useStates: States set successfully');
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch states");
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch states";
+        console.error('❌ useStates: Error occurred:', errorMessage);
+        setError(errorMessage);
+        setStates([]);
       } finally {
         setLoading(false);
+        console.log('🏁 useStates: Loading complete');
       }
     };
 

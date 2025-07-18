@@ -16,7 +16,9 @@ interface VendorCoverageAreasProps {
 
 export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorCoverageAreasProps) => {
   const { toast } = useToast();
-  const { states } = useStates();
+  const { states, loading: statesLoading, error: statesError } = useStates();
+  
+  console.log('🔍 VendorCoverageAreas - States data:', { states: states.length, loading: statesLoading, error: statesError });
   const [selectedState, setSelectedState] = useState<State | null>(null);
   const { counties } = useCountiesByState(selectedState?.code);
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
@@ -114,11 +116,17 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
               <SelectValue placeholder="Choose a state" />
             </SelectTrigger>
             <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state.code} value={state.code}>
-                  {state.name}
-                </SelectItem>
-              ))}
+              {statesLoading ? (
+                <SelectItem value="loading" disabled>Loading states...</SelectItem>
+              ) : states.length > 0 ? (
+                states.map((state) => (
+                  <SelectItem key={state.code} value={state.code}>
+                    {state.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="error" disabled>Failed to load states</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
