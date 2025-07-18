@@ -98,6 +98,10 @@ const Prelaunch = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
+  
+  // Debug the states loading
+  const { states, loading: statesLoading, error: statesError } = useStates();
+  console.log('States loading:', statesLoading, 'States count:', states.length, 'Error:', statesError);
   const [userPosition, setUserPosition] = useState({
     type: '',
     number: 0,
@@ -1435,6 +1439,7 @@ const Prelaunch = () => {
         </div>
       </footer>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default Prelaunch;
