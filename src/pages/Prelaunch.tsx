@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
 import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { supabase } from '@/integrations/supabase/client';
+import { useStates } from '@/hooks/useLocationData';
 import { useToast } from '@/hooks/use-toast';
 import { isDisposableEmail, checkRateLimit, checkDuplicateEmail, logSignupAttempt, getClientIP, validateHoneypot, getAntiSpamErrorMessage } from '@/utils/antiSpam';
 import { Users, MapPin, Star, Shield, MessageSquare, Mail, CheckCircle, ArrowRight, Building, UserCheck, TrendingUp, Clock, BarChart3 } from 'lucide-react';
@@ -102,7 +103,7 @@ const Prelaunch = () => {
     number: 0,
     fullUsername: ''
   });
-  const [states, setStates] = useState([]);
+  const { states, loading: statesLoading, error: statesError } = useStates();
 
   // Anti-spam states
   const [honeypotField, setHoneypotField] = useState('');
@@ -308,90 +309,15 @@ const Prelaunch = () => {
     label: 'Other'
   }];
 
-  // Load states on component mount
   useEffect(() => {
-    const loadStates = async () => {
-      try {
-        console.log('🔍 Loading states from Supabase...');
-        const { data, error } = await supabase.from('states').select('code, name').order('name');
-        
-        if (error) {
-          console.error('❌ Error loading states from Supabase:', error);
-        } else {
-          console.log('✅ Raw states data from Supabase:', data);
-          if (data && data.length > 0) {
-            console.log(`✅ States loaded successfully: ${data.length} states`);
-            setStates(data);
-            console.log('✅ States set in component state');
-            return;
-          } else {
-            console.warn('⚠️ No states data returned from Supabase');
-          }
-        }
-      } catch (error) {
-        console.error('❌ Failed to load states:', error);
-      }
-      
-      // Fallback to hardcoded states
-      console.log('🔄 Using fallback states');
-      const fallbackStates = [
-        { code: 'AL', name: 'Alabama' },
-        { code: 'AK', name: 'Alaska' },
-        { code: 'AZ', name: 'Arizona' },
-        { code: 'AR', name: 'Arkansas' },
-        { code: 'CA', name: 'California' },
-        { code: 'CO', name: 'Colorado' },
-        { code: 'CT', name: 'Connecticut' },
-        { code: 'DE', name: 'Delaware' },
-        { code: 'FL', name: 'Florida' },
-        { code: 'GA', name: 'Georgia' },
-        { code: 'HI', name: 'Hawaii' },
-        { code: 'ID', name: 'Idaho' },
-        { code: 'IL', name: 'Illinois' },
-        { code: 'IN', name: 'Indiana' },
-        { code: 'IA', name: 'Iowa' },
-        { code: 'KS', name: 'Kansas' },
-        { code: 'KY', name: 'Kentucky' },
-        { code: 'LA', name: 'Louisiana' },
-        { code: 'ME', name: 'Maine' },
-        { code: 'MD', name: 'Maryland' },
-        { code: 'MA', name: 'Massachusetts' },
-        { code: 'MI', name: 'Michigan' },
-        { code: 'MN', name: 'Minnesota' },
-        { code: 'MS', name: 'Mississippi' },
-        { code: 'MO', name: 'Missouri' },
-        { code: 'MT', name: 'Montana' },
-        { code: 'NE', name: 'Nebraska' },
-        { code: 'NV', name: 'Nevada' },
-        { code: 'NH', name: 'New Hampshire' },
-        { code: 'NJ', name: 'New Jersey' },
-        { code: 'NM', name: 'New Mexico' },
-        { code: 'NY', name: 'New York' },
-        { code: 'NC', name: 'North Carolina' },
-        { code: 'ND', name: 'North Dakota' },
-        { code: 'OH', name: 'Ohio' },
-        { code: 'OK', name: 'Oklahoma' },
-        { code: 'OR', name: 'Oregon' },
-        { code: 'PA', name: 'Pennsylvania' },
-        { code: 'RI', name: 'Rhode Island' },
-        { code: 'SC', name: 'South Carolina' },
-        { code: 'SD', name: 'South Dakota' },
-        { code: 'TN', name: 'Tennessee' },
-        { code: 'TX', name: 'Texas' },
-        { code: 'UT', name: 'Utah' },
-        { code: 'VT', name: 'Vermont' },
-        { code: 'VA', name: 'Virginia' },
-        { code: 'WA', name: 'Washington' },
-        { code: 'WV', name: 'West Virginia' },
-        { code: 'WI', name: 'Wisconsin' },
-        { code: 'WY', name: 'Wyoming' },
-        { code: 'DC', name: 'District of Columbia' }
-      ];
-      setStates(fallbackStates);
-      console.log('✅ Fallback states set:', fallbackStates.length);
-    };
-    loadStates();
-  }, []);
+    console.log('🔄 States array updated:', states.length, 'states available');
+    if (states.length > 0) {
+      console.log('🔍 First few states:', states.slice(0, 3));
+    }
+    if (statesError) {
+      console.error('❌ States error:', statesError);
+    }
+  }, [states, statesError]);
 
   // Debug log when states change
   useEffect(() => {
@@ -982,23 +908,26 @@ const Prelaunch = () => {
                           </Label>
                           <Select value={formState.primaryState} onValueChange={(value) => dispatch({ type: 'SET_FIELD', field: 'primaryState', value })}>
                             <SelectTrigger id="primary-state" className="mt-1">
-                              <SelectValue placeholder={states.length > 0 ? "Select your primary state" : "Loading states..."} />
+                              <SelectValue placeholder={statesLoading ? "Loading states..." : states.length > 0 ? "Select your primary state" : "No states available"} />
                             </SelectTrigger>
                             <SelectContent className="z-[9999] bg-background border">
-                              {states.length > 0 ? (
+                              {statesLoading ? (
+                                <SelectItem value="loading" disabled>Loading states...</SelectItem>
+                              ) : states.length > 0 ? (
                                 states.map(state => (
                                   <SelectItem key={state.code} value={state.code}>
                                     {state.name}
                                   </SelectItem>
                                 ))
                               ) : (
-                                <SelectItem value="loading" disabled>Loading states...</SelectItem>
+                                <SelectItem value="error" disabled>Failed to load states</SelectItem>
                               )}
                             </SelectContent>
                           </Select>
                           {/* Debug info */}
                           <p className="text-xs text-muted-foreground mt-1">
-                            Debug: {states.length} states loaded
+                            Debug: {statesLoading ? 'Loading...' : `${states.length} states loaded`}
+                            {statesError && ` (Error: ${statesError})`}
                           </p>
                         </div>
 
