@@ -162,30 +162,36 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Use the new consolidated table
-      const { error } = await supabase
-        .from('pre_launch_signups')
-        .insert({
-          email: formState.email,
-          user_type: formState.userType,
-          experience_level: formState.experienceLevel,
-          states_covered: formState.statesCovered,
-          type_of_work: formState.typeOfWork.map(work => 
-            work === "Other" ? `Other: ${formState.otherWorkType}` : work
-          ),
-          current_challenges: formState.challenges,
-          most_interested_features: formState.mostInterestedFeatures,
-          interested_in_beta_testing: formState.betaTesting,
+      // Use the correct table based on user type
+      const tableName = formState.userType === 'field-rep' ? 'field_rep_signups' : 'vendor_signups';
+      
+      const insertData = {
+        email: formState.email,
+        primary_state: formState.statesCovered[0] || null,
+        experience_level: formState.experienceLevel,
+        work_types: formState.typeOfWork.map(work => 
+          work === "Other" ? `Other: ${formState.otherWorkType}` : work
+        ),
+        current_challenges: formState.challenges.split(',').map(c => c.trim()).filter(Boolean),
+        interested_features: formState.mostInterestedFeatures.split(',').map(f => f.trim()).filter(Boolean),
+        interested_in_beta_testing: formState.betaTesting,
+      };
+
+      // Add field rep specific fields
+      if (formState.userType === 'field-rep') {
+        Object.assign(insertData, {
+          field_rep_name: null, // Will be filled by user later
         });
+      }
+
+      const { error } = await supabase
+        .from(tableName)
+        .insert(insertData);
 
       if (error) throw error;
 
       setIsSubmitted(true);
       toast.success("Successfully joined the waitlist! Check your email for a welcome message.");
-      
-      // Email will be automatically sent via database trigger
-      // Beta testers get enhanced welcome email with NDA info
-      // Standard signups get regular welcome email
       
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -203,8 +209,8 @@ const Prelaunch = () => {
     dispatch({ type: 'TOGGLE_WORK_TYPE', workType: workTypeToRemove });
   };
 
-  const filteredStates = availableStates.filter(state => 
-    state.name.toLowerCase().includes(stateSearch.toLowerCase()) &&
+  // Get unselected states for the checkbox grid
+  const unselectedStates = availableStates.filter(state => 
     !formState.statesCovered.includes(state.code)
   );
 
@@ -345,9 +351,14 @@ const Prelaunch = () => {
                     States You Work In <span className="text-red-500">*</span>
                   </Label>
                   
+                  {/* Selected States Count */}
+                  <div className="text-sm text-muted-foreground mb-2">
+                    {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''} selected
+                  </div>
+
                   {/* Selected States */}
                   {formState.statesCovered.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg mb-3">
                       {getSelectedStateNames().map((stateName, index) => (
                         <Badge key={stateName} variant="secondary" className="pr-1">
                           {stateName}
@@ -363,39 +374,25 @@ const Prelaunch = () => {
                     </div>
                   )}
 
-                  {/* State Search */}
-                  <div className="relative">
-                    <Input
-                      placeholder="Search and select states..."
-                      value={stateSearch}
-                      onChange={(e) => {
-                        console.log('State search changed:', e.target.value);
-                        setStateSearch(e.target.value);
-                      }}
-                    />
-                    {stateSearch && filteredStates.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
-                        {filteredStates.slice(0, 5).map((state) => (
-                          <button
-                            key={state.code}
-                            type="button"
-                            onClick={() => {
-                              console.log('Selecting state:', state.name, state.code);
-                              dispatch({ type: 'TOGGLE_STATE', stateCode: state.code });
-                              setStateSearch("");
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
+                  {/* 3-Column State Checkbox Grid */}
+                  <div className="border border-border rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {availableStates.map((state) => (
+                        <div key={state.code} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`state-${state.code}`}
+                            checked={formState.statesCovered.includes(state.code)}
+                            onCheckedChange={() => dispatch({ type: 'TOGGLE_STATE', stateCode: state.code })}
+                          />
+                          <Label 
+                            htmlFor={`state-${state.code}`} 
+                            className="text-sm cursor-pointer flex-1"
                           >
                             {state.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {stateSearch && filteredStates.length === 0 && (
-                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 p-3">
-                        <p className="text-sm text-muted-foreground">No states found matching "{stateSearch}"</p>
-                      </div>
-                    )}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   {formState.statesCovered.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one state</p>
