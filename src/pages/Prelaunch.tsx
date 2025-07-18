@@ -795,8 +795,9 @@ const Prelaunch = () => {
     fieldRep: ["Get discovered by quality vendors seeking coverage", "Build your professional reputation with verified reviews", "Access exclusive job features in your coverage areas", "Communicate with all your vendors in one private message", "Connect with industry peers and share knowledge"],
     vendor: ["Find reliable field reps in any county nationwide", "Verify credentials and track performance history", "Communicate with all field reps regardless of platform used", "Manage your coverage network efficiently", "Post coverage requests to qualified professionals only"]
   };
-  return <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
-      {/* Background Pattern */}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
+        {/* Background Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
       <div className="relative z-10">
       {/* Header */}
