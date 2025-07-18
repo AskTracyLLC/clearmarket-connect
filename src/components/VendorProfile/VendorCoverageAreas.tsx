@@ -16,7 +16,8 @@ interface VendorCoverageAreasProps {
 
 export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorCoverageAreasProps) => {
   const { toast } = useToast();
-  const { states } = useStates();
+  const { states, loading: statesLoading, error: statesError } = useStates();
+  
   const [selectedState, setSelectedState] = useState<State | null>(null);
   const { counties } = useCountiesByState(selectedState?.code);
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
@@ -109,18 +110,24 @@ export const VendorCoverageAreas = ({ coverageAreas, setCoverageAreas }: VendorC
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="state-select">Select State</Label>
-          <Select onValueChange={handleStateChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a state" />
-            </SelectTrigger>
-            <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state.code} value={state.code}>
-                  {state.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {statesLoading || states.length === 0 ? (
+            <div className="p-3 border rounded-md bg-muted text-muted-foreground">
+              Loading states...
+            </div>
+          ) : states.length > 0 ? (
+            <Select key="vendor-state-select" onValueChange={handleStateChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a state" />
+              </SelectTrigger>
+              <SelectContent>
+                {states.map((state) => (
+                  <SelectItem key={state.code} value={state.code}>
+                    {state.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
         </div>
 
         {selectedState && (

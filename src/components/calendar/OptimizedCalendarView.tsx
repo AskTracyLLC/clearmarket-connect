@@ -40,37 +40,65 @@ const OptimizedCalendarView = ({ userRole }: OptimizedCalendarViewProps) => {
 
   const loadEvents = async () => {
     try {
+      console.log('🔍 OptimizedCalendarView: Starting to load events...');
       setLoading(true);
       
       // Load user's own events
+      console.log('📅 Loading user events...');
       const { data: userEvents, error: userError } = await supabase
         .from("calendar_events")
         .select("*")
         .order("start_date", { ascending: true });
 
-      if (userError) throw userError;
+      if (userError) {
+        console.error('❌ Error loading user events:', userError);
+        throw userError;
+      }
+      
+      console.log('✅ User events loaded:', userEvents?.length || 0);
       setEvents(userEvents || []);
 
       // Load network events from connected users
       if (showNetworkEvents) {
+        console.log('🌐 Loading network events...');
+        const currentUser = await supabase.auth.getUser();
+        
+        if (!currentUser.data.user) {
+          console.warn('⚠️ No authenticated user found for network events');
+          setNetworkEvents([]);
+          return;
+        }
+
         const { data: networkEventsData, error: networkError } = await supabase
           .from("calendar_events")
           .select("*")
           .eq("event_visibility", "network")
-          .neq("user_id", (await supabase.auth.getUser()).data.user?.id);
+          .neq("user_id", currentUser.data.user.id);
 
-        if (networkError) throw networkError;
+        if (networkError) {
+          console.error('❌ Error loading network events:', networkError);
+          throw networkError;
+        }
+        
+        console.log('✅ Network events loaded:', networkEventsData?.length || 0);
         
         // Get user data for event owners
         const ownerIds = networkEventsData?.map(event => event.user_id) || [];
         let ownersData = [];
         
         if (ownerIds.length > 0) {
-          const { data: userData } = await supabase
+          console.log('👥 Loading owner data for', ownerIds.length, 'users...');
+          const { data: userData, error: userDataError } = await supabase
             .from("users")
             .select("id, display_name, anonymous_username, role")
             .in("id", ownerIds);
-          ownersData = userData || [];
+          
+          if (userDataError) {
+            console.error('❌ Error loading user data:', userDataError);
+          } else {
+            ownersData = userData || [];
+            console.log('✅ Owner data loaded for', ownersData.length, 'users');
+          }
         }
 
         // Transform network events with owner info
@@ -94,18 +122,23 @@ const OptimizedCalendarView = ({ userRole }: OptimizedCalendarViewProps) => {
           }
         });
 
+        console.log('🔍 Filtered network events:', filteredEvents.length, 'for role:', userRole);
         setNetworkEvents(filteredEvents);
       } else {
         setNetworkEvents([]);
       }
     } catch (error: any) {
+      console.error('❌ Calendar loading error:', error);
       toast({
         title: "Error loading calendar",
         description: error.message,
         variant: "destructive",
       });
+      setEvents([]);
+      setNetworkEvents([]);
     } finally {
       setLoading(false);
+      console.log('🏁 Calendar loading complete');
     }
   };
 

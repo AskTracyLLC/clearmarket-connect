@@ -17,18 +17,34 @@ const CalendarPage = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        console.log('🔍 CalendarPage: Fetching user role...');
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('❌ Auth error:', authError);
+          throw authError;
+        }
+        
         if (user) {
+          console.log('✅ User found:', user.id);
           const { data: userData, error } = await supabase
             .from("users")
             .select("role")
             .eq("id", user.id)
             .single();
           
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Error fetching user role:', error);
+            throw error;
+          }
+          
+          console.log('✅ User role loaded:', userData.role);
           setUserRole(userData.role as "field_rep" | "vendor");
+        } else {
+          console.warn('⚠️ No authenticated user found');
         }
       } catch (error: any) {
+        console.error('❌ Calendar page error:', error);
         toast({
           title: "Error loading user data",
           description: error.message,
@@ -36,6 +52,7 @@ const CalendarPage = () => {
         });
       } finally {
         setLoading(false);
+        console.log('🏁 CalendarPage: Loading complete');
       }
     };
 

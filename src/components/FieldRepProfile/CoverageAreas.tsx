@@ -18,7 +18,7 @@ interface CoverageAreasProps {
 
 export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [] }: CoverageAreasProps) => {
   const { toast } = useToast();
-  const { states } = useStates();
+  const { states, loading: statesLoading } = useStates();
   const [selectedState, setSelectedState] = useState<State | null>(null);
   const { counties } = useCountiesByState(selectedState?.code);
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
@@ -209,18 +209,24 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
         
         <div className="space-y-2">
           <Label>Select State</Label>
-          <Select onValueChange={handleStateChange}>
-            <SelectTrigger className="w-full md:w-64">
-              <SelectValue placeholder="Choose a state" />
-            </SelectTrigger>
-            <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state.code} value={state.code}>
-                  {state.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {statesLoading || states.length === 0 ? (
+            <div className="p-3 border rounded-md bg-muted text-muted-foreground">
+              Loading states...
+            </div>
+          ) : states.length > 0 ? (
+            <Select key="coverage-state-select" onValueChange={handleStateChange}>
+              <SelectTrigger className="w-full md:w-64">
+                <SelectValue placeholder="Choose a state" />
+              </SelectTrigger>
+              <SelectContent>
+                {states.map((state) => (
+                  <SelectItem key={state.code} value={state.code}>
+                    {state.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
         </div>
 
         {selectedState && (
