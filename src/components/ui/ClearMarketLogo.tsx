@@ -13,7 +13,7 @@ const ClearMarketLogo: React.FC<ClearMarketLogoProps> = ({
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('//admin-auth');
+    navigate('/admin-auth');
   };
 
   return (
