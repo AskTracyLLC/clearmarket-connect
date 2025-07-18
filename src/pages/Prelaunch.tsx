@@ -162,16 +162,16 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Prepare insert data
+      // Prepare insert data - use correct database fields
       const insertData = {
         email: formState.email,
         user_type: formState.userType,
         primary_state: formState.statesCovered[0] || null,
         experience_level: formState.experienceLevel,
-        work_types: formState.typeOfWork.map(work => 
+        type_of_work: formState.typeOfWork.map(work => 
           work === "Other" ? `Other: ${formState.otherWorkType}` : work
         ),
-        current_challenges: formState.challenges ? [formState.challenges] : null,
+        current_challenges: formState.challenges || null,
         most_interested_features: formState.mostInterestedFeatures || null,
         interested_in_beta_testing: formState.betaTesting,
         anonymous_username: null, // Let the trigger generate this
