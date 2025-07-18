@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import ClearMarketLogo from "@/components/ui/ClearMarketLogo";
-import { CheckCircle, UserCheck, Building2, MapPin, Calendar, TrendingUp, Users, Shield, ArrowRight } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle, UserCheck, Building2, MapPin, Calendar, TrendingUp, Users, Shield, ArrowRight, X, Briefcase } from "lucide-react";
 import { useStates } from "@/hooks/useLocationData";
 import { toast } from "sonner";
 
@@ -18,8 +19,9 @@ interface FormState {
   userType: 'field-rep' | 'vendor' | '';
   experienceLevel: string;
   statesCovered: string[];
+  typeOfWork: string[];
   challenges: string;
-  interestedFeatures: string[];
+  mostInterestedFeatures: string;
   betaTesting: boolean;
   privacyConsent: boolean;
 }
@@ -29,8 +31,9 @@ const initialState: FormState = {
   userType: '',
   experienceLevel: '',
   statesCovered: [],
+  typeOfWork: [],
   challenges: '',
-  interestedFeatures: [],
+  mostInterestedFeatures: '',
   betaTesting: false,
   privacyConsent: false,
 };
@@ -38,7 +41,7 @@ const initialState: FormState = {
 type Action = 
   | { type: 'SET_FIELD'; field: keyof FormState; value: any }
   | { type: 'TOGGLE_STATE'; stateCode: string }
-  | { type: 'TOGGLE_FEATURE'; feature: string }
+  | { type: 'TOGGLE_WORK_TYPE'; workType: string }
   | { type: 'RESET' };
 
 function formReducer(state: FormState, action: Action): FormState {
@@ -53,13 +56,13 @@ function formReducer(state: FormState, action: Action): FormState {
           ? state.statesCovered.filter(code => code !== action.stateCode)
           : [...state.statesCovered, action.stateCode]
       };
-    case 'TOGGLE_FEATURE':
-      const isFeatureSelected = state.interestedFeatures.includes(action.feature);
+    case 'TOGGLE_WORK_TYPE':
+      const isWorkTypeSelected = state.typeOfWork.includes(action.workType);
       return {
         ...state,
-        interestedFeatures: isFeatureSelected
-          ? state.interestedFeatures.filter(f => f !== action.feature)
-          : [...state.interestedFeatures, action.feature]
+        typeOfWork: isWorkTypeSelected
+          ? state.typeOfWork.filter(w => w !== action.workType)
+          : [...state.typeOfWork, action.workType]
       };
     case 'RESET':
       return initialState;
@@ -73,6 +76,8 @@ const Prelaunch = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
+  const [stateSearch, setStateSearch] = useState("");
+  const [workTypeSearch, setWorkTypeSearch] = useState("");
   
   // Debug the states loading
   const { states, loading: statesLoading, error: statesError } = useStates();
@@ -91,9 +96,33 @@ const Prelaunch = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const experienceLevels = [
+    "New to the industry (0-1 years)",
+    "Some experience (2-3 years)", 
+    "Experienced (4-7 years)",
+    "Very experienced (8+ years)",
+    "Industry veteran (15+ years)"
+  ];
+
+  const workTypes = [
+    "Property Inspections",
+    "BPO (Broker Price Opinion)",
+    "Occupancy Checks", 
+    "Damage Assessments",
+    "REO Services",
+    "Field Services",
+    "Property Preservation",
+    "Appraisal Services",
+    "Insurance Inspections",
+    "Compliance Checks"
+  ];
+
   const isFormValid = () => {
     return formState.email && 
            formState.userType && 
+           formState.experienceLevel &&
+           formState.statesCovered.length > 0 &&
+           formState.typeOfWork.length > 0 &&
            formState.privacyConsent;
   };
 
@@ -104,23 +133,28 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      const tableName = formState.userType === 'field-rep' ? 'field_rep_signups' : 'vendor_signups';
-      
+      // Use the new consolidated table
       const { error } = await supabase
-        .from(tableName)
+        .from('pre_launch_signups')
         .insert({
           email: formState.email,
+          user_type: formState.userType,
           experience_level: formState.experienceLevel,
           states_covered: formState.statesCovered,
-          current_challenges: [formState.challenges],
-          interested_features: formState.interestedFeatures,
+          type_of_work: formState.typeOfWork,
+          current_challenges: formState.challenges,
+          most_interested_features: formState.mostInterestedFeatures,
           interested_in_beta_testing: formState.betaTesting,
         });
 
       if (error) throw error;
 
       setIsSubmitted(true);
-      toast.success("Successfully joined the waitlist!");
+      toast.success("Successfully joined the waitlist! Check your email for a welcome message.");
+      
+      // Email will be automatically sent via database trigger
+      // Beta testers get enhanced welcome email with NDA info
+      // Standard signups get regular welcome email
       
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -130,23 +164,30 @@ const Prelaunch = () => {
     }
   };
 
-  const experienceLevels = [
-    { value: 'beginner', label: 'New to field inspections (0-2 years)' },
-    { value: 'intermediate', label: 'Some experience (2-5 years)' },
-    { value: 'experienced', label: 'Very experienced (5+ years)' },
-    { value: 'expert', label: 'Industry expert/trainer (10+ years)' }
-  ];
+  const removeState = (stateToRemove: string) => {
+    dispatch({ type: 'TOGGLE_STATE', stateCode: stateToRemove });
+  };
 
-  const features = [
-    'Smart job matching',
-    'Instant payments',
-    'Quality scoring system',
-    'Mobile-first design',
-    'Real-time notifications',
-    'Coverage area mapping',
-    'Review system',
-    'Training resources'
-  ];
+  const removeWorkType = (workTypeToRemove: string) => {
+    dispatch({ type: 'TOGGLE_WORK_TYPE', workType: workTypeToRemove });
+  };
+
+  const filteredStates = states.filter(state => 
+    state.name.toLowerCase().includes(stateSearch.toLowerCase()) &&
+    !formState.statesCovered.includes(state.code)
+  );
+
+  const filteredWorkTypes = workTypes.filter(type => 
+    type.toLowerCase().includes(workTypeSearch.toLowerCase()) &&
+    !formState.typeOfWork.includes(type)
+  );
+
+  const getSelectedStateNames = () => {
+    return formState.statesCovered.map(code => {
+      const state = states.find(s => s.code === code);
+      return state ? state.name : code;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,44 +242,49 @@ const Prelaunch = () => {
                 Join ClearMarket - Help Shape Our Platform
               </h3>
               
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* User Type Selection */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Button 
-                    type="button" 
-                    variant={formState.userType === 'field-rep' ? 'default' : 'outline'} 
-                    className="p-6 h-auto flex-col space-y-2" 
-                    onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'field-rep' })}
-                  >
-                    <UserCheck className="h-6 w-6" />
-                    <div>
-                      <div className="font-semibold">I'm a Field Rep</div>
-                      <div className="text-sm opacity-75">Looking for work features</div>
-                    </div>
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant={formState.userType === 'vendor' ? 'default' : 'outline'} 
-                    className="p-6 h-auto flex-col space-y-2" 
-                    onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'vendor' })}
-                  >
-                    <Building2 className="h-6 w-6" />
-                    <div>
-                      <div className="font-semibold">I'm a Vendor</div>
-                      <div className="text-sm opacity-75">Need field rep coverage</div>
-                    </div>
-                  </Button>
+              <div className="space-y-6">
+                {/* User Type Selection - Required */}
+                <div>
+                  <Label className="text-base font-semibold mb-3 block">
+                    I am a: <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Button 
+                      type="button" 
+                      variant={formState.userType === 'field-rep' ? 'default' : 'outline'} 
+                      className="p-6 h-auto flex-col space-y-2" 
+                      onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'field-rep' })}
+                    >
+                      <UserCheck className="h-6 w-6" />
+                      <div>
+                        <div className="font-semibold">Field Rep</div>
+                        <div className="text-sm opacity-75">Looking for work</div>
+                      </div>
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant={formState.userType === 'vendor' ? 'default' : 'outline'} 
+                      className="p-6 h-auto flex-col space-y-2" 
+                      onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'vendor' })}
+                    >
+                      <Building2 className="h-6 w-6" />
+                      <div>
+                        <div className="font-semibold">Vendor</div>
+                        <div className="text-sm opacity-75">Seeking coverage</div>
+                      </div>
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Email Input */}
                 <div>
                   <Label htmlFor="email" className="text-sm font-medium">
-                    Email Address *
+                    Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="your.email@company.com"
                     value={formState.email}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'email', value: e.target.value })}
                     required
@@ -247,69 +293,143 @@ const Prelaunch = () => {
                 </div>
 
                 {/* Experience Level */}
-                {formState.userType && (
-                  <div>
-                    <Label className="text-sm font-medium">
-                      Experience Level *
-                    </Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                <div>
+                  <Label className="text-sm font-medium">
+                    Experience Level <span className="text-red-500">*</span>
+                  </Label>
+                  <Select 
+                    value={formState.experienceLevel} 
+                    onValueChange={(value) => dispatch({ type: 'SET_FIELD', field: 'experienceLevel', value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select your experience level" />
+                    </SelectTrigger>
+                    <SelectContent>
                       {experienceLevels.map((level) => (
-                        <Button
-                          key={level.value}
-                          type="button"
-                          variant={formState.experienceLevel === level.value ? 'default' : 'outline'}
-                          className="justify-start text-left h-auto p-3"
-                          onClick={() => dispatch({ type: 'SET_FIELD', field: 'experienceLevel', value: level.value })}
-                        >
-                          {level.label}
-                        </Button>
+                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* States You Work In */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    States You Work In <span className="text-red-500">*</span>
+                  </Label>
+                  
+                  {/* Selected States */}
+                  {formState.statesCovered.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg">
+                      {getSelectedStateNames().map((stateName, index) => (
+                        <Badge key={stateName} variant="secondary" className="pr-1">
+                          {stateName}
+                          <button
+                            type="button"
+                            onClick={() => removeState(formState.statesCovered[index])}
+                            className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* States Coverage */}
-                {formState.userType && (
-                  <div>
-                    <Label className="text-sm font-medium">
-                      States You Work In
-                    </Label>
-                    <div className="max-h-48 overflow-y-auto border rounded-md p-3 mt-2">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {states.map((state) => (
-                          <div key={state.code} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`state-${state.code}`}
-                              checked={formState.statesCovered.includes(state.code)}
-                              onCheckedChange={() => dispatch({ type: 'TOGGLE_STATE', stateCode: state.code })}
-                            />
-                            <Label htmlFor={`state-${state.code}`} className="text-xs cursor-pointer">
-                              {state.name}
-                            </Label>
-                          </div>
+                  {/* State Search */}
+                  <div className="relative">
+                    <Input
+                      placeholder="Search and select states..."
+                      value={stateSearch}
+                      onChange={(e) => setStateSearch(e.target.value)}
+                    />
+                    {stateSearch && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
+                        {filteredStates.slice(0, 5).map((state) => (
+                          <button
+                            key={state.code}
+                            type="button"
+                            onClick={() => {
+                              dispatch({ type: 'TOGGLE_STATE', stateCode: state.code });
+                              setStateSearch("");
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
+                          >
+                            {state.name}
+                          </button>
                         ))}
                       </div>
-                    </div>
-                    {/* Debug info */}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Debug: {states.length} states available
-                    </p>
-                    {formState.statesCovered.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Selected: {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''}
-                      </p>
                     )}
                   </div>
-                )}
+                  {formState.statesCovered.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Please select at least one state</p>
+                  )}
+                </div>
+
+                {/* Type of Work */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Type of Work <span className="text-red-500">*</span>
+                  </Label>
+                  
+                  {/* Selected Work Types */}
+                  {formState.typeOfWork.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-3 bg-muted/50 rounded-lg">
+                      {formState.typeOfWork.map((workType) => (
+                        <Badge key={workType} variant="secondary" className="pr-1">
+                          {workType}
+                          <button
+                            type="button"
+                            onClick={() => removeWorkType(workType)}
+                            className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Work Type Search */}
+                  <div className="relative">
+                    <Input
+                      placeholder="Search and select work types..."
+                      value={workTypeSearch}
+                      onChange={(e) => setWorkTypeSearch(e.target.value)}
+                    />
+                    {workTypeSearch && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
+                        {filteredWorkTypes.slice(0, 5).map((workType) => (
+                          <button
+                            key={workType}
+                            type="button"
+                            onClick={() => {
+                              dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
+                              setWorkTypeSearch("");
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
+                          >
+                            {workType}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {formState.typeOfWork.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Please select at least one work type</p>
+                  )}
+                </div>
 
                 {/* Current Challenges */}
                 <div>
                   <Label htmlFor="challenges" className="text-sm font-medium">
-                    Current Challenges <span className="text-muted-foreground">(Optional)</span>
+                    Current Challenges
                   </Label>
                   <Textarea
                     id="challenges"
-                    placeholder="What challenges do you face in your current field work?"
+                    placeholder="What are your biggest challenges in finding work/coverage? (e.g., finding reliable professionals, inconsistent work, payment delays, etc.)"
                     value={formState.challenges}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'challenges', value: e.target.value })}
                     className="mt-1 resize-none"
@@ -317,25 +437,19 @@ const Prelaunch = () => {
                   />
                 </div>
 
-                {/* Interested Features */}
+                {/* Most Interested Features */}
                 <div>
-                  <Label className="text-sm font-medium">
+                  <Label htmlFor="mostInterestedFeatures" className="text-sm font-medium">
                     Most Interested Features
                   </Label>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    {features.map((feature) => (
-                      <div key={feature} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`feature-${feature}`}
-                          checked={formState.interestedFeatures.includes(feature)}
-                          onCheckedChange={() => dispatch({ type: 'TOGGLE_FEATURE', feature })}
-                        />
-                        <Label htmlFor={`feature-${feature}`} className="text-xs cursor-pointer">
-                          {feature}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                  <Textarea
+                    id="mostInterestedFeatures"
+                    placeholder="Which features are you most excited about? (e.g., trust scores, coverage mapping, direct messaging, credit system, etc.)"
+                    value={formState.mostInterestedFeatures}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'mostInterestedFeatures', value: e.target.value })}
+                    className="mt-1 resize-none"
+                    rows={3}
+                  />
                 </div>
 
                 {/* Beta Testing */}
@@ -358,28 +472,31 @@ const Prelaunch = () => {
                     onCheckedChange={(checked) => dispatch({ type: 'SET_FIELD', field: 'privacyConsent', value: checked })}
                   />
                   <Label htmlFor="privacy" className="text-sm">
-                    I agree to receive updates about ClearMarket *
+                    I agree to receive updates about ClearMarket <span className="text-red-500">*</span>
                   </Label>
                 </div>
 
                 {/* Submit Button */}
                 <Button
-                  type="submit"
+                  type="button"
                   className="w-full"
                   disabled={!isFormValid() || isLoading}
+                  onClick={handleSubmit}
                 >
-                  {isLoading ? "Joining..." : "Join the Waitlist"}
+                  {isLoading ? "Joining..." : "Join ClearMarket"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
 
                 {!isFormValid() && (
                   <p className="text-xs text-muted-foreground text-center">
-                    Please complete all required fields and agree to our privacy policy
+                    Please complete all required fields and agree to receive updates
                   </p>
                 )}
-              </form>
+              </div>
               
-              <p className="text-sm text-muted-foreground mt-4 text-center"></p>
+              <p className="text-sm text-muted-foreground mt-4 text-center">
+                Join {emailCount}+ professionals already signed up
+              </p>
             </Card>
           ) : (
             <Card className="max-w-2xl mx-auto p-8 shadow-elevated bg-accent/10 border-accent/20">
@@ -392,7 +509,7 @@ const Prelaunch = () => {
                   We'll notify you as soon as ClearMarket launches. Thanks for your interest!
                 </p>
                 <Badge className="bg-accent/20 text-accent">
-                  {userPosition.fullUsername || 'Loading...'} to join
+                  {userPosition.fullUsername || `Member ${emailCount + 1}`}
                 </Badge>
               </div>
             </Card>
