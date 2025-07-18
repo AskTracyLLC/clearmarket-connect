@@ -162,11 +162,10 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Use the correct table based on user type
-      const tableName = formState.userType === 'field-rep' ? 'field_rep_signups' : 'vendor_signups';
-      
+      // Use the unified pre_launch_signups table
       const insertData = {
         email: formState.email,
+        user_type: formState.userType,
         primary_state: formState.statesCovered[0] || null,
         experience_level: formState.experienceLevel,
         work_types: formState.typeOfWork.map(work => 
@@ -177,15 +176,8 @@ const Prelaunch = () => {
         interested_in_beta_testing: formState.betaTesting,
       };
 
-      // Add field rep specific fields
-      if (formState.userType === 'field-rep') {
-        Object.assign(insertData, {
-          field_rep_name: null, // Will be filled by user later
-        });
-      }
-
       const { data, error } = await supabase
-        .from(tableName)
+        .from('pre_launch_signups')
         .insert(insertData)
         .select('anonymous_username')
         .single();

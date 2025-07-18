@@ -1069,66 +1069,6 @@ export type Database = {
         }
         Relationships: []
       }
-      field_rep_signups: {
-        Row: {
-          agreed_to_analytics: boolean | null
-          anonymous_username: string | null
-          created_at: string
-          current_challenges: string[] | null
-          email: string
-          experience_level: string | null
-          feedback_access_token: string | null
-          feedback_token_expires_at: string | null
-          field_rep_name: string | null
-          id: string
-          interested_features: string[] | null
-          interested_in_beta_testing: boolean | null
-          join_feedback_group: boolean | null
-          primary_state: string | null
-          status: string | null
-          updated_at: string
-          work_types: string[] | null
-        }
-        Insert: {
-          agreed_to_analytics?: boolean | null
-          anonymous_username?: string | null
-          created_at?: string
-          current_challenges?: string[] | null
-          email: string
-          experience_level?: string | null
-          feedback_access_token?: string | null
-          feedback_token_expires_at?: string | null
-          field_rep_name?: string | null
-          id?: string
-          interested_features?: string[] | null
-          interested_in_beta_testing?: boolean | null
-          join_feedback_group?: boolean | null
-          primary_state?: string | null
-          status?: string | null
-          updated_at?: string
-          work_types?: string[] | null
-        }
-        Update: {
-          agreed_to_analytics?: boolean | null
-          anonymous_username?: string | null
-          created_at?: string
-          current_challenges?: string[] | null
-          email?: string
-          experience_level?: string | null
-          feedback_access_token?: string | null
-          feedback_token_expires_at?: string | null
-          field_rep_name?: string | null
-          id?: string
-          interested_features?: string[] | null
-          interested_in_beta_testing?: boolean | null
-          join_feedback_group?: boolean | null
-          primary_state?: string | null
-          status?: string | null
-          updated_at?: string
-          work_types?: string[] | null
-        }
-        Relationships: []
-      }
       flags: {
         Row: {
           created_at: string | null
@@ -1453,6 +1393,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pre_launch_signups: {
+        Row: {
+          agreed_to_analytics: boolean | null
+          anonymous_username: string
+          created_at: string
+          current_challenges: string | null
+          email: string
+          experience_level: string
+          id: string
+          interested_features: string[] | null
+          interested_in_beta_testing: boolean
+          most_interested_features: string | null
+          primary_state: string | null
+          states_covered: string[]
+          type_of_work: string[]
+          updated_at: string
+          user_type: string
+          work_types: string[] | null
+        }
+        Insert: {
+          agreed_to_analytics?: boolean | null
+          anonymous_username: string
+          created_at?: string
+          current_challenges?: string | null
+          email: string
+          experience_level: string
+          id?: string
+          interested_features?: string[] | null
+          interested_in_beta_testing?: boolean
+          most_interested_features?: string | null
+          primary_state?: string | null
+          states_covered?: string[]
+          type_of_work?: string[]
+          updated_at?: string
+          user_type: string
+          work_types?: string[] | null
+        }
+        Update: {
+          agreed_to_analytics?: boolean | null
+          anonymous_username?: string
+          created_at?: string
+          current_challenges?: string | null
+          email?: string
+          experience_level?: string
+          id?: string
+          interested_features?: string[] | null
+          interested_in_beta_testing?: boolean
+          most_interested_features?: string | null
+          primary_state?: string | null
+          states_covered?: string[]
+          type_of_work?: string[]
+          updated_at?: string
+          user_type?: string
+          work_types?: string[] | null
+        }
+        Relationships: []
       }
       referrals: {
         Row: {
@@ -2289,66 +2286,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vendor_signups: {
-        Row: {
-          agreed_to_analytics: boolean | null
-          anonymous_username: string | null
-          company_name: string | null
-          company_website: string | null
-          created_at: string
-          current_challenges: string[] | null
-          email: string
-          feedback_access_token: string | null
-          feedback_token_expires_at: string | null
-          id: string
-          interested_features: string[] | null
-          interested_in_beta_testing: boolean | null
-          join_feedback_group: boolean | null
-          primary_service: string[] | null
-          states_covered: string[] | null
-          status: string | null
-          updated_at: string
-        }
-        Insert: {
-          agreed_to_analytics?: boolean | null
-          anonymous_username?: string | null
-          company_name?: string | null
-          company_website?: string | null
-          created_at?: string
-          current_challenges?: string[] | null
-          email: string
-          feedback_access_token?: string | null
-          feedback_token_expires_at?: string | null
-          id?: string
-          interested_features?: string[] | null
-          interested_in_beta_testing?: boolean | null
-          join_feedback_group?: boolean | null
-          primary_service?: string[] | null
-          states_covered?: string[] | null
-          status?: string | null
-          updated_at?: string
-        }
-        Update: {
-          agreed_to_analytics?: boolean | null
-          anonymous_username?: string | null
-          company_name?: string | null
-          company_website?: string | null
-          created_at?: string
-          current_challenges?: string[] | null
-          email?: string
-          feedback_access_token?: string | null
-          feedback_token_expires_at?: string | null
-          id?: string
-          interested_features?: string[] | null
-          interested_in_beta_testing?: boolean | null
-          join_feedback_group?: boolean | null
-          primary_service?: string[] | null
-          states_covered?: string[] | null
-          status?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       zip_codes: {
         Row: {
           county_id: string
@@ -2535,6 +2472,10 @@ export type Database = {
         Args: { user_type_param: string }
         Returns: string
       }
+      get_next_anonymous_username: {
+        Args: { user_type_param: string }
+        Returns: string
+      }
       get_or_create_user_preferences: {
         Args: { target_user_id: string }
         Returns: {
@@ -2561,6 +2502,16 @@ export type Database = {
           role: string
           counter: number
           created_at: string
+        }[]
+      }
+      get_signup_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_signups: number
+          field_rep_signups: number
+          vendor_signups: number
+          beta_interested: number
+          recent_signups_24h: number
         }[]
       }
       get_trending_tags: {

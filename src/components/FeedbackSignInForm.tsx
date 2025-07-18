@@ -18,35 +18,14 @@ export const FeedbackSignInForm = () => {
     setIsLoading(true);
     
     try {
-      // Check if user exists in feedback group (either table)
-      const [fieldRepResult, vendorResult] = await Promise.all([
-        supabase
-          .from('field_rep_signups')
-          .select('*')
-          .eq('email', email)
-          .eq('join_feedback_group', true)
-          .maybeSingle(),
-        supabase
-          .from('vendor_signups')
-          .select('*')
-          .eq('email', email)
-          .eq('join_feedback_group', true)
-          .maybeSingle()
-      ]);
+      // Check if user exists in feedback group in pre_launch_signups
+      const { data: user, error } = await supabase
+        .from('pre_launch_signups')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
 
-      let user = null;
-      let userType = '';
-      let tableName = '';
-      
-      if (fieldRepResult.data) {
-        user = fieldRepResult.data;
-        userType = 'field-rep';
-        tableName = 'field_rep_signups';
-      } else if (vendorResult.data) {
-        user = vendorResult.data;
-        userType = 'vendor';
-        tableName = 'vendor_signups';
-      }
+      if (error) throw error;
 
       if (!user) {
         toast({
@@ -61,7 +40,7 @@ export const FeedbackSignInForm = () => {
       let anonymousUsername = user.anonymous_username;
       if (!anonymousUsername) {
         const { data: usernameData, error: usernameError } = await supabase
-          .rpc('generate_anonymous_username', { user_type_param: userType });
+          .rpc('generate_anonymous_username', { user_type_param: user.user_type });
         
         if (usernameError) {
           console.error('Error generating username:', usernameError);
@@ -76,17 +55,10 @@ export const FeedbackSignInForm = () => {
         anonymousUsername = usernameData;
         
         // Update the user with the new username
-        if (userType === 'field-rep') {
-          await supabase
-            .from('field_rep_signups')
-            .update({ anonymous_username: anonymousUsername })
-            .eq('id', user.id);
-        } else {
-          await supabase
-            .from('vendor_signups')
-            .update({ anonymous_username: anonymousUsername })
-            .eq('id', user.id);
-        }
+        await supabase
+          .from('pre_launch_signups')
+          .update({ anonymous_username: anonymousUsername })
+          .eq('id', user.id);
       }
 
       // Send feedback welcome email with new access link

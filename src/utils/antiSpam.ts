@@ -156,33 +156,22 @@ export const checkRateLimit = async (ipAddress?: string): Promise<boolean> => {
  */
 export const checkDuplicateEmail = async (email: string): Promise<{
   exists: boolean;
-  table?: 'field_rep_signups' | 'vendor_signups';
+  table?: 'pre_launch_signups';
 }> => {
   try {
     console.log("=== DUPLICATE EMAIL CHECK ===");
     console.log("Checking for duplicate email:", email, "at", new Date().toISOString());
     
-    const [fieldRepResult, vendorResult] = await Promise.all([
-      supabase
-        .from('field_rep_signups')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle(),
-      supabase
-        .from('vendor_signups')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle()
-    ]);
+    // Check pre_launch_signups table instead of separate tables
+    const result = await supabase
+      .from('pre_launch_signups')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
 
-    if (fieldRepResult.data) {
-      console.log("DUPLICATE FOUND in field_rep_signups table");
-      return { exists: true, table: 'field_rep_signups' };
-    }
-    
-    if (vendorResult.data) {
-      console.log("DUPLICATE FOUND in vendor_signups table");
-      return { exists: true, table: 'vendor_signups' };
+    if (result.data) {
+      console.log("DUPLICATE FOUND in pre_launch_signups table");
+      return { exists: true, table: 'pre_launch_signups' };
     }
 
     console.log("No duplicate found - email is unique");
