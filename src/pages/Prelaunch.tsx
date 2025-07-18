@@ -1024,6 +1024,13 @@ const Prelaunch = () => {
                                  ))}
                                </div>
                              </div>
+                           </div>
+                           {/* Debug info */}
+                           <p className="text-xs text-muted-foreground mt-1">
+                             Debug: {states.length} states available
+                           </p>
+                           {formState.statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
+                               Selected: {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''}
                            )}
                             {formState.statesCovered.length > 0 && <p className="text-xs text-muted-foreground mt-1">
                                 Selected: {formState.statesCovered.length} state{formState.statesCovered.length !== 1 ? 's' : ''}
