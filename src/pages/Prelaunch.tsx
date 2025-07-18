@@ -158,21 +158,33 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Use the new consolidated table
-      const { error } = await supabase
-        .from('pre_launch_signups')
-        .insert({
-          email: formState.email,
-          user_type: formState.userType,
-          experience_level: formState.experienceLevel,
-          states_covered: formState.statesCovered,
-          type_of_work: formState.typeOfWork,
-          current_challenges: formState.challenges,
-          most_interested_features: formState.mostInterestedFeatures,
-          interested_in_beta_testing: formState.betaTesting,
-        });
-
-      if (error) throw error;
+      // Use the appropriate signup table based on user type
+      if (formState.userType === 'field-rep') {
+        const { error } = await supabase
+          .from('field_rep_signups')
+          .insert({
+            email: formState.email,
+            experience_level: formState.experienceLevel,
+            primary_state: formState.statesCovered[0] || '',
+            work_types: formState.typeOfWork,
+            current_challenges: formState.challenges.split(',').map(c => c.trim()).filter(Boolean),
+            interested_features: formState.mostInterestedFeatures.split(',').map(f => f.trim()).filter(Boolean),
+            interested_in_beta_testing: formState.betaTesting,
+          });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('vendor_signups')
+          .insert({
+            email: formState.email,
+            primary_service: formState.typeOfWork,
+            states_covered: formState.statesCovered,
+            current_challenges: formState.challenges.split(',').map(c => c.trim()).filter(Boolean),
+            interested_features: formState.mostInterestedFeatures.split(',').map(f => f.trim()).filter(Boolean),
+            interested_in_beta_testing: formState.betaTesting,
+          });
+        if (error) throw error;
+      }
 
       setIsSubmitted(true);
       toast.success("Successfully joined the waitlist! Check your email for a welcome message.");
@@ -197,10 +209,6 @@ const Prelaunch = () => {
     dispatch({ type: 'TOGGLE_WORK_TYPE', workType: workTypeToRemove });
   };
 
-  const filteredStates = availableStates.filter(state => 
-    state.name.toLowerCase().includes(stateSearch.toLowerCase()) &&
-    !formState.statesCovered.includes(state.code)
-  );
 
   const filteredWorkTypes = workTypes.filter(type => 
     type.toLowerCase().includes(workTypeSearch.toLowerCase()) &&
@@ -362,39 +370,25 @@ const Prelaunch = () => {
                     </div>
                   )}
 
-                  {/* State Search */}
-                  <div className="relative">
-                    <Input
-                      placeholder="Search and select states..."
-                      value={stateSearch}
-                      onChange={(e) => {
-                        console.log('State search changed:', e.target.value);
-                        setStateSearch(e.target.value);
-                      }}
-                    />
-                    {stateSearch && filteredStates.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
-                        {filteredStates.slice(0, 5).map((state) => (
-                          <button
-                            key={state.code}
-                            type="button"
-                            onClick={() => {
-                              console.log('Selecting state:', state.name, state.code);
-                              dispatch({ type: 'TOGGLE_STATE', stateCode: state.code });
-                              setStateSearch("");
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-muted text-sm"
+                  {/* 3-Column State Checkbox Layout */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium">Select Coverage States ({formState.statesCovered.length} selected)</p>
+                    <div className="border border-border rounded-md p-4 max-h-64 overflow-y-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {availableStates.map((state) => (
+                          <label 
+                            key={state.code} 
+                            className="flex items-center space-x-2 cursor-pointer hover:bg-muted p-2 rounded text-sm"
                           >
-                            {state.name}
-                          </button>
+                            <Checkbox
+                              checked={formState.statesCovered.includes(state.code)}
+                              onCheckedChange={() => dispatch({ type: 'TOGGLE_STATE', stateCode: state.code })}
+                            />
+                            <span className="select-none">{state.name}</span>
+                          </label>
                         ))}
                       </div>
-                    )}
-                    {stateSearch && filteredStates.length === 0 && (
-                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 p-3">
-                        <p className="text-sm text-muted-foreground">No states found matching "{stateSearch}"</p>
-                      </div>
-                    )}
+                    </div>
                   </div>
                   {formState.statesCovered.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one state</p>
