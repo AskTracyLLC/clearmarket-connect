@@ -409,6 +409,11 @@ const Prelaunch = () => {
                     Type of Work <span className="text-red-500">*</span>
                   </Label>
                   
+                  {/* Debug info for work types */}
+                  <p className="text-xs text-muted-foreground">
+                    Debug: {workTypes.length} work types available
+                  </p>
+                  
                   {/* Selected Work Types Display */}
                   {formState.typeOfWork.length > 0 && (
                     <div className="p-3 bg-muted/50 rounded-lg mb-3">
@@ -419,7 +424,13 @@ const Prelaunch = () => {
                             {workType}
                             <button
                               type="button"
-                              onClick={() => removeWorkType(workType)}
+                              onClick={() => {
+                                removeWorkType(workType);
+                                // Clear other field if "Other" is unchecked
+                                if (workType === "Other") {
+                                  dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: '' });
+                                }
+                              }}
                               className="ml-1 hover:bg-secondary-foreground/20 rounded-full p-0.5"
                             >
                               <X className="h-3 w-3" />
@@ -431,41 +442,50 @@ const Prelaunch = () => {
                   )}
 
                   {/* Work Types Checkbox Grid */}
-                  <div className="border rounded-lg p-4">
+                  <div className="border rounded-lg p-4 bg-background">
+                    <p className="text-sm font-medium mb-3">Select all that apply:</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {workTypes.map((workType) => (
-                        <div key={workType} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`work-${workType.replace(/\s+/g, '-').toLowerCase()}`}
-                            checked={formState.typeOfWork.includes(workType)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
-                              } else {
-                                removeWorkType(workType);
-                                // Clear other field if "Other" is unchecked
-                                if (workType === "Other") {
-                                  dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: '' });
+                      {workTypes.map((workType, index) => {
+                        const checkboxId = `work-${workType.replace(/\s+/g, '-').toLowerCase()}`;
+                        const isChecked = formState.typeOfWork.includes(workType);
+                        
+                        console.log(`Rendering work type: ${workType}, checked: ${isChecked}`);
+                        
+                        return (
+                          <div key={workType} className="flex items-start space-x-2">
+                            <Checkbox
+                              id={checkboxId}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                console.log(`Checkbox changed: ${workType}, checked: ${checked}`);
+                                if (checked) {
+                                  dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
+                                } else {
+                                  removeWorkType(workType);
+                                  // Clear other field if "Other" is unchecked
+                                  if (workType === "Other") {
+                                    dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: '' });
+                                  }
                                 }
-                              }
-                            }}
-                          />
-                          <Label 
-                            htmlFor={`work-${workType.replace(/\s+/g, '-').toLowerCase()}`} 
-                            className="text-sm cursor-pointer leading-tight"
-                          >
-                            {workType}
-                          </Label>
-                        </div>
-                      ))}
+                              }}
+                            />
+                            <Label 
+                              htmlFor={checkboxId} 
+                              className="text-sm cursor-pointer leading-tight flex-1"
+                            >
+                              {workType}
+                            </Label>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
                   {/* Other Work Type Text Field */}
                   {formState.typeOfWork.includes("Other") && (
-                    <div className="space-y-2">
-                      <Label htmlFor="otherWorkType" className="text-sm font-medium">
-                        Please specify other work type:
+                    <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <Label htmlFor="otherWorkType" className="text-sm font-medium text-blue-900">
+                        Please specify other work type: <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="otherWorkType"
