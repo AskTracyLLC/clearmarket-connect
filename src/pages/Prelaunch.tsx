@@ -76,7 +76,6 @@ const Prelaunch = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
-  const [stateSearch, setStateSearch] = useState("");
   const [workTypeSearch, setWorkTypeSearch] = useState("");
   
   // Debug the states loading
@@ -106,6 +105,8 @@ const Prelaunch = () => {
   
   // Use fallback if states from hook are empty or loading fails
   const availableStates = states.length > 0 ? states : fallbackStates;
+  
+  console.log('Available states:', availableStates.length, 'First few:', availableStates.slice(0, 3));
   
   const [userPosition, setUserPosition] = useState({
     type: '',
@@ -366,15 +367,19 @@ const Prelaunch = () => {
                     <Input
                       placeholder="Search and select states..."
                       value={stateSearch}
-                      onChange={(e) => setStateSearch(e.target.value)}
+                      onChange={(e) => {
+                        console.log('State search changed:', e.target.value);
+                        setStateSearch(e.target.value);
+                      }}
                     />
-                    {stateSearch && (
+                    {stateSearch && filteredStates.length > 0 && (
                       <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 max-h-40 overflow-y-auto">
                         {filteredStates.slice(0, 5).map((state) => (
                           <button
                             key={state.code}
                             type="button"
                             onClick={() => {
+                              console.log('Selecting state:', state.name, state.code);
                               dispatch({ type: 'TOGGLE_STATE', stateCode: state.code });
                               setStateSearch("");
                             }}
@@ -383,6 +388,11 @@ const Prelaunch = () => {
                             {state.name}
                           </button>
                         ))}
+                      </div>
+                    )}
+                    {stateSearch && filteredStates.length === 0 && (
+                      <div className="absolute top-full left-0 right-0 z-10 bg-background border border-border rounded-md mt-1 p-3">
+                        <p className="text-sm text-muted-foreground">No states found matching "{stateSearch}"</p>
                       </div>
                     )}
                   </div>
