@@ -24,16 +24,22 @@ const AdminAuthPage = () => {
 
   useEffect(() => {
     if (user && !isBypass) {
-      // If user is already authenticated and not using bypass, redirect to appropriate dashboard
+      // If user is already authenticated and not using bypass, check if they have a profile
       const fetchUserRoleAndRedirect = async () => {
         try {
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select('role')
             .eq('id', user.id)
-            .single();
+            .maybeSingle(); // Use maybeSingle instead of single to handle no results
 
           if (userError) throw userError;
+
+          // If no profile exists, let them stay on admin-auth page to sign in fresh
+          if (!userData) {
+            console.log('No user profile found, allowing fresh admin auth');
+            return;
+          }
 
           // Check user role and redirect to appropriate dashboard
           switch (userData.role) {
@@ -50,11 +56,12 @@ const AdminAuthPage = () => {
               navigate('/fieldrep/dashboard');
               break;
             default:
-              navigate('/prelaunch');
+              console.log('Unknown role, staying on admin-auth');
           }
         } catch (error) {
           console.error('Error fetching user role:', error);
-          navigate('/prelaunch');
+          // Don't redirect on error, let them try admin auth
+          console.log('Error fetching role, allowing admin auth attempt');
         }
       };
 

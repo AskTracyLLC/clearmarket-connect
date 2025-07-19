@@ -235,6 +235,17 @@ const Prelaunch = () => {
               </Badge>
               <ThemeToggle />
             </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => window.location.href = '/admin-auth'}
+                className="text-xs"
+              >
+                <Shield className="h-3 w-3 mr-1" />
+                Admin
+              </Button>
+            </div>
           </div>
         </div>
       </header>
