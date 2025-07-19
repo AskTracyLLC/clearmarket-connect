@@ -222,65 +222,6 @@ const EmailTemplateManager = () => {
             Email Template Management
           </CardTitle>
           <div className="flex gap-2">
-            <Dialog open={isCreating} onOpenChange={setIsCreating}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Template
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Create New Email Template</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Template Name</Label>
-                    <Input
-                      id="name"
-                      value={newTemplate.name}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-                      placeholder="Enter template name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="subject">Email Subject</Label>
-                    <Input
-                      id="subject"
-                      value={newTemplate.subject}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
-                      placeholder="Enter email subject"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="content">HTML Content</Label>
-                    <Textarea
-                      id="content"
-                      value={newTemplate.html_content}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, html_content: e.target.value })}
-                      placeholder="Enter HTML content"
-                      rows={15}
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={createTemplate} 
-                      disabled={saving || !newTemplate.name || !newTemplate.subject || !newTemplate.html_content}
-                    >
-                      {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                      {saving ? 'Creating...' : 'Create Template'}
-                    </Button>
-                    <Button variant="outline" onClick={() => {
-                      setNewTemplate({ name: '', subject: '', html_content: '' });
-                      setIsCreating(false);
-                    }}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
             <Button variant="outline" size="sm" onClick={fetchTemplates}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -445,11 +386,14 @@ const EmailTemplateManager = () => {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           {editingTemplate && (
             <>
               <DialogHeader>
                 <DialogTitle>Edit Email Template: {editingTemplate.name}</DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Edit the text content of this email template. HTML formatting will be preserved.
+                </p>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -469,17 +413,18 @@ const EmailTemplateManager = () => {
                     onChange={(e) => setEditingTemplate({ ...editingTemplate, subject: e.target.value })}
                     placeholder="Enter email subject"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    You can use placeholders like: {`{{anonymous_username}}`}
+                  </p>
                 </div>
-                <div>
-                  <Label htmlFor="edit-content">HTML Content</Label>
-                  <Textarea
-                    id="edit-content"
-                    value={editingTemplate.html_content}
-                    onChange={(e) => setEditingTemplate({ ...editingTemplate, html_content: e.target.value })}
-                    placeholder="Enter HTML content"
-                    rows={15}
-                    className="font-mono text-sm"
-                  />
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Content Preview</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    To modify email content, please contact your development team. Only subject line and template name can be edited here.
+                  </p>
+                  <div className="max-h-32 overflow-y-auto bg-background p-3 rounded border text-xs">
+                    {editingTemplate.html_content.substring(0, 200)}...
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={() => saveTemplate(editingTemplate)} disabled={saving}>
