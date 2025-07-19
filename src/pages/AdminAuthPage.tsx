@@ -75,18 +75,11 @@ const AdminAuthPage = () => {
     console.log('Starting admin sign in process...');
 
     try {
-      // Use a timeout to detect hanging quickly
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 3000)
-      );
-      
-      const authPromise = supabase.auth.signInWithPassword({
+      // Simple, direct authentication without timeout
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
-      const result = await Promise.race([authPromise, timeoutPromise]);
-      const { data, error } = result as any;
       
       console.log('Admin sign in response:', { data, error });
       
@@ -97,21 +90,41 @@ const AdminAuthPage = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
+        return;
+      }
+
+      if (data.user) {
         console.log('Admin sign in successful:', data);
         
-        // Fetch user role and redirect to appropriate dashboard
+        // Check if user is admin by email first (fastest check)
+        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+        if (adminEmails.includes(data.user.email || '')) {
+          console.log('User is admin by email, navigating to admin dashboard');
+          navigate('/admin');
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+          return;
+        }
+
+        // Fallback: Check database role for other users
         try {
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select('role')
-            .eq('id', data.user?.id)
-            .single();
+            .eq('id', data.user.id)
+            .maybeSingle();
 
-          if (userError) throw userError;
+          if (userError) {
+            console.error('Error fetching user role:', userError);
+            // If role check fails but user is authenticated, default to admin for admin-auth page
+            navigate('/admin');
+            return;
+          }
 
           // Redirect based on role
-          switch (userData.role) {
+          switch (userData?.role) {
             case 'admin':
               navigate('/admin');
               break;
@@ -125,7 +138,8 @@ const AdminAuthPage = () => {
               navigate('/fieldrep/dashboard');
               break;
             default:
-              navigate('/prelaunch');
+              // No role in database, default to admin for admin-auth page
+              navigate('/admin');
           }
 
           toast({
@@ -133,8 +147,8 @@ const AdminAuthPage = () => {
             description: "You have successfully signed in.",
           });
         } catch (roleError) {
-          console.error('Error fetching user role:', roleError);
-          // Fallback to admin dashboard for admin portal
+          console.error('Error in role check:', roleError);
+          // If anything fails, default to admin since they used admin-auth
           navigate('/admin');
           toast({
             title: "Welcome back!",
@@ -144,23 +158,11 @@ const AdminAuthPage = () => {
       }
     } catch (error: any) {
       console.error('Unexpected admin sign in error:', error);
-      if (error.message === 'Request timeout') {
-        toast({
-          title: "Authentication timeout",
-          description: "Login is taking too long. Trying direct admin access...",
-          variant: "destructive",
-        });
-        
-        // Try direct navigation to admin dashboard
-        console.log('Attempting fallback navigation to admin dashboard...');
-        navigate('/admin');
-      } else {
-        toast({
-          title: "Error signing in",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error signing in",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
     } finally {
       console.log('Admin sign in process completed, setting loading to false');
       setLoading(false);
