@@ -42,6 +42,48 @@ const EmailTemplateManager = () => {
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
+  // Helper function to extract text content from HTML
+  const extractTextFromHtml = (html: string): string => {
+    // Create a temporary div to parse HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Remove script and style elements
+    const scripts = tempDiv.querySelectorAll('script, style');
+    scripts.forEach(el => el.remove());
+    
+    // Get text content and clean it up
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    return text.replace(/\s+/g, ' ').trim();
+  };
+
+  // Helper function to update HTML with new text content
+  const updateHtmlWithText = (originalHtml: string, newText: string): string => {
+    // Split new text into lines for processing
+    const lines = newText.split('\n').filter(line => line.trim());
+    
+    let updatedHtml = originalHtml;
+    
+    // Replace main heading (Welcome message)
+    updatedHtml = updatedHtml.replace(
+      /(Welcome to ClearMarket[^!]*!?)/gi,
+      lines[0] || 'Welcome to ClearMarket!'
+    );
+    
+    // Replace main content paragraphs
+    if (lines.length > 1) {
+      const mainContent = lines.slice(1).join(' ');
+      
+      // Replace the main descriptive paragraph
+      updatedHtml = updatedHtml.replace(
+        /(We're excited to have you[^<]*|Congratulations![^<]*|Thank you for joining[^<]*)/gi,
+        mainContent.substring(0, 200) || 'Thank you for joining ClearMarket!'
+      );
+    }
+    
+    return updatedHtml;
+  };
+
   const fetchTemplates = async () => {
     try {
       setLoading(true);
@@ -386,7 +428,7 @@ const EmailTemplateManager = () => {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {editingTemplate && (
             <>
               <DialogHeader>
@@ -417,13 +459,46 @@ const EmailTemplateManager = () => {
                     You can use placeholders like: {`{{anonymous_username}}`}
                   </p>
                 </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">Content Preview</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    To modify email content, please contact your development team. Only subject line and template name can be edited here.
+                <div>
+                  <Label htmlFor="edit-body">Email Body Text</Label>
+                  <Textarea
+                    id="edit-body"
+                    value={extractTextFromHtml(editingTemplate.html_content)}
+                    onChange={(e) => {
+                      const updatedHtml = updateHtmlWithText(editingTemplate.html_content, e.target.value);
+                      setEditingTemplate({ ...editingTemplate, html_content: updatedHtml });
+                    }}
+                    placeholder="Enter the main email text content"
+                    rows={8}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Edit the main text content. HTML formatting and styling will be preserved.
                   </p>
-                  <div className="max-h-32 overflow-y-auto bg-background p-3 rounded border text-xs">
-                    {editingTemplate.html_content.substring(0, 200)}...
+                </div>
+                <div className="bg-muted p-3 rounded-lg">
+                  <h4 className="font-medium mb-2 text-sm">Preview</h4>
+                  <div className="max-h-32 overflow-y-auto bg-background p-3 rounded border">
+                    <iframe
+                      srcDoc={`
+                        <!DOCTYPE html>
+                        <html>
+                          <head>
+                            <meta charset="utf-8">
+                            <style>
+                              body { margin: 0; padding: 10px; font-family: Arial, sans-serif; font-size: 12px; }
+                              * { max-width: 100%; }
+                            </style>
+                          </head>
+                          <body>
+                            ${editingTemplate.html_content.replace(/\{\{anonymous_username\}\}/g, 'TestUser#123')}
+                          </body>
+                        </html>
+                      `}
+                      className="w-full h-24 border-0"
+                      sandbox="allow-same-origin"
+                      title="Email Preview"
+                    />
                   </div>
                 </div>
                 <div className="flex gap-2">
