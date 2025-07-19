@@ -35,17 +35,7 @@ const AdminAuthPage = () => {
 
           if (userError) throw userError;
 
-          // Special case for tracy@asktracyllc.com - redirect to NDA first (only if not signed)
-          if (user.email === 'tracy@asktracyllc.com') {
-            const { data: hasSignedNDA } = await supabase
-              .rpc('has_signed_nda', { target_user_id: user.id });
-            
-            if (!hasSignedNDA) {
-              navigate('/beta-nda');
-              return;
-            }
-          }
-
+          // Check user role and redirect to appropriate dashboard
           switch (userData.role) {
             case 'admin':
               navigate('/admin');
@@ -113,22 +103,7 @@ const AdminAuthPage = () => {
 
           if (userError) throw userError;
 
-          // Special case for tracy@asktracyllc.com - redirect to NDA first (only if not signed)
-          if (data.user?.email === 'tracy@asktracyllc.com') {
-            const { data: hasSignedNDA } = await supabase
-              .rpc('has_signed_nda', { target_user_id: data.user.id });
-            
-            if (!hasSignedNDA) {
-              navigate('/beta-nda');
-              toast({
-                title: "Welcome back!",
-                description: "Please sign the NDA to complete your access setup.",
-              });
-              return;
-            }
-          }
-
-          // Redirect based on role for other users
+          // Redirect based on role
           switch (userData.role) {
             case 'admin':
               navigate('/admin');
