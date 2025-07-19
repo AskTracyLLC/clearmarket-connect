@@ -40,7 +40,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const user = session.user;
           const isVerified = !!user.email_confirmed_at;
           
-          // Check if user is admin - admins bypass all redirects
+          // Special case: tracy@asktracyllc.com should go to NDA first
+          if (user.email === 'tracy@asktracyllc.com') {
+            // Check if already on NDA page to avoid redirect loop
+            if (!window.location.pathname.includes('beta-nda')) {
+              window.location.href = '/beta-nda';
+            }
+            return;
+          }
+          
+          // Check if user is admin - other admins bypass all redirects
           try {
             const { data: userRole, error } = await supabase
               .rpc('get_user_role', { user_id: user.id });

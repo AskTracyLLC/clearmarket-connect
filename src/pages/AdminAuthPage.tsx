@@ -35,6 +35,12 @@ const AdminAuthPage = () => {
 
           if (userError) throw userError;
 
+          // Special case for tracy@asktracyllc.com - redirect to NDA first
+          if (user.email === 'tracy@asktracyllc.com') {
+            navigate('/beta-nda');
+            return;
+          }
+
           switch (userData.role) {
             case 'admin':
               navigate('/admin');
@@ -102,7 +108,17 @@ const AdminAuthPage = () => {
 
           if (userError) throw userError;
 
-          // Redirect based on role
+          // Special case for tracy@asktracyllc.com - redirect to NDA first
+          if (data.user?.email === 'tracy@asktracyllc.com') {
+            navigate('/beta-nda');
+            toast({
+              title: "Welcome back!",
+              description: "Please sign the NDA to complete your access setup.",
+            });
+            return;
+          }
+
+          // Redirect based on role for other users
           switch (userData.role) {
             case 'admin':
               navigate('/admin');
