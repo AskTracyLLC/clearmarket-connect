@@ -362,31 +362,86 @@ const EmailTemplateManager = () => {
       </Card>
 
       {/* Preview Dialog */}
-      {previewTemplate && (
-        <Card className="mt-6">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Preview: {previewTemplate.name}</CardTitle>
-            <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
-              Close
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Subject: {previewTemplate.subject}
-                </p>
+      <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden">
+          {previewTemplate && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Preview: {previewTemplate.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Email Client Mockup */}
+                <div className="border rounded-lg bg-gray-50 p-4">
+                  {/* Email Header */}
+                  <div className="bg-white border rounded-lg shadow-sm">
+                    <div className="border-b bg-gray-100 px-4 py-3 rounded-t-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <Mail className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold">ClearMarket</div>
+                            <div className="text-gray-600">noreply@clearmarket.com</div>
+                          </div>
+                        </div>
+                        <div className="text-gray-500">
+                          {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 border-b bg-gray-50">
+                      <div className="text-sm">
+                        <span className="font-semibold">To:</span> recipient@example.com
+                      </div>
+                      <div className="text-sm mt-1">
+                        <span className="font-semibold">Subject:</span> {previewTemplate.subject}
+                      </div>
+                    </div>
+                    {/* Email Body */}
+                    <div className="max-h-[60vh] overflow-y-auto">
+                      <iframe
+                        srcDoc={`
+                          <!DOCTYPE html>
+                          <html>
+                            <head>
+                              <meta charset="utf-8">
+                              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                              <style>
+                                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                                /* Reset styles for email clients */
+                                table { border-collapse: collapse; }
+                                img { max-width: 100%; height: auto; }
+                              </style>
+                            </head>
+                            <body>
+                              ${previewTemplate.html_content.replace(/\{\{anonymous_username\}\}/g, 'TestUser#123')}
+                            </body>
+                          </html>
+                        `}
+                        className="w-full h-[400px] border-0"
+                        sandbox="allow-same-origin"
+                        title="Email Preview"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-muted-foreground">
+                    Preview shows how the email will appear to recipients
+                  </div>
+                  <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
+                    Close Preview
+                  </Button>
+                </div>
               </div>
-              <div className="border rounded-lg p-4">
-                <SecureHtmlPreview 
-                  html={previewTemplate.html_content}
-                  className="border rounded p-4 bg-background"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
