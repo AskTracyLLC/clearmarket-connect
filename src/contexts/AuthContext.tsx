@@ -40,13 +40,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const user = session.user;
           const isVerified = !!user.email_confirmed_at;
           
-          // Special case: tracy@asktracyllc.com should go to NDA first
+          // Special case: tracy@asktracyllc.com should go to NDA first (only if not signed)
           if (user.email === 'tracy@asktracyllc.com') {
-            // Check if already on NDA page to avoid redirect loop
-            if (!window.location.pathname.includes('beta-nda')) {
-              window.location.href = '/beta-nda';
+            // Check if NDA is already signed
+            try {
+              const { data: hasSignedNDA } = await supabase
+                .rpc('has_signed_nda', { target_user_id: user.id });
+              
+              if (!hasSignedNDA && !window.location.pathname.includes('beta-nda')) {
+                window.location.href = '/beta-nda';
+                return;
+              }
+            } catch (error) {
+              console.error('Error checking NDA status:', error);
             }
-            return;
           }
           
           // Check if user is admin - other admins bypass all redirects
