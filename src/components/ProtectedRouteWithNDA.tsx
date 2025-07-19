@@ -16,50 +16,28 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
-  // Check if user is admin
+  // Check if user is admin - simplified for faster loading
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      console.log('🔍 ProtectedRouteWithNDA - Starting admin check...');
-      
-      if (!user) {
-        console.log('❌ No user found');
-        setIsAdmin(false);
-        return;
-      }
+    console.log('🔍 ProtectedRouteWithNDA - Starting admin check...');
+    
+    if (!user) {
+      console.log('❌ No user found');
+      setIsAdmin(false);
+      return;
+    }
 
-      // Debug logging
-      console.log('🔍 Checking admin status for user:', user.id, user.email);
+    // Check if email is admin email (fast check, no database call needed)
+    const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+    if (adminEmails.includes(user.email || '')) {
+      console.log('✅ User is admin by email:', user.email, '- setting immediately');
+      setIsAdmin(true);
+      return;
+    }
 
-      // Check if email is admin email (primary check)
-      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-      if (adminEmails.includes(user.email || '')) {
-        console.log('✅ User is admin by email:', user.email);
-        setIsAdmin(true);
-        return;
-      }
-
-      try {
-        const { data: userRole, error } = await supabase
-          .rpc('get_user_role', { user_id: user.id });
-        
-        console.log('🔍 User role from database:', userRole, 'Error:', error);
-        
-        if (error) {
-          console.error('❌ Error checking user role:', error);
-          setIsAdmin(false);
-        } else {
-          const isAdminRole = userRole === 'admin';
-          console.log('🔍 Is admin role?', isAdminRole);
-          setIsAdmin(isAdminRole);
-        }
-      } catch (error) {
-        console.error('❌ Error in admin check:', error);
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user?.id, user?.email]); // Use stable user properties instead of entire user object
+    // For non-admin emails, set to false immediately (no database call needed)
+    console.log('❌ User is not admin by email, setting to false');
+    setIsAdmin(false);
+  }, [user?.id, user?.email]);
 
   console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA);
 
