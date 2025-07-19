@@ -35,7 +35,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Normalize signup type (handle both formats) - keep dashes for template names
     const normalizedSignupType = signupType === 'field_rep' ? 'field-rep' : 
-                                signupType === 'vendor' ? 'vendor' : signupType;
+                                signupType === 'vendor' ? 'vendor' : 
+                                signupType; // Already in correct format
 
     // Determine template name based on signup type and beta status
     const templateName = `${normalizedSignupType}-signup-${beta_tester ? 'beta' : 'standard'}`;
