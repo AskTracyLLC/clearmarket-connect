@@ -2,13 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SecureHtmlPreview } from '@/components/ui/secure-html-preview';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Mail, 
   Eye, 
-  RefreshCw
+  RefreshCw,
+  Edit,
+  Send,
+  Plus,
+  Trash2,
+  Save
 } from 'lucide-react';
 
 interface EmailTemplate {
@@ -24,6 +33,13 @@ const EmailTemplateManager = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [sendingTemplate, setSendingTemplate] = useState<EmailTemplate | null>(null);
+  const [newTemplate, setNewTemplate] = useState({ name: '', subject: '', html_content: '' });
+  const [testEmail, setTestEmail] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
   const fetchTemplates = async () => {
@@ -46,6 +62,132 @@ const EmailTemplateManager = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveTemplate = async (template: EmailTemplate) => {
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('email_templates')
+        .update({
+          name: template.name,
+          subject: template.subject,
+          html_content: template.html_content,
+        })
+        .eq('id', template.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Email template updated successfully",
+      });
+
+      await fetchTemplates();
+      setEditingTemplate(null);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save email template",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const createTemplate = async () => {
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('email_templates')
+        .insert({
+          name: newTemplate.name,
+          subject: newTemplate.subject,
+          html_content: newTemplate.html_content,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Email template created successfully",
+      });
+
+      await fetchTemplates();
+      setNewTemplate({ name: '', subject: '', html_content: '' });
+      setIsCreating(false);
+    } catch (error) {
+      console.error('Error creating template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create email template",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteTemplate = async (templateId: number) => {
+    try {
+      const { error } = await supabase
+        .from('email_templates')
+        .delete()
+        .eq('id', templateId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Email template deleted successfully",
+      });
+
+      await fetchTemplates();
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete email template",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const sendTestEmail = async () => {
+    if (!sendingTemplate || !testEmail) return;
+
+    try {
+      setSending(true);
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: testEmail,
+          subject: sendingTemplate.subject,
+          html: sendingTemplate.html_content,
+          template_name: sendingTemplate.name,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Test email sent to ${testEmail}`,
+      });
+
+      setSendingTemplate(null);
+      setTestEmail('');
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send test email",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
     }
   };
 
@@ -80,6 +222,65 @@ const EmailTemplateManager = () => {
             Email Template Management
           </CardTitle>
           <div className="flex gap-2">
+            <Dialog open={isCreating} onOpenChange={setIsCreating}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Template
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create New Email Template</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Template Name</Label>
+                    <Input
+                      id="name"
+                      value={newTemplate.name}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                      placeholder="Enter template name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="subject">Email Subject</Label>
+                    <Input
+                      id="subject"
+                      value={newTemplate.subject}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
+                      placeholder="Enter email subject"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="content">HTML Content</Label>
+                    <Textarea
+                      id="content"
+                      value={newTemplate.html_content}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, html_content: e.target.value })}
+                      placeholder="Enter HTML content"
+                      rows={15}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={createTemplate} 
+                      disabled={saving || !newTemplate.name || !newTemplate.subject || !newTemplate.html_content}
+                    >
+                      {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                      {saving ? 'Creating...' : 'Create Template'}
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setNewTemplate({ name: '', subject: '', html_content: '' });
+                      setIsCreating(false);
+                    }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button variant="outline" size="sm" onClick={fetchTemplates}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
@@ -122,6 +323,34 @@ const EmailTemplateManager = () => {
                           <Eye className="h-3 w-3" />
                           Preview
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingTemplate(template)}
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSendingTemplate(template)}
+                        >
+                          <Send className="h-3 w-3" />
+                          Send
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this template?')) {
+                              deleteTemplate(template.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -158,6 +387,103 @@ const EmailTemplateManager = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {editingTemplate && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit Email Template: {editingTemplate.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name">Template Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editingTemplate.name}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
+                    placeholder="Enter template name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-subject">Email Subject</Label>
+                  <Input
+                    id="edit-subject"
+                    value={editingTemplate.subject}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, subject: e.target.value })}
+                    placeholder="Enter email subject"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-content">HTML Content</Label>
+                  <Textarea
+                    id="edit-content"
+                    value={editingTemplate.html_content}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, html_content: e.target.value })}
+                    placeholder="Enter HTML content"
+                    rows={15}
+                    className="font-mono text-sm"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={() => saveTemplate(editingTemplate)} disabled={saving}>
+                    {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button variant="outline" onClick={() => setEditingTemplate(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Test Email Dialog */}
+      <Dialog open={!!sendingTemplate} onOpenChange={(open) => !open && setSendingTemplate(null)}>
+        <DialogContent>
+          {sendingTemplate && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Send Test Email: {sendingTemplate.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="test-email">Test Email Address</Label>
+                  <Input
+                    id="test-email"
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="Enter email address to send test"
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p><strong>Subject:</strong> {sendingTemplate.subject}</p>
+                  <p><strong>Template:</strong> {sendingTemplate.name}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={sendTestEmail} 
+                    disabled={sending || !testEmail}
+                  >
+                    {sending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                    {sending ? 'Sending...' : 'Send Test Email'}
+                  </Button>
+                  <Button variant="outline" onClick={() => {
+                    setSendingTemplate(null);
+                    setTestEmail('');
+                  }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
