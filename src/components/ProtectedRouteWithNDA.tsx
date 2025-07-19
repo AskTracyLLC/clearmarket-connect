@@ -11,6 +11,7 @@ interface ProtectedRouteWithNDAProps {
 }
 
 const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children }) => {
+  console.log('🔍 ProtectedRouteWithNDA - Component rendered for path:', window.location.pathname);
   const { user, loading: authLoading } = useAuth();
   const { hasSignedNDA, loading: ndaLoading } = useRequireNDA();
   const location = useLocation();
