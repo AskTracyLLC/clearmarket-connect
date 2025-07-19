@@ -33,8 +33,8 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Normalize signup type (handle both formats)
-    const normalizedSignupType = signupType === 'field-rep' ? 'field_rep' : 
+    // Normalize signup type (handle both formats) - keep dashes for template names
+    const normalizedSignupType = signupType === 'field_rep' ? 'field-rep' : 
                                 signupType === 'vendor' ? 'vendor' : signupType;
 
     // Determine template name based on signup type and beta status
