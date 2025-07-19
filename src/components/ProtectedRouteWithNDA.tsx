@@ -1,7 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRequireNDA } from '@/hooks/useRequireNDA';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { Card } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +15,7 @@ interface ProtectedRouteWithNDAProps {
 const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
   const { hasSignedNDA, loading: ndaLoading } = useRequireNDA();
+  const { profile, loading: profileLoading } = useUserProfile();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
@@ -39,10 +42,10 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     setIsAdmin(false);
   }, [user?.id, user?.email]);
 
-  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA);
+  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'profileLoading:', profileLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA, 'profile:', profile);
 
-  // Show loading state while checking auth, NDA status, and admin status
-  if (authLoading || ndaLoading || isAdmin === null) {
+  // Show loading state while checking auth, NDA status, profile, and admin status
+  if (authLoading || ndaLoading || profileLoading || isAdmin === null) {
     console.log('⏳ Showing loading state...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
@@ -69,7 +72,27 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     return <>{children}</>;
   }
 
-  // Redirect to NDA if not signed (handled by useRequireNDA hook)
+  // Field Rep specific routing logic
+  if (profile?.role === 'field_rep') {
+    console.log('🔍 Field Rep detected, checking NDA and profile completion...');
+    
+    // If NDA not signed, redirect to NDA page
+    if (!hasSignedNDA) {
+      console.log('❌ Field Rep has not signed NDA, redirecting to NDA page');
+      return <Navigate to="/beta-nda" state={{ from: location.pathname }} replace />;
+    }
+    
+    // If NDA signed but profile incomplete, redirect to profile page
+    if (hasSignedNDA && (profile.profile_complete === null || profile.profile_complete < 100)) {
+      console.log('❌ Field Rep profile incomplete, redirecting to profile page. Completion:', profile.profile_complete);
+      return <Navigate to="/fieldrep/profile" state={{ from: location.pathname }} replace />;
+    }
+    
+    console.log('✅ Field Rep NDA signed and profile complete, allowing access');
+    return <>{children}</>;
+  }
+
+  // For non-Field Rep users, check NDA requirement
   if (!hasSignedNDA) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
@@ -87,7 +110,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     );
   }
 
-  // User is authenticated and has signed NDA - render protected content
+  // User is authenticated and has signed NDA (or is Field Rep with complete profile) - render protected content
   return <>{children}</>;
 };
 
