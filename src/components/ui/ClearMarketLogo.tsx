@@ -4,16 +4,20 @@ import { useNavigate } from 'react-router-dom';
 interface ClearMarketLogoProps {
   size?: number;
   className?: string;
+  enableAdminAccess?: boolean; // Optional prop to enable admin access
 }
 
 const ClearMarketLogo: React.FC<ClearMarketLogoProps> = ({ 
   size = 48, 
-  className = "" 
+  className = "",
+  enableAdminAccess = false // Default to false
 }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/admin-auth');
+    if (enableAdminAccess) {
+      navigate('/admin-auth');
+    }
   };
 
   return (
@@ -22,8 +26,8 @@ const ClearMarketLogo: React.FC<ClearMarketLogoProps> = ({
       alt="ClearMarket Logo"
       width={size}
       height={size}
-      className={`cursor-pointer ${className}`}
-      onClick={handleClick}
+      className={`${enableAdminAccess ? 'cursor-pointer' : ''} ${className}`}
+      onClick={enableAdminAccess ? handleClick : undefined}
     />
   );
 };

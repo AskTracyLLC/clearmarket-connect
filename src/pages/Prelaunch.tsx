@@ -235,17 +235,6 @@ const Prelaunch = () => {
               </Badge>
               <ThemeToggle />
             </div>
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => window.location.href = '/admin-auth'}
-                className="text-xs"
-              >
-                <Shield className="h-3 w-3 mr-1" />
-                Admin
-              </Button>
-            </div>
           </div>
         </div>
       </header>
@@ -757,7 +746,7 @@ const Prelaunch = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <ClearMarketLogo />
+              <ClearMarketLogo enableAdminAccess={true} />
             </div>
             <p className="text-muted-foreground mb-4">
               The professional marketplace for field inspection services
