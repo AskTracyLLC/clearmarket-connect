@@ -732,46 +732,6 @@ const Prelaunch = () => {
         </div>
       </section>
 
-      {/* Features Preview */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Built for Field Professionals
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Every feature designed with field representatives and vendors in mind
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="p-6 text-center">
-              <MapPin className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Smart Coverage Mapping</h3>
-              <p className="text-muted-foreground">
-                Automatically match field reps with vendors based on location and availability
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center">
-              <Shield className="h-12 w-12 text-accent mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Trust & Verification</h3>
-              <p className="text-muted-foreground">
-                Built-in verification systems and reputation scoring for reliable partnerships
-              </p>
-            </Card>
-
-            <Card className="p-6 text-center">
-              <TrendingUp className="h-12 w-12 text-secondary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Credit-Based System</h3>
-              <p className="text-muted-foreground">
-                Fair, transparent pricing with flexible options including credits and premium subscriptions
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-muted py-12">
         <div className="container mx-auto px-4 max-w-6xl">
