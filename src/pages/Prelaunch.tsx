@@ -172,13 +172,20 @@ const Prelaunch = () => {
         anonymous_username: null, // Let the trigger generate this
       };
 
+      console.log('Submitting to pre_launch_signups table:', insertData);
+
       const { data, error } = await supabase
         .from('pre_launch_signups')
         .insert(insertData)
         .select('anonymous_username')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error details:', error);
+        throw error;
+      }
+
+      console.log('Signup successful:', data);
 
       // Set the anonymous username from the signup
       if (data?.anonymous_username) {
@@ -193,7 +200,8 @@ const Prelaunch = () => {
       
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error("Failed to join waitlist. Please try again.");
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      toast.error(`Failed to join waitlist: ${error.message || 'Please try again.'}`);
     } finally {
       setIsLoading(false);
     }
