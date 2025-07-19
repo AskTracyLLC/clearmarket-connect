@@ -154,6 +154,7 @@ const Prelaunch = () => {
     e.preventDefault();
     if (!isFormValid()) return;
     
+    console.log('🔥 NEW FORM HANDLER STARTING - USING PRE_LAUNCH_SIGNUPS TABLE 🔥');
     setIsLoading(true);
     
     try {
