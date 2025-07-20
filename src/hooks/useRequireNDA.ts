@@ -50,8 +50,9 @@ export const useRequireNDA = () => {
       try {
         // Check if email is admin email (primary check - same as ProtectedRouteWithNDA)
         const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+        console.log('🔍 useRequireNDA: Checking admin status for user:', user.email);
         if (adminEmails.includes(user.email || '')) {
-          console.log('✅ User is admin by email:', user.email, '- bypassing all restrictions');
+          console.log('✅ useRequireNDA: User is admin by email:', user.email, '- bypassing all restrictions');
           return;
         }
 
@@ -61,6 +62,11 @@ export const useRequireNDA = () => {
         
         if (error) {
           console.error('Error checking user role:', error);
+          // If role check fails for admin emails, still bypass restrictions
+          if (adminEmails.includes(user.email || '')) {
+            console.log('✅ Admin email detected despite role check error - bypassing restrictions');
+            return;
+          }
         }
         
         // If user is admin by database role, don't redirect anywhere
@@ -81,6 +87,12 @@ export const useRequireNDA = () => {
         }
       } catch (error) {
         console.error('Error in useRequireNDA:', error);
+        // If anything fails for admin emails, still bypass restrictions
+        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+        if (adminEmails.includes(user.email || '')) {
+          console.log('✅ Admin email detected despite error - bypassing restrictions');
+          return;
+        }
       }
     };
 

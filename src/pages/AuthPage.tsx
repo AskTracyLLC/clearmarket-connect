@@ -21,6 +21,12 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (user) {
+      // Check if user is admin - admins should not be redirected automatically
+      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+      if (adminEmails.includes(user.email || '')) {
+        console.log('✅ AuthPage: Admin user detected - staying on auth page for manual redirect');
+        return;
+      }
       navigate('/');
     }
   }, [user, navigate]);
@@ -40,7 +46,7 @@ const AuthPage = () => {
     } else {
       // Check if this is an admin email before checking database
       const user = (await supabase.auth.getUser()).data.user;
-      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
+      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
       
       if (user && adminEmails.includes(user.email || '')) {
         // Admin user - redirect directly to admin dashboard

@@ -41,6 +41,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const isVerified = !!user.email_confirmed_at;
           
           // Check if user is admin - admins bypass all redirects
+          const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+          console.log('🔍 AuthContext: Checking admin status for user:', user.email);
+          if (adminEmails.includes(user.email || '')) {
+            console.log('✅ AuthContext: User is admin by email - bypassing all redirects');
+            // Admin users bypass all redirects
+            return;
+          }
+          
           try {
             const { data: userRole, error } = await supabase
               .rpc('get_user_role', { user_id: user.id });
@@ -51,6 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           } catch (error) {
             console.error('Error checking user role:', error);
+            // If role check fails for admin emails, still bypass redirects
+            if (adminEmails.includes(user.email || '')) {
+              return;
+            }
           }
           
           // Define public routes that should not trigger redirects
@@ -78,6 +90,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Handle existing session redirects (same logic as SIGNED_IN event)
+      if (session?.user) {
+        const user = session.user;
+        const isVerified = !!user.email_confirmed_at;
+        
+        // Check if user is admin - admins bypass all redirects
+        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
+        console.log('🔍 AuthContext (existing session): Checking admin status for user:', user.email);
+        if (adminEmails.includes(user.email || '')) {
+          console.log('✅ AuthContext (existing session): User is admin by email - bypassing all redirects');
+          // Admin users bypass all redirects - RETURN EARLY to prevent any redirects
+          return;
+        }
+        
+        // Define public routes that should not trigger redirects
+        const publicRoutes = ['/', '/prelaunch', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success'];
+        const isOnPublicRoute = publicRoutes.includes(window.location.pathname);
+        
+        // Don't redirect if on a public route
+        if (isOnPublicRoute) {
+          return;
+        }
+        
+        // If not verified and not already on verification page, redirect
+        if (!isVerified && !window.location.pathname.includes('verify-email')) {
+          window.location.href = '/verify-email';
+        } else if (isVerified && !window.location.pathname.includes('beta-nda')) {
+          // Only redirect to NDA if verified and not already on NDA page
+          window.location.href = '/beta-nda';
+        }
+      }
     });
 
     return () => subscription.unsubscribe();

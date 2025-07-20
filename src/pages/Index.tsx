@@ -22,6 +22,13 @@ const Index = () => {
   // unless there's a bypass parameter indicating admin access
   useEffect(() => {
     const bypass = searchParams.get('bypass');
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.startsWith('/admin')) {
+      console.log('✅ Index: Admin route detected, not redirecting to prelaunch');
+      return;
+    }
+    
     if (bypass === 'admin') {
       // Bypass the redirect for admin access
       navigate('/auth', { replace: true });
