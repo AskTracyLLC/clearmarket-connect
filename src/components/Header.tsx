@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useDualBalance } from '@/hooks/useDualBalance';
+import { useDualBalance } from '@/hooks/dual_balance_hook';
 import { 
   User, 
   LogOut, 

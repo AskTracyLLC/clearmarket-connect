@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,13 +19,7 @@ import {
   CreditCard,
   Trophy
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-
-interface DualBalance {
-  repPoints: number;
-  clearCredits: number;
-  totalEarnedCredits: number;
-}
+import { useDualBalance } from "@/hooks/dual_balance_hook";
 
 interface DashboardStats {
   trustScore: number;
@@ -35,63 +29,21 @@ interface DashboardStats {
   monthlyHelpfulVotes: number;
   monthlyTarget: number;
   communityRank: string;
-  currentBalance: DualBalance;
 }
 
 const FieldRepDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+  const { balance, isLoading: balanceLoading } = useDualBalance();
+  const [dashboardStats] = useState<DashboardStats>({
     trustScore: 87,
     communityScore: 92,
     totalReviews: 23,
     networkConnections: 12,
     monthlyHelpfulVotes: 8,
     monthlyTarget: 10,
-    communityRank: 'Silver',
-    currentBalance: {
-      repPoints: 47,
-      clearCredits: 12,
-      totalEarnedCredits: 156
-    }
+    communityRank: 'Silver'
   });
-
-  // Fetch user's dual balance from database
-  useEffect(() => {
-    const fetchUserBalance = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: balanceData, error } = await supabase
-          .from('user_balances')
-          .select('rep_points, clear_credits, total_earned_credits')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching balance:', error);
-          return;
-        }
-
-        if (balanceData) {
-          setDashboardStats(prev => ({
-            ...prev,
-            currentBalance: {
-              repPoints: balanceData.rep_points || 0,
-              clearCredits: balanceData.clear_credits || 0,
-              totalEarnedCredits: balanceData.total_earned_credits || 0
-            }
-          }));
-        }
-      } catch (error) {
-        console.error('Error in fetchUserBalance:', error);
-      }
-    };
-
-    fetchUserBalance();
-  }, []);
 
   // Credit earning opportunities
   const creditOpportunities = [
@@ -161,7 +113,7 @@ const FieldRepDashboard = () => {
                 <span className="font-semibold text-blue-900">RepPoints</span>
               </div>
               <div className="text-2xl font-bold text-blue-700">
-                {dashboardStats.currentBalance.repPoints}
+                {balanceLoading ? '...' : balance.repPoints}
               </div>
               <p className="text-xs text-blue-600">For giveaway entries</p>
             </CardContent>
@@ -174,7 +126,7 @@ const FieldRepDashboard = () => {
                 <span className="font-semibold text-green-900">ClearCredits</span>
               </div>
               <div className="text-2xl font-bold text-green-700">
-                {dashboardStats.currentBalance.clearCredits}
+                {balanceLoading ? '...' : balance.clearCredits}
               </div>
               <p className="text-xs text-green-600">For premium features</p>
             </CardContent>
