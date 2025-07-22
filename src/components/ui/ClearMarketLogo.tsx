@@ -16,7 +16,7 @@ const ClearMarketLogo: React.FC<ClearMarketLogoProps> = ({
 
   const handleClick = () => {
     if (enableAdminAccess) {
-      navigate('/admin-auth');
+      navigate('/auth');
     }
   };
 

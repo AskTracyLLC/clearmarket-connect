@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
+import ClearMarketLogo from "@/components/ui/ClearMarketLogo";
+
 const Footer = () => {
   return <footer className="bg-secondary border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-5 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">C</span>
-              </div>
+              <ClearMarketLogo size={32} enableAdminAccess={true} />
               <span className="text-xl font-bold text-foreground">ClearMarket</span>
             </div>
             <p className="text-muted-foreground text-sm">Connecting property inspection professionals through transparency and trust — paving the way for a better way to do business in inspections.</p>
@@ -51,6 +51,13 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center">
+          <div className="flex justify-center mb-4">
+            <ClearMarketLogo 
+              size={24} 
+              enableAdminAccess={true}
+              className="opacity-70 hover:opacity-100 transition-opacity"
+            />
+          </div>
           <p className="text-muted-foreground text-sm">
             © 2024 ClearMarket. All rights reserved. | Paving the Way to a Better Way to Work Together
           </p>
