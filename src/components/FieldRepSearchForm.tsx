@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, MapPin, Briefcase } from "lucide-react";
+import { useWorkTypes } from "@/hooks/useWorkTypes";
+import { usePlatforms } from "@/hooks/usePlatforms";
 
 interface SearchFilters {
   zipCode: string;
@@ -29,26 +31,9 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
   const [monthlyVolume, setMonthlyVolume] = useState("");
   const [sortBy, setSortBy] = useState("");
 
-  const workTypes = [
-    "Residential Inspections",
-    "Commercial Inspections", 
-    "FHA Inspections",
-    "VA Inspections",
-    "USDA Inspections",
-    "Occupancy Inspections",
-    "Draw Inspections",
-    "REO Inspections",
-    "Insurance Inspections"
-  ];
-
-  const platforms = [
-    "Clear Capital",
-    "ServiceLink",
-    "Solidifi",
-    "AMC Networks",
-    "Direct Lender",
-    "Regional Banks"
-  ];
+  const { workTypes, loading: workTypesLoading } = useWorkTypes();
+  const { getPlatformNames, loading: platformsLoading } = usePlatforms();
+  const platformNames = getPlatformNames();
 
   const handleWorkTypeChange = (workType: string, checked: boolean) => {
     if (checked) {
@@ -113,39 +98,47 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
               <Briefcase className="h-4 w-4" />
               Work Types
             </Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {workTypes.map((workType) => (
-                <div key={workType} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={workType}
-                    checked={selectedWorkTypes.includes(workType)}
-                    onCheckedChange={(checked) => handleWorkTypeChange(workType, checked as boolean)}
-                  />
-                  <Label htmlFor={workType} className="text-sm">
-                    {workType}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            {workTypesLoading ? (
+              <div className="text-sm text-muted-foreground">Loading work types...</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {workTypes.map((workType) => (
+                  <div key={workType.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={workType.id}
+                      checked={selectedWorkTypes.includes(workType.name)}
+                      onCheckedChange={(checked) => handleWorkTypeChange(workType.name, checked as boolean)}
+                    />
+                    <Label htmlFor={workType.id} className="text-sm">
+                      {workType.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Platforms */}
           <div className="space-y-3">
             <Label>Preferred Platforms</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {platforms.map((platform) => (
-                <div key={platform} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={platform}
-                    checked={selectedPlatforms.includes(platform)}
-                    onCheckedChange={(checked) => handlePlatformChange(platform, checked as boolean)}
-                  />
-                  <Label htmlFor={platform} className="text-sm">
-                    {platform}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            {platformsLoading ? (
+              <div className="text-sm text-muted-foreground">Loading platforms...</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {platformNames.map((platform) => (
+                  <div key={platform} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={platform}
+                      checked={selectedPlatforms.includes(platform)}
+                      onCheckedChange={(checked) => handlePlatformChange(platform, checked as boolean)}
+                    />
+                    <Label htmlFor={platform} className="text-sm">
+                      {platform}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Minimum Payment per Order */}

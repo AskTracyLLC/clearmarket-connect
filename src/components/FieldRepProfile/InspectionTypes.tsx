@@ -2,23 +2,24 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Checkbox } from "@/components/ui/checkbox";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
+import { useWorkTypes } from "@/hooks/useWorkTypes";
 
 interface InspectionTypesProps {
   form: UseFormReturn<FieldRepFormData>;
 }
 
 export const InspectionTypes = ({ form }: InspectionTypesProps) => {
-  const inspectionTypes = [
-    "Interior/Exterior Inspections",
-    "Exterior Only Inspections", 
-    "Drive-by Inspections",
-    "Occupancy Verification",
-    "REO Services",
-    "Property Preservation",
-    "Damage Assessment",
-    "High Quality Marketing Photos",
-    "Appt-Based Inspections"
-  ];
+  const { workTypes, loading } = useWorkTypes();
+  const inspectionTypes = workTypes.map(wt => wt.name);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Inspection Types</h3>
+        <div className="text-sm text-muted-foreground">Loading work types...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

@@ -12,6 +12,7 @@ import ClearMarketLogo from "@/components/ui/ClearMarketLogo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, UserCheck, Building2, MapPin, Calendar, TrendingUp, Users, Shield, ArrowRight, X, Briefcase, UserPlus, Search, MessageSquare, Star, Lock } from "lucide-react";
 import { useStates } from "@/hooks/useLocationData";
+import { useWorkTypes } from "@/hooks/useWorkTypes";
 import { toast } from "sonner";
 
 interface FormState {
@@ -76,6 +77,7 @@ const Prelaunch = () => {
   
   // Debug the states loading
   const { states, loading: statesLoading, error: statesError } = useStates();
+  const { workTypes, loading: workTypesLoading } = useWorkTypes();
   console.log('States loading:', statesLoading, 'States count:', states.length, 'Error:', statesError);
   
   // Fallback states list if hook fails
@@ -125,19 +127,8 @@ const Prelaunch = () => {
     "Industry veteran (15+ years)"
   ];
 
-  const workTypes = [
-    "Property Inspections",
-    "BPO (Broker Price Opinion)",
-    "Occupancy Checks", 
-    "Damage Assessments",
-    "REO Services",
-    "Field Services",
-    "Property Preservation",
-    "Appraisal Services",
-    "Insurance Inspections",
-    "Compliance Checks",
-    "Other"
-  ];
+  // Get work type names from the database
+  const workTypeNames = workTypes.map(wt => wt.name);
 
   const isFormValid = () => {
     return formState.email && 
@@ -384,10 +375,14 @@ const Prelaunch = () => {
                     Type of Work <span className="text-red-500">*</span>
                   </Label>
                   
-                  {/* Debug info for work types */}
-                  <p className="text-xs text-muted-foreground">
-                    Debug: {workTypes.length} work types available
-                  </p>
+                   {/* Debug info for work types */}
+                   {workTypesLoading ? (
+                     <div className="text-sm text-muted-foreground">Loading work types...</div>
+                   ) : (
+                     <p className="text-xs text-muted-foreground">
+                       Debug: {workTypes.length} work types available
+                     </p>
+                   )}
                   
                   {/* Selected Work Types Display */}
                   {formState.workType.length > 0 && (
@@ -416,45 +411,36 @@ const Prelaunch = () => {
                     </div>
                   )}
 
-                  {/* Work Types Checkbox Grid */}
-                  <div className="border rounded-lg p-4 bg-background">
-                    <p className="text-sm font-medium mb-3">Select all that apply:</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {workTypes.map((workType, index) => {
-                        const checkboxId = `work-${workType.replace(/\s+/g, '-').toLowerCase()}`;
-                        const isChecked = formState.workType.includes(workType);
-                        
-                        console.log(`Rendering work type: ${workType}, checked: ${isChecked}`);
-                        
-                        return (
-                          <div key={workType} className="flex items-start space-x-2">
-                            <Checkbox
-                              id={checkboxId}
-                              checked={isChecked}
-                              onCheckedChange={(checked) => {
-                                console.log(`Checkbox changed: ${workType}, checked: ${checked}`);
-                                if (checked) {
-                                  dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
-                                } else {
-                                  removeWorkType(workType);
-                                  // Clear other field if "Other" is unchecked
-                                  if (workType === "Other") {
-                                    dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: '' });
-                                  }
-                                }
-                              }}
-                            />
-                            <Label 
-                              htmlFor={checkboxId} 
-                              className="text-sm cursor-pointer leading-tight flex-1"
-                            >
-                              {workType}
-                            </Label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                   {/* Work Types Checkbox Grid */}
+                   {!workTypesLoading && (
+                     <div className="border rounded-lg p-4 bg-background">
+                       <p className="text-sm font-medium mb-3">Select all that apply:</p>
+                       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                         {workTypeNames.map((workType) => (
+                           <div key={workType} className="flex items-center space-x-2">
+                             <Checkbox
+                               id={`workType-${workType}`}
+                               checked={formState.workType.includes(workType)}
+                               onCheckedChange={(checked) => {
+                                 if (checked) {
+                                   dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
+                                 } else {
+                                   dispatch({ type: 'TOGGLE_WORK_TYPE', workType });
+                                   // Clear other field if "Other" is unchecked
+                                   if (workType === "Other") {
+                                     dispatch({ type: 'SET_FIELD', field: 'otherWorkType', value: '' });
+                                   }
+                                 }
+                               }}
+                             />
+                             <Label htmlFor={`workType-${workType}`} className="text-sm cursor-pointer">
+                               {workType}
+                             </Label>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   )}
 
                   {/* Other Work Type Text Field */}
                   {formState.workType.includes("Other") && (
