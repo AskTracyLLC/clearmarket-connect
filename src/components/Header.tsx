@@ -185,4 +185,77 @@ const Header = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleViewGiveaways}
-                className="
+                className="flex items-center gap-2 bg-blue-50 border-blue-200"
+              >
+                <Trophy className="h-4 w-4 text-blue-600" />
+                <span className="text-blue-900 font-medium">
+                  {isLoading ? '...' : balance.repPoints}
+                </span>
+                <span className="text-blue-600 text-xs">RepPoints</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBuyCredits}
+                className="flex items-center gap-2 bg-green-50 border-green-200"
+              >
+                <CreditCard className="h-4 w-4 text-green-600" />
+                <span className="text-green-900 font-medium">
+                  {isLoading ? '...' : balance.clearCredits}
+                </span>
+                <span className="text-green-600 text-xs">Credits</span>
+              </Button>
+            </div>
+
+            {/* Mobile Navigation Links */}
+            <nav className="space-y-2">
+              <Link 
+                to="/dashboard" 
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <Link 
+                to="/community" 
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Community
+              </Link>
+              <Link 
+                to="/coverage" 
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Coverage
+              </Link>
+              <Link 
+                to="/network" 
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Network
+              </Link>
+              <button 
+                onClick={handleViewGiveaways}
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Giveaways
+              </button>
+              <button 
+                onClick={handleSignOut}
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Sign Out
+              </button>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default Header;
