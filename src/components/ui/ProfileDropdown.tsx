@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   DropdownMenu, 
@@ -6,7 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, Bell, LogOut } from "lucide-react";
+import { User, Settings, Bell, LogOut, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import UserAvatar from "./UserAvatar";
 import { UserProfile } from "@/hooks/useUserProfile";
@@ -28,7 +29,17 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 }) => {
   const getProfilePath = () => {
     if (!profile) return "/vendor/profile";
-    return profile.role === "vendor" ? "/vendor/profile" : "/fieldrep/profile";
+    
+    switch (profile.role) {
+      case "admin":
+        return "/admin/profile";
+      case "vendor":
+        return "/vendor/profile";
+      case "field_rep":
+        return "/fieldrep/profile";
+      default:
+        return "/vendor/profile";
+    }
   };
 
   return (
@@ -49,8 +60,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       <DropdownMenuContent align="end" className="w-56 bg-background border border-border">
         <DropdownMenuItem asChild>
           <Link to={getProfilePath()} className="flex items-center cursor-pointer">
-            <User className="mr-3 h-4 w-4" />
-            User Profile
+            {profile?.role === 'admin' ? (
+              <Crown className="mr-3 h-4 w-4 text-purple-600" />
+            ) : (
+              <User className="mr-3 h-4 w-4" />
+            )}
+            {profile?.role === 'admin' ? 'Admin Profile' : 'User Profile'}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

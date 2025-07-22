@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import VendorSearchPage from "./pages/VendorSearchPage";
 import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
+import AdminProfilePage from "./pages/AdminProfilePage";
 import FieldRepSearchPage from "./pages/FieldRepSearchPage";
 import FieldRepDashboard from "./pages/FieldRepDashboard";
 import FieldRepPublicProfile from "./pages/FieldRepPublicProfile";
@@ -64,6 +66,7 @@ const App = () => (
                 <Route path="/vendor/profile" element={<ProtectedRouteWithNDA><VendorProfilePage /></ProtectedRouteWithNDA>} />
                 <Route path="/fieldrep/search" element={<ProtectedRouteWithNDA><FieldRepSearchPage /></ProtectedRouteWithNDA>} />
                 <Route path="/fieldrep/profile" element={<ProtectedRouteWithNDA><FieldRepProfilePage /></ProtectedRouteWithNDA>} />
+                <Route path="/admin/profile" element={<ProtectedRouteWithNDA><AdminProfilePage /></ProtectedRouteWithNDA>} />
                  <Route path="/fieldrep/profile/:id" element={<FieldRepPublicProfile />} />
                  <Route path="/vendor/profile/:id" element={<VendorPublicProfile />} />
                 <Route path="/fieldrep/dashboard" element={
