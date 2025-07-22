@@ -4,13 +4,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { VendorFormData } from "./types";
-import { platforms } from "./utils";
+import { usePlatforms } from "@/hooks/usePlatforms";
 
 interface VendorPlatformsProps {
   form: UseFormReturn<VendorFormData>;
 }
 
 export const VendorPlatforms = ({ form }: VendorPlatformsProps) => {
+  const { getPlatformNames, loading } = usePlatforms();
+  const platforms = getPlatformNames();
+  
   const handlePlatformChange = (platform: string, checked: boolean) => {
     const currentPlatforms = form.getValues("platforms");
     if (checked) {
@@ -22,6 +25,15 @@ export const VendorPlatforms = ({ form }: VendorPlatformsProps) => {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <FormItem>
+        <FormLabel className="text-base font-semibold">Platforms We Assign Through *</FormLabel>
+        <div className="text-sm text-muted-foreground">Loading platforms...</div>
+      </FormItem>
+    );
+  }
 
   return (
     <FormField

@@ -3,15 +3,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
+import { usePlatforms } from "@/hooks/usePlatforms";
 
 interface PlatformsUsedProps {
   form: UseFormReturn<FieldRepFormData>;
 }
 
 export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
-  const platforms = ["EZinspections", "InspectorADE", "SafeView", "WorldAPP", "Other"];
+  const { getPlatformNames, loading } = usePlatforms();
+  const platforms = getPlatformNames();
   const selectedPlatforms = form.watch("platforms") || [];
   const isOtherSelected = selectedPlatforms.includes("Other");
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Platforms Used</h3>
+        <div className="text-sm text-muted-foreground">Loading platforms...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

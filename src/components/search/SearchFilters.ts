@@ -13,6 +13,7 @@ export interface SearchFilters {
   sortBy: string;
 }
 
+// Legacy platforms array - use usePlatforms hook for dynamic platform loading
 export const platforms = ["EZinspections", "InspectorADE", "SafeView", "WorldAPP", "Other"];
 
 export const inspectionTypes = [
