@@ -1419,6 +1419,45 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_work_type_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          platform_id: string
+          work_type_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform_id: string
+          work_type_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform_id?: string
+          work_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_work_type_mappings_platform_id_fkey"
+            columns: ["platform_id"]
+            isOneToOne: false
+            referencedRelation: "platforms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_work_type_mappings_work_type_id_fkey"
+            columns: ["work_type_id"]
+            isOneToOne: false
+            referencedRelation: "work_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platforms: {
         Row: {
           category: string | null
@@ -2408,6 +2447,36 @@ export type Database = {
           total_recipients?: number
           updated_at?: string
           vendor_id?: string
+        }
+        Relationships: []
+      }
+      work_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

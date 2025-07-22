@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { DatabaseAdministration } from "@/components/admin/DatabaseAdministration";
 import PlatformManagement from "@/components/admin/PlatformManagement";
+import WorkTypePlatformManagement from "@/components/admin/WorkTypePlatformManagement";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -69,6 +70,7 @@ const AdminDatabasePage = () => {
       <Header />
       <main className="container mx-auto px-4 py-8 space-y-8">
         <PlatformManagement />
+        <WorkTypePlatformManagement />
         <DatabaseAdministration />
       </main>
       <Footer />

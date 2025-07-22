@@ -51,6 +51,38 @@ export const usePlatforms = () => {
     return platforms.filter(platform => platform.category === category);
   };
 
+  // Get platforms filtered by work types
+  const getPlatformsByWorkTypes = async (workTypeNames: string[]): Promise<Platform[]> => {
+    if (workTypeNames.length === 0) return platforms;
+
+    try {
+      const { data, error } = await supabase
+        .from("platform_work_type_mappings")
+        .select(`
+          platform_id,
+          platforms!inner(id, name, description, category, is_active, display_order),
+          work_types!inner(name)
+        `)
+        .in("work_types.name", workTypeNames)
+        .eq("is_active", true)
+        .eq("platforms.is_active", true);
+
+      if (error) throw error;
+
+      // Remove duplicates and return unique platforms
+      const uniquePlatforms = Array.from(
+        new Map(
+          data.map(item => [item.platforms.id, item.platforms])
+        ).values()
+      ) as Platform[];
+
+      return uniquePlatforms.sort((a, b) => a.display_order - b.display_order);
+    } catch (error) {
+      console.error("Error fetching platforms by work types:", error);
+      return platforms;
+    }
+  };
+
   return {
     platforms,
     loading,
@@ -58,5 +90,6 @@ export const usePlatforms = () => {
     refetch: fetchPlatforms,
     getPlatformNames,
     getPlatformsByCategory,
+    getPlatformsByWorkTypes,
   };
 };
