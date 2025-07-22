@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,32 +8,25 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import LoadingBar from "@/components/ui/loading-bar";
 import BackToTop from "@/components/ui/back-to-top";
+import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/admin/AdminRoute";
 import Index from "./pages/Index";
-import Prelaunch from "./pages/Prelaunch";
 import VendorSearchPage from "./pages/VendorSearchPage";
 import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
-import AdminProfilePage from "./pages/AdminProfilePage";
-import AdminDatabasePage from "./pages/AdminDatabasePage";
-import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
-import AdminDocumentsPage from "./pages/AdminDocumentsPage";
-import AdminSecurityPage from "./pages/AdminSecurityPage";
 import FieldRepSearchPage from "./pages/FieldRepSearchPage";
 import FieldRepDashboard from "./pages/FieldRepDashboard";
-import FieldRepPublicProfile from "./pages/FieldRepPublicProfile";
-import VendorPublicProfile from "./pages/VendorPublicProfile";
 import FeedbackPage from "./pages/FeedbackPage";
 import FAQPage from "./pages/FAQPage";
 import MessagesPage from "./pages/MessagesPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
-
-import AdminAuthPage from "./pages/AdminAuthPage";
 import VendorDashboard from "./pages/VendorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -42,83 +34,76 @@ import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
-import BetaNDA from "./pages/BetaNDA";
-import ProtectedRouteWithNDA from "./components/ProtectedRouteWithNDA";
 import NotFound from "./pages/NotFound";
-import { TestingDashboard } from "./components/TestingDashboard";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <LoadingBar />
-              <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/prelaunch" element={<Prelaunch />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/test-auth" element={<div><h1>TEST AUTH PAGE WORKING</h1></div>} />
-                <Route path="/admin-auth" element={<AdminAuthPage />} />
-                <Route path="/vendor/search" element={<ProtectedRouteWithNDA><VendorSearchPage /></ProtectedRouteWithNDA>} />
-                <Route path="/vendor/profile" element={<ProtectedRouteWithNDA><VendorProfilePage /></ProtectedRouteWithNDA>} />
-                <Route path="/fieldrep/search" element={<ProtectedRouteWithNDA><FieldRepSearchPage /></ProtectedRouteWithNDA>} />
-                <Route path="/fieldrep/profile" element={<ProtectedRouteWithNDA><FieldRepProfilePage /></ProtectedRouteWithNDA>} />
-                <Route path="/admin/profile" element={<ProtectedRouteWithNDA><AdminProfilePage /></ProtectedRouteWithNDA>} />
-                <Route path="/admin/database" element={<ProtectedRouteWithNDA><AdminDatabasePage /></ProtectedRouteWithNDA>} />
-                <Route path="/admin/analytics" element={<ProtectedRouteWithNDA><AdminAnalyticsPage /></ProtectedRouteWithNDA>} />
-                <Route path="/admin/documents" element={<ProtectedRouteWithNDA><AdminDocumentsPage /></ProtectedRouteWithNDA>} />
-                <Route path="/admin/security" element={<ProtectedRouteWithNDA><AdminSecurityPage /></ProtectedRouteWithNDA>} />
-                 <Route path="/fieldrep/profile/:id" element={<FieldRepPublicProfile />} />
-                 <Route path="/vendor/profile/:id" element={<VendorPublicProfile />} />
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <LoadingBar />
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/vendor/search" element={<VendorSearchPage />} />
+                <Route path="/vendor/profile" element={<VendorProfilePage />} />
+                <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
+                <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
                 <Route path="/fieldrep/dashboard" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <FieldRepDashboard />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
-                <Route path="/testing" element={<TestingDashboard />} />
                 <Route path="/community" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <CommunityBoard />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/messages" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <MessagesPage />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/calendar" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <CalendarPage />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/settings" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <SettingsPage />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/vendor/dashboard" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <VendorDashboard />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/admin" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <AdminDashboard />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
+                } />
+                {/* New Admin Giveaway Routes */}
+                <Route path="/admin/giveaways" element={
+                  <ProtectedRoute>
+                    <AdminRoute>
+                      <AdminGiveawayDashboard />
+                    </AdminRoute>
+                  </ProtectedRoute>
                 } />
                 <Route path="/moderator" element={
-                  <ProtectedRouteWithNDA>
+                  <ProtectedRoute>
                     <ModeratorDashboard />
-                  </ProtectedRouteWithNDA>
+                  </ProtectedRoute>
                 } />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
@@ -126,18 +111,17 @@ const App = () => (
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/verify-email" element={<EmailVerificationPage />} />
                 <Route path="/payment-success" element={<PaymentSuccessPage />} />
-                <Route path="/beta-nda" element={<BetaNDA />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ErrorBoundary>
             <BackToTop />
+            <PWAInstallPrompt />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
-  </ErrorBoundary>
 );
 
 export default App;
