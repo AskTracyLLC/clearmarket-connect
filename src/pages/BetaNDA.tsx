@@ -84,42 +84,61 @@ const BetaNDA = () => {
   const handleScroll = () => {
     const scrollArea = scrollAreaRef.current;
     if (scrollArea) {
-      // Get the viewport div inside ScrollArea
-      const viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      // Get the viewport div inside ScrollArea - try multiple selectors
+      let viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      if (!viewport) {
+        viewport = scrollArea.querySelector('.h-full.w-full.rounded-\\[inherit\\]');
+      }
+      if (!viewport) {
+        // Fallback: use the scrollArea itself
+        viewport = scrollArea;
+      }
+      
       if (viewport) {
         const { scrollTop, scrollHeight, clientHeight } = viewport;
-        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50; // Increased tolerance
-        console.log('Scroll detection:', { scrollTop, scrollHeight, clientHeight, isAtBottom, hasScrolledToBottom });
+        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50; // 50px tolerance
+        console.log('Scroll detection:', { 
+          scrollTop, 
+          scrollHeight, 
+          clientHeight, 
+          isAtBottom, 
+          hasScrolledToBottom,
+          selector: viewport === scrollArea ? 'fallback' : 'viewport'
+        });
         if (isAtBottom && !hasScrolledToBottom) {
           console.log('Setting hasScrolledToBottom to true');
           setHasScrolledToBottom(true);
         }
       } else {
-        console.log('Viewport not found');
+        console.log('No viewport found');
       }
-    } else {
-      console.log('ScrollArea not found');
     }
   };
 
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (scrollArea) {
-      const viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      // Get the viewport div inside ScrollArea
+      let viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      if (!viewport) {
+        viewport = scrollArea.querySelector('.h-full.w-full.rounded-\\[inherit\\]');
+      }
+      if (!viewport) {
+        viewport = scrollArea;
+      }
+      
       if (viewport) {
         viewport.addEventListener('scroll', handleScroll);
         // Also check initial state in case content is already short enough
-        setTimeout(handleScroll, 100); // Small delay to ensure content is rendered
+        setTimeout(handleScroll, 200); // Increased delay
         return () => viewport.removeEventListener('scroll', handleScroll);
       } else {
-        console.log('Viewport not found during setup');
-        // Fallback: if no scroll area detected, enable immediately
+        console.log('No viewport found during setup - enabling checkbox');
+        // Fallback: enable immediately if scroll detection fails
         setTimeout(() => setHasScrolledToBottom(true), 1000);
       }
-    } else {
-      console.log('ScrollArea not found during setup');
     }
-  }, []); // Remove dependency to prevent re-setup
+  }, []);
 
   // Signature validation
   const validateSignature = (value: string): string[] => {
