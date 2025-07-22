@@ -1,183 +1,188 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import MobileNav from "@/components/ui/mobile-nav";
-import NotificationBell from "@/components/ui/NotificationBell";
-import ProfileDropdown from "@/components/ui/ProfileDropdown";
-import { ChevronDown, UserPlus, Building, MessageSquare, Calendar, Home, AlertTriangle, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import { useNotifications } from "@/hooks/useNotifications";
-import { useNDAStatus } from "@/hooks/useNDAStatus";
-import CreditBalance from "@/components/ui/CreditBalance";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useDualBalance } from '@/hooks/useDualBalance';
+import { 
+  User, 
+  LogOut, 
+  Trophy, 
+  CreditCard, 
+  Gift,
+  Settings,
+  Menu,
+  X
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from 'react';
 
 const Header = () => {
-  const { user, signOut } = useAuth();
-  const { profile } = useUserProfile();
-  const { unreadCount } = useNotifications();
-  const { hasSignedNDA, loading: ndaLoading } = useNDAStatus();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { balance, isLoading } = useDualBalance();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const getDashboardPath = () => {
-    const role = profile?.role || "field_rep";
-    return role === "vendor" ? "/vendor/dashboard" : "/fieldrep/dashboard";
+  const handleSignOut = () => {
+    toast({
+      title: "Signed out successfully",
+      description: "You have been logged out of your account.",
+    });
+    navigate('/');
   };
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleViewGiveaways = () => {
+    navigate('/giveaways');
+    setMobileMenuOpen(false);
+  };
+
+  const handleBuyCredits = () => {
+    navigate('/credits/purchase');
+    setMobileMenuOpen(false);
   };
 
   return (
-    <header className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <MobileNav />
-            <Link to="/auth" className="flex items-center space-x-2">
-              <img 
-                src="/lovable-uploads/5d315367-d1a1-4352-939e-bbe0ead13db2.png" 
-                alt="ClearMarket" 
-                className="w-8 h-8 rounded-lg"
-              />
-              <span className="text-xl font-bold text-foreground">ClearMarket</span>
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">CM</span>
+              </div>
+              <span className="font-bold text-xl text-gray-900">ClearMarket</span>
             </Link>
           </div>
-          
-          <nav className="hidden md:flex items-center space-x-6">
-            {user ? (
-              <>
-                <Link to={getDashboardPath()} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                  <Home className="h-4 w-4" />
-                  Dashboard
-                </Link>
-                <Link to="/vendor/search" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Find Coverage
-                </Link>
-                <Link to="/community" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Community
-                </Link>
-                <Link to="/calendar" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Calendar
-                </Link>
-                <CreditBalance />
-              </>
-            ) : (
-              <>
-                <Link to="/#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-                  How It Works
-                </Link>
-                <Link to="/vendor/search" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Find Coverage
-                </Link>
-                <Link to="/#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Pricing
-                </Link>
-              </>
-            )}
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link to="/community" className="text-gray-700 hover:text-primary transition-colors">
+              Community
+            </Link>
+            <Link to="/coverage" className="text-gray-700 hover:text-primary transition-colors">
+              Coverage
+            </Link>
+            <Link to="/network" className="text-gray-700 hover:text-primary transition-colors">
+              Network
+            </Link>
           </nav>
 
-          <div className="flex items-center space-x-3">
-            <ThemeToggle />
+          {/* Desktop Balance & User Menu */}
+          <div className="hidden md:flex items-center space-x-4">
             
-            {/* Desktop Actions */}
-            <div className="hidden md:flex items-center space-x-3">
-              {user ? (
-                <>
-                  {/* NDA Status Indicator for authenticated users */}
-                  {!ndaLoading && !hasSignedNDA && (
-                    <Link to="/beta-nda">
-                      <Button variant="outline" size="sm" className="text-orange-600 border-orange-600 hover:bg-orange-50">
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        Complete Legal Agreement
-                      </Button>
-                    </Link>
-                  )}
-                  
-                  {!ndaLoading && hasSignedNDA && (
-                    <div className="flex items-center space-x-1 text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-xs font-medium">Agreement Signed</span>
-                    </div>
-                  )}
-                  
-                  {/* Circular Icon Layout */}
-                  <div className="flex items-center space-x-2">
-                    {/* Notification Bell */}
-                    <NotificationBell count={unreadCount} />
-                    
-                    {/* Messages Icon */}
-                    <Link to="/messages">
-                      <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
-                        <MessageSquare className="h-5 w-5" />
-                        <Badge 
-                          variant="destructive" 
-                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                        >
-                          2
-                        </Badge>
-                      </Button>
-                    </Link>
-                    
-                    {/* Profile Avatar with Dropdown */}
-                    <ProfileDropdown
-                      profile={profile}
-                      firstName={user?.user_metadata?.first_name}
-                      lastName={user?.user_metadata?.last_name}
-                      companyLogo={user?.user_metadata?.company_logo}
-                      onSignOut={handleSignOut}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to="/auth">Sign In</Link>
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="hero" size="sm">
-                        Create Profile
-                        <ChevronDown className="ml-1 h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 bg-background border border-border">
-                      <DropdownMenuItem asChild>
-                        <Link to="/vendor/profile" className="flex items-center cursor-pointer">
-                          <Building className="mr-2 h-4 w-4" />
-                          Vendor Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/fieldrep/profile" className="flex items-center cursor-pointer">
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          Field Rep Profile
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              )}
+            {/* Dual Balance Display */}
+            <div className="flex items-center space-x-2">
+              {/* RepPoints */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleViewGiveaways}
+                className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200"
+              >
+                <Trophy className="h-4 w-4 text-blue-600" />
+                <span className="text-blue-900 font-medium">
+                  {isLoading ? '...' : balance.repPoints}
+                </span>
+                <span className="text-blue-600 text-xs">RepPoints</span>
+              </Button>
+
+              {/* ClearCredits */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBuyCredits}
+                className="flex items-center gap-2 bg-green-50 hover:bg-green-100 border-green-200"
+              >
+                <CreditCard className="h-4 w-4 text-green-600" />
+                <span className="text-green-900 font-medium">
+                  {isLoading ? '...' : balance.clearCredits}
+                </span>
+                <span className="text-green-600 text-xs">Credits</span>
+              </Button>
             </div>
 
-            {/* Mobile Actions */}
-            <div className="flex md:hidden">
-              {user ? (
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  Sign Out
+            {/* User Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">John D.</span>
                 </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <User className="mr-2 h-4 w-4" />
+                  Dashboard
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={handleViewGiveaways}>
+                  <Gift className="mr-2 h-4 w-4" />
+                  Giveaways
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    {balance.repPoints} pts
+                  </Badge>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={handleBuyCredits}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Buy Credits
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    {balance.clearCredits}
+                  </Badge>
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
               ) : (
-                <Button variant="hero" size="sm" asChild>
-                  <Link to="/auth">Join</Link>
-                </Button>
+                <Menu className="h-6 w-6" />
               )}
-            </div>
+            </Button>
           </div>
         </div>
-      </div>
-    </header>
-  );
-};
 
-export default Header;
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4 space-y-4">
+            
+            {/* Mobile Balance Display */}
+            <div className="flex justify-center space-x-2 pb-4 border-b border-gray-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleViewGiveaways}
+                className="
