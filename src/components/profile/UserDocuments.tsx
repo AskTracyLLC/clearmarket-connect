@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +26,12 @@ import {
   Eye,
   Plus,
   Crown,
-  HardDrive
+  HardDrive,
+  Folder,
+  FolderOpen,
+  Users,
+  Lock,
+  Globe
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -44,6 +50,8 @@ interface UserDocument {
   verified_by?: string;
   verified_at?: string;
   verification_notes?: string;
+  visibility?: 'private' | 'public' | 'network_shared';
+  folder_category?: 'legal' | 'profile' | 'credentials' | 'identity' | 'general';
   metadata: any;
 }
 
@@ -64,6 +72,8 @@ interface DocumentTypeConfig {
   allowed_mime_types: string[];
   verification_required: boolean;
   display_order: number;
+  default_visibility?: 'private' | 'public' | 'network_shared';
+  default_folder_category?: 'legal' | 'profile' | 'credentials' | 'identity' | 'general';
 }
 
 interface DocumentUploadProps {
@@ -89,6 +99,9 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
   const [documentName, setDocumentName] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [selectedVisibility, setSelectedVisibility] = useState<'private' | 'public' | 'network_shared'>('private');
+  const [selectedFolderCategory, setSelectedFolderCategory] = useState<'legal' | 'profile' | 'credentials' | 'identity' | 'general'>('general');
+  const [activeFolder, setActiveFolder] = useState<string>('all');
 
   useEffect(() => {
     if (user) {
@@ -130,7 +143,9 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       setDocuments((data || []).map(doc => ({
         ...doc,
         upload_date: doc.upload_date || doc.created_at,
-        status: doc.status as 'active' | 'expired' | 'revoked' | 'pending' || 'pending'
+        status: doc.status as 'active' | 'expired' | 'revoked' | 'pending' || 'pending',
+        visibility: doc.visibility as 'private' | 'public' | 'network_shared' || 'private',
+        folder_category: doc.folder_category as 'legal' | 'profile' | 'credentials' | 'identity' | 'general' || 'general'
       })));
     } catch (error: any) {
       toast({
@@ -152,7 +167,11 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         .order('display_order');
 
       if (error) throw error;
-      setDocumentTypes(data || []);
+      setDocumentTypes((data || []).map(type => ({
+        ...type,
+        default_visibility: type.default_visibility as 'private' | 'public' | 'network_shared' || 'private',
+        default_folder_category: type.default_folder_category as 'legal' | 'profile' | 'credentials' | 'identity' | 'general' || 'general'
+      })));
     } catch (error: any) {
       console.error('Error loading document types:', error);
     }
@@ -239,6 +258,8 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         file_path: uploadData.path,
         file_size: selectedFile.size,
         mime_type: selectedFile.type,
+        visibility: selectedVisibility,
+        folder_category: selectedFolderCategory,
         expiration_date: expirationDate || null,
         status: 'pending',
         metadata: {
@@ -266,6 +287,8 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       setDocumentName("");
       setExpirationDate("");
       setNotes("");
+      setSelectedVisibility('private');
+      setSelectedFolderCategory('general');
       setIsUploadOpen(false);
 
       // Reload documents
@@ -276,7 +299,9 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       onDocumentAdded?.({
         ...docData,
         upload_date: docData.upload_date || docData.created_at,
-        status: docData.status as 'active' | 'expired' | 'revoked' | 'pending' || 'pending'
+        status: docData.status as 'active' | 'expired' | 'revoked' | 'pending' || 'pending',
+        visibility: docData.visibility as 'private' | 'public' | 'network_shared' || 'private',
+        folder_category: docData.folder_category as 'legal' | 'profile' | 'credentials' | 'identity' | 'general' || 'general'
       });
 
     } catch (error: any) {
@@ -460,12 +485,61 @@ This agreement was digitally signed and automatically stored.
 
   const selectedDocTypeConfig = documentTypes.find(dt => dt.document_type === selectedDocType);
 
+  // Update visibility and folder when document type changes
+  const handleDocTypeChange = (docType: string) => {
+    setSelectedDocType(docType);
+    const config = documentTypes.find(dt => dt.document_type === docType);
+    if (config) {
+      setSelectedVisibility(config.default_visibility || 'private');
+      setSelectedFolderCategory(config.default_folder_category || 'general');
+    }
+  };
+
+  const getVisibilityIcon = (visibility: string) => {
+    switch (visibility) {
+      case 'public': return <Globe className="h-4 w-4 text-green-600" />;
+      case 'network_shared': return <Users className="h-4 w-4 text-blue-600" />;
+      default: return <Lock className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getVisibilityBadge = (visibility: string) => {
+    switch (visibility) {
+      case 'public': return <Badge variant="default" className="bg-green-100 text-green-800">Public</Badge>;
+      case 'network_shared': return <Badge variant="default" className="bg-blue-100 text-blue-800">Network</Badge>;
+      default: return <Badge variant="outline">Private</Badge>;
+    }
+  };
+
+  const getFolderIcon = (category: string) => {
+    switch (category) {
+      case 'legal': return <Shield className="h-4 w-4 text-red-600" />;
+      case 'profile': return <Crown className="h-4 w-4 text-purple-600" />;
+      case 'credentials': return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case 'identity': return <Lock className="h-4 w-4 text-orange-600" />;
+      default: return <Folder className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
   const groupedDocuments = documents.reduce((acc, doc) => {
-    const type = doc.document_type;
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(doc);
+    const folder = doc.folder_category || 'general';
+    if (!acc[folder]) acc[folder] = [];
+    acc[folder].push(doc);
     return acc;
   }, {} as Record<string, UserDocument[]>);
+
+  const filteredDocuments = activeFolder === 'all' 
+    ? documents 
+    : documents.filter(doc => doc.folder_category === activeFolder);
+
+  const folderCounts = {
+    all: documents.length,
+    legal: groupedDocuments.legal?.length || 0,
+    profile: groupedDocuments.profile?.length || 0,
+    credentials: groupedDocuments.credentials?.length || 0,
+    identity: groupedDocuments.identity?.length || 0,
+    general: groupedDocuments.general?.length || 0,
+  };
 
   if (loading) {
     return (
@@ -502,7 +576,7 @@ This agreement was digitally signed and automatically stored.
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="document-type">Document Type *</Label>
-                    <Select value={selectedDocType} onValueChange={setSelectedDocType}>
+                    <Select value={selectedDocType} onValueChange={handleDocTypeChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select document type" />
                       </SelectTrigger>
@@ -556,6 +630,76 @@ This agreement was digitally signed and automatically stored.
                       />
                     </div>
                   )}
+
+                  <div>
+                    <Label htmlFor="visibility">Document Visibility</Label>
+                    <Select value={selectedVisibility} onValueChange={(value: 'private' | 'public' | 'network_shared') => setSelectedVisibility(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="private">
+                          <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Private - Only visible to you
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="public">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            Public - Visible to your network on request
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="network_shared">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Network Shared - Visible to connected vendors
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="folder">Folder Category</Label>
+                    <Select value={selectedFolderCategory} onValueChange={(value: 'legal' | 'profile' | 'credentials' | 'identity' | 'general') => setSelectedFolderCategory(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="legal">
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            Legal Documents
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="profile">
+                          <div className="flex items-center gap-2">
+                            <Crown className="h-4 w-4" />
+                            Profile Documents
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="credentials">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4" />
+                            Credentials & Certifications
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="identity">
+                          <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Identity Documents
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="general">
+                          <div className="flex items-center gap-2">
+                            <Folder className="h-4 w-4" />
+                            General Documents
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   <div>
                     <Label htmlFor="notes">Notes (Optional)</Label>
@@ -645,6 +789,7 @@ This agreement was digitally signed and automatically stored.
               )}
             </div>
           )}
+
           {documents.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -660,73 +805,101 @@ This agreement was digitally signed and automatically stored.
               </Button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {documentTypes.map(docType => {
-                const docsOfType = groupedDocuments[docType.document_type] || [];
-                
-                return (
-                  <div key={docType.document_type}>
-                    <h3 className="font-medium text-sm text-muted-foreground mb-3 uppercase tracking-wide">
-                      {docType.display_name}
-                    </h3>
-                    {docsOfType.length === 0 ? (
-                      <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
-                        <p className="text-sm text-muted-foreground">
-                          No {docType.display_name.toLowerCase()} uploaded
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {docsOfType.map(doc => (
-                          <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                            <div className="flex items-center gap-3">
-                              {getStatusIcon(doc.status, doc.verified_by)}
-                              <div>
-                                <p className="font-medium text-sm">{doc.document_name}</p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <span>{formatFileSize(doc.file_size)}</span>
-                                  <span>•</span>
-                                  <span>{format(new Date(doc.upload_date), "MMM d, yyyy")}</span>
-                                  {doc.expiration_date && (
-                                    <>
-                                      <span>•</span>
-                                      <span className="flex items-center gap-1">
-                                        <Calendar className="h-3 w-3" />
-                                        Expires {format(new Date(doc.expiration_date), "MMM d, yyyy")}
-                                      </span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
+            <Tabs value={activeFolder} onValueChange={setActiveFolder} className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="all" className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  All ({folderCounts.all})
+                </TabsTrigger>
+                <TabsTrigger value="legal" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Legal ({folderCounts.legal})
+                </TabsTrigger>
+                <TabsTrigger value="profile" className="flex items-center gap-2">
+                  <Crown className="h-4 w-4" />
+                  Profile ({folderCounts.profile})
+                </TabsTrigger>
+                <TabsTrigger value="credentials" className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Credentials ({folderCounts.credentials})
+                </TabsTrigger>
+                <TabsTrigger value="identity" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Identity ({folderCounts.identity})
+                </TabsTrigger>
+                <TabsTrigger value="general" className="flex items-center gap-2">
+                  <Folder className="h-4 w-4" />
+                  General ({folderCounts.general})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value={activeFolder} className="mt-6">
+                {filteredDocuments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Folder className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      No documents in this folder yet
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredDocuments.map(doc => (
+                      <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col items-center gap-1">
+                            {getFolderIcon(doc.folder_category)}
+                            {getStatusIcon(doc.status, doc.verified_by)}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-sm">{doc.document_name}</p>
+                              {getVisibilityIcon(doc.visibility)}
                             </div>
-                            <div className="flex items-center gap-2">
-                              {getStatusBadge(doc.status, doc.verified_by)}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownload(doc)}
-                              >
-                                <Download className="h-3 w-3" />
-                              </Button>
-                              {!doc.verified_by && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDelete(doc)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span className="capitalize">{doc.document_type.replace('_', ' ')}</span>
+                              <span>•</span>
+                              <span>{formatFileSize(doc.file_size)}</span>
+                              <span>•</span>
+                              <span>{format(new Date(doc.upload_date), "MMM d, yyyy")}</span>
+                              {doc.expiration_date && (
+                                <>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Expires {format(new Date(doc.expiration_date), "MMM d, yyyy")}
+                                  </span>
+                                </>
                               )}
                             </div>
                           </div>
-                        ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getVisibilityBadge(doc.visibility)}
+                          {getStatusBadge(doc.status, doc.verified_by)}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownload(doc)}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          {!doc.verified_by && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(doc)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                );
-              })}
-            </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
         </CardContent>
       </Card>

@@ -925,10 +925,53 @@ export type Database = {
         }
         Relationships: []
       }
+      document_access_log: {
+        Row: {
+          access_type: string
+          accessed_by: string | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+          ip_address: unknown | null
+          shared_with: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_by?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          shared_with?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_by?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          shared_with?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_access_log_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "user_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_type_config: {
         Row: {
           allowed_mime_types: string[] | null
           created_at: string | null
+          default_folder_category: string | null
+          default_visibility: string | null
           description: string | null
           display_name: string
           display_order: number | null
@@ -944,6 +987,8 @@ export type Database = {
         Insert: {
           allowed_mime_types?: string[] | null
           created_at?: string | null
+          default_folder_category?: string | null
+          default_visibility?: string | null
           description?: string | null
           display_name: string
           display_order?: number | null
@@ -959,6 +1004,8 @@ export type Database = {
         Update: {
           allowed_mime_types?: string[] | null
           created_at?: string | null
+          default_folder_category?: string | null
+          default_visibility?: string | null
           description?: string | null
           display_name?: string
           display_order?: number | null
@@ -1255,6 +1302,51 @@ export type Database = {
           utm_source?: string | null
           wants_progress_reports?: boolean
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      legal_documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          document_type: string
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          title: string
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          document_type: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title: string
+          updated_at?: string | null
+          version?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title?: string
+          updated_at?: string | null
+          version?: string
         }
         Relationships: []
       }
@@ -1903,6 +1995,7 @@ export type Database = {
           expiration_date: string | null
           file_path: string
           file_size: number | null
+          folder_category: string | null
           id: string
           metadata: Json | null
           mime_type: string | null
@@ -1913,6 +2006,7 @@ export type Database = {
           verification_notes: string | null
           verified_at: string | null
           verified_by: string | null
+          visibility: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1921,6 +2015,7 @@ export type Database = {
           expiration_date?: string | null
           file_path: string
           file_size?: number | null
+          folder_category?: string | null
           id?: string
           metadata?: Json | null
           mime_type?: string | null
@@ -1931,6 +2026,7 @@ export type Database = {
           verification_notes?: string | null
           verified_at?: string | null
           verified_by?: string | null
+          visibility?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1939,6 +2035,7 @@ export type Database = {
           expiration_date?: string | null
           file_path?: string
           file_size?: number | null
+          folder_category?: string | null
           id?: string
           metadata?: Json | null
           mime_type?: string | null
@@ -1949,6 +2046,7 @@ export type Database = {
           verification_notes?: string | null
           verified_at?: string | null
           verified_by?: string | null
+          visibility?: string | null
         }
         Relationships: [
           {
@@ -2617,6 +2715,14 @@ export type Database = {
       }
       is_beta_tester: {
         Args: { user_email: string }
+        Returns: boolean
+      }
+      log_document_access: {
+        Args: {
+          doc_id: string
+          access_type_param: string
+          shared_with_param?: string
+        }
         Returns: boolean
       }
       populate_location_data_from_csv: {
