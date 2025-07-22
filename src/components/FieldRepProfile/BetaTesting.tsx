@@ -3,24 +3,24 @@ import { Switch } from "@/components/ui/switch";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
 
-interface ClearVueBetaProps {
+interface BetaTestingProps {
   form: UseFormReturn<FieldRepFormData>;
 }
 
-export const ClearVueBeta = ({ form }: ClearVueBetaProps) => {
+export const BetaTesting = ({ form }: BetaTestingProps) => {
   return (
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="clearVueBeta"
+        name="interestedInBeta"
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <FormLabel className="text-base">
-                Join Our Beta Program?
+                Join Our Beta Testing Program
               </FormLabel>
               <FormDescription>
-                Paving the Way to a Better Way to Work Together
+                Get early access to new features and help shape the future of ClearMarket
               </FormDescription>
             </div>
             <FormControl>

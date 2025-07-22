@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useFieldRepProfile } from "@/hooks/useFieldRepProfile";
 import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
 import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
 import CreditExplainerModal from "@/components/CreditExplainerModal";
@@ -20,12 +21,13 @@ import { PlatformsUsed } from "./PlatformsUsed";
 import { InspectionTypes } from "./InspectionTypes";
 import { ProfessionalBio } from "./ProfessionalBio";
 import { HudKeys } from "./HudKeys";
-import { ClearVueBeta } from "./ClearVueBeta";
+import { BetaTesting } from "./BetaTesting";
 import { AspenGroveVerification } from "./AspenGroveVerification";
 
 const FieldRepProfile = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
+  const { saveProfile, loading: profileLoading } = useFieldRepProfile();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   
@@ -64,7 +66,7 @@ const FieldRepProfile = () => {
       bio: "",
       hudKeys: [],
       otherHudKey: "",
-      clearVueBeta: false,
+      interestedInBeta: false,
     },
   });
 
@@ -76,19 +78,39 @@ const FieldRepProfile = () => {
   }, [profile, form]);
 
   // Save handlers for each tab
-  const savePersonalInfo = () => {
-    const personalFields = ['firstName', 'lastName', 'displayUsername', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
+  const savePersonalInfo = async () => {
+    const personalFields = ['firstName', 'lastName', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
+    const values = form.getValues();
     const isComplete = personalFields.every(field => {
-      const value = form.getValues(field as keyof FieldRepFormData);
+      const value = values[field as keyof FieldRepFormData];
       return value && value.toString().trim() !== '';
     });
     
     if (isComplete) {
-      setTabCompletionStatus(prev => ({ ...prev, personalInfoComplete: true }));
-      toast({
-        title: "Personal Info Saved",
-        description: "Your personal information has been saved successfully!",
-      });
+      try {
+        await saveProfile({
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phone,
+          city: values.city,
+          state: values.state,
+          zip_code: values.zipCode,
+          bio: values.bio,
+          interested_in_beta: values.interestedInBeta
+        });
+        
+        setTabCompletionStatus(prev => ({ ...prev, personalInfoComplete: true }));
+        toast({
+          title: "Personal Info Saved",
+          description: "Your personal information has been saved successfully!",
+        });
+      } catch (error) {
+        toast({
+          title: "Save Failed",
+          description: "Failed to save personal information. Please try again.",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Incomplete Information",
@@ -98,24 +120,58 @@ const FieldRepProfile = () => {
     }
   };
 
-  const saveVerification = () => {
-    setTabCompletionStatus(prev => ({ ...prev, verificationComplete: true }));
-    toast({
-      title: "Verification Saved",
-      description: "Your verification information has been saved successfully!",
-    });
+  const saveVerification = async () => {
+    try {
+      const values = form.getValues();
+      await saveProfile({
+        aspen_grove_id: values.aspenGroveId,
+        aspen_grove_expiration: values.aspenGroveExpiration,
+        aspen_grove_image: values.aspenGroveImage,
+        hud_keys: values.hudKeys,
+        other_hud_key: values.otherHudKey,
+        interested_in_beta: values.interestedInBeta
+      });
+      
+      setTabCompletionStatus(prev => ({ ...prev, verificationComplete: true }));
+      toast({
+        title: "Verification Saved",
+        description: "Your verification information has been saved successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save verification information. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const saveCoverageSetup = () => {
-    const platforms = form.getValues('platforms');
-    const inspectionTypes = form.getValues('inspectionTypes');
+  const saveCoverageSetup = async () => {
+    const values = form.getValues();
+    const platforms = values.platforms;
+    const inspectionTypes = values.inspectionTypes;
     
     if (coverageAreas.length > 0 && platforms.length > 0 && inspectionTypes.length > 0) {
-      setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
-      toast({
-        title: "Coverage Setup Saved",
-        description: "Your coverage setup has been saved successfully!",
-      });
+      try {
+        await saveProfile({
+          platforms: platforms,
+          other_platform: values.otherPlatform,
+          inspection_types: inspectionTypes,
+          interested_in_beta: values.interestedInBeta
+        });
+        
+        setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
+        toast({
+          title: "Coverage Setup Saved",
+          description: "Your coverage setup has been saved successfully!",
+        });
+      } catch (error) {
+        toast({
+          title: "Save Failed",
+          description: "Failed to save coverage setup. Please try again.",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Incomplete Setup",
@@ -125,12 +181,25 @@ const FieldRepProfile = () => {
     }
   };
 
-  const saveCredits = () => {
-    setTabCompletionStatus(prev => ({ ...prev, creditsReviewed: true }));
-    toast({
-      title: "Credit Information Reviewed",
-      description: "Credit details have been reviewed!",
-    });
+  const saveCredits = async () => {
+    try {
+      const values = form.getValues();
+      await saveProfile({
+        interested_in_beta: values.interestedInBeta
+      });
+      
+      setTabCompletionStatus(prev => ({ ...prev, creditsReviewed: true }));
+      toast({
+        title: "Profile Saved",
+        description: "Your profile has been saved successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Save Failed", 
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const profileSteps = getFieldRepProfileSteps({
@@ -188,7 +257,7 @@ const FieldRepProfile = () => {
                   <AspenGroveVerification form={form} />
                   <BackgroundCheck form={form} />
                   <HudKeys form={form} />
-                  <ClearVueBeta form={form} />
+                  <BetaTesting form={form} />
                   
                   <div className="pt-4">
                     <Button 

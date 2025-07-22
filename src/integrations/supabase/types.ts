@@ -1116,6 +1116,78 @@ export type Database = {
         }
         Relationships: []
       }
+      field_rep_profiles: {
+        Row: {
+          aspen_grove_expiration: string | null
+          aspen_grove_id: string | null
+          aspen_grove_image: string | null
+          bio: string | null
+          city: string | null
+          created_at: string
+          first_name: string | null
+          hud_keys: string[] | null
+          id: string
+          inspection_types: string[] | null
+          interested_in_beta: boolean | null
+          last_name: string | null
+          other_hud_key: string | null
+          other_platform: string | null
+          phone: string | null
+          platforms: string[] | null
+          profile_complete_percentage: number | null
+          state: string | null
+          updated_at: string
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          aspen_grove_expiration?: string | null
+          aspen_grove_id?: string | null
+          aspen_grove_image?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string
+          first_name?: string | null
+          hud_keys?: string[] | null
+          id?: string
+          inspection_types?: string[] | null
+          interested_in_beta?: boolean | null
+          last_name?: string | null
+          other_hud_key?: string | null
+          other_platform?: string | null
+          phone?: string | null
+          platforms?: string[] | null
+          profile_complete_percentage?: number | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          aspen_grove_expiration?: string | null
+          aspen_grove_id?: string | null
+          aspen_grove_image?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string
+          first_name?: string | null
+          hud_keys?: string[] | null
+          id?: string
+          inspection_types?: string[] | null
+          interested_in_beta?: boolean | null
+          last_name?: string | null
+          other_hud_key?: string | null
+          other_platform?: string | null
+          phone?: string | null
+          platforms?: string[] | null
+          profile_complete_percentage?: number | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       flags: {
         Row: {
           created_at: string | null
@@ -2557,6 +2629,38 @@ export type Database = {
       }
     }
     Views: {
+      field_rep_full_profiles: {
+        Row: {
+          anonymous_username: string | null
+          aspen_grove_expiration: string | null
+          aspen_grove_id: string | null
+          aspen_grove_image: string | null
+          bio: string | null
+          city: string | null
+          community_score: number | null
+          created_at: string | null
+          credits: number | null
+          display_name: string | null
+          first_name: string | null
+          hud_keys: string[] | null
+          id: string | null
+          inspection_types: string[] | null
+          interested_in_beta: boolean | null
+          last_name: string | null
+          other_hud_key: string | null
+          other_platform: string | null
+          phone: string | null
+          platforms: string[] | null
+          profile_complete_percentage: number | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          state: string | null
+          trust_score: number | null
+          updated_at: string | null
+          user_id: string | null
+          zip_code: string | null
+        }
+        Relationships: []
+      }
       users_with_display_names: {
         Row: {
           anonymous_username: string | null
@@ -2663,7 +2767,7 @@ export type Database = {
         Returns: undefined
       }
       generate_anonymous_username: {
-        Args: { user_type_param: string }
+        Args: Record<PropertyKey, never> | { user_type_param: string }
         Returns: string
       }
       get_next_anonymous_username: {

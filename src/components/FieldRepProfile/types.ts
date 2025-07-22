@@ -20,7 +20,7 @@ export const fieldRepSchema = z.object({
   bio: z.string().min(50, "Bio must be at least 50 characters"),
   hudKeys: z.array(z.string()).optional(),
   otherHudKey: z.string().optional(),
-  clearVueBeta: z.boolean().default(false),
+  interestedInBeta: z.boolean().default(false),
 });
 
 export type FieldRepFormData = z.infer<typeof fieldRepSchema>;
@@ -39,4 +39,28 @@ export interface CoverageArea {
   standardPrice: string;
   rushPrice: string;
   inspectionTypes: InspectionTypePricing[];
+}
+
+export interface FieldRepProfile {
+  id?: string;
+  user_id?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  bio?: string;
+  aspen_grove_id?: string;
+  aspen_grove_expiration?: Date;
+  aspen_grove_image?: string;
+  platforms?: string[];
+  other_platform?: string;
+  inspection_types?: string[];
+  hud_keys?: string[];
+  other_hud_key?: string;
+  interested_in_beta?: boolean;
+  profile_complete_percentage?: number;
+  created_at?: string;
+  updated_at?: string;
 }
