@@ -10,7 +10,6 @@ import LoadingBar from "@/components/ui/loading-bar";
 import BackToTop from "@/components/ui/back-to-top";
 import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminRoute from "@/components/admin/AdminRoute";
 import Index from "./pages/Index";
 import VendorSearchPage from "./pages/VendorSearchPage";
 import CommunityBoard from "./pages/CommunityBoard";
@@ -26,7 +25,6 @@ import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import VendorDashboard from "./pages/VendorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -90,14 +88,6 @@ const App = () => (
                 <Route path="/admin" element={
                   <ProtectedRoute>
                     <AdminDashboard />
-                  </ProtectedRoute>
-                } />
-                {/* New Admin Giveaway Routes */}
-                <Route path="/admin/giveaways" element={
-                  <ProtectedRoute>
-                    <AdminRoute>
-                      <AdminGiveawayDashboard />
-                    </AdminRoute>
                   </ProtectedRoute>
                 } />
                 <Route path="/moderator" element={
