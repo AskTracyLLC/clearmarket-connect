@@ -60,6 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
       '{{anonymous_username}}': anonymous_username,
       '{{email}}': email,
       '{{user_type}}': normalizedSignupType === 'field_rep' ? 'Field Rep' : 'Vendor',
+      '{{registration_link}}': req.json().registration_link || '#'
     };
 
     let subject = template.subject;

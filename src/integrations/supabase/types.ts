@@ -151,6 +151,60 @@ export type Database = {
         }
         Relationships: []
       }
+      beta_registration_tokens: {
+        Row: {
+          anonymous_username: string
+          created_at: string
+          created_user_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          updated_at: string
+          used_at: string | null
+          user_type: string
+        }
+        Insert: {
+          anonymous_username: string
+          created_at?: string
+          created_user_id?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          token: string
+          updated_at?: string
+          used_at?: string | null
+          user_type: string
+        }
+        Update: {
+          anonymous_username?: string
+          created_at?: string
+          created_user_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_registration_tokens_created_user_id_fkey"
+            columns: ["created_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_registration_tokens_created_user_id_fkey"
+            columns: ["created_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beta_testers: {
         Row: {
           created_at: string
@@ -3542,6 +3596,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      complete_beta_registration: {
+        Args: { registration_token: string; user_password: string }
+        Returns: Json
+      }
       ensure_admin_exists: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -3552,6 +3610,10 @@ export type Database = {
       }
       generate_anonymous_username: {
         Args: Record<PropertyKey, never> | { user_type_param: string }
+        Returns: string
+      }
+      generate_beta_registration_token: {
+        Args: { user_email: string; user_type_param: string; username: string }
         Returns: string
       }
       get_giveaway_eligibility: {
