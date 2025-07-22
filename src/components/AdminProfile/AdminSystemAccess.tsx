@@ -15,64 +15,78 @@ import {
   Check,
   AlertTriangle
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const AdminSystemAccess = () => {
+  const navigate = useNavigate();
+
   const accessModules = [
     {
       name: "User Management",
       icon: Users,
       description: "Full access to user accounts, roles, and permissions",
       status: "active",
-      lastUsed: "2 hours ago"
+      lastUsed: "2 hours ago",
+      route: "/admin"
     },
     {
       name: "Content Moderation",
       icon: MessageSquare,
       description: "Manage community posts, comments, and reported content",
       status: "active",
-      lastUsed: "1 day ago"
+      lastUsed: "1 day ago",
+      route: "/admin",
+      tab: "moderation"
     },
     {
       name: "System Settings",
       icon: Settings,
       description: "Configure platform settings and system parameters",
       status: "active",
-      lastUsed: "3 days ago"
+      lastUsed: "3 days ago",
+      route: "/admin",
+      tab: "system"
     },
     {
       name: "Database Administration",
       icon: Database,
       description: "Direct database access and management tools",
       status: "active",
-      lastUsed: "1 week ago"
+      lastUsed: "1 week ago",
+      route: "/admin/database"
     },
     {
       name: "Analytics & Reporting",
       icon: BarChart3,
       description: "View platform analytics and generate reports",
       status: "active",
-      lastUsed: "Today"
+      lastUsed: "Today",
+      route: "/admin/analytics"
     },
     {
       name: "Document Management",
       icon: FileText,
       description: "Access all user documents and verification systems",
       status: "active",
-      lastUsed: "Today"
+      lastUsed: "Today",
+      route: "/admin/documents"
     },
     {
       name: "Credit System",
       icon: CreditCard,
       description: "Manage user credits, transactions, and overrides",
       status: "active",
-      lastUsed: "2 days ago"
+      lastUsed: "2 days ago",
+      route: "/admin",
+      tab: "credits"
     },
     {
       name: "Security Monitoring", 
       icon: Shield,
       description: "Monitor security events and manage access controls",
       status: "active",
-      lastUsed: "Today"
+      lastUsed: "Today",
+      route: "/admin/security"
     }
   ];
 
@@ -84,6 +98,16 @@ export const AdminSystemAccess = () => {
         return <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Restricted</Badge>;
       default:
         return <Badge variant="secondary">Unknown</Badge>;
+    }
+  };
+
+  const handleAccess = (module: any) => {
+    if (module.route) {
+      if (module.tab) {
+        navigate(`${module.route}?tab=${module.tab}`);
+      } else {
+        navigate(module.route);
+      }
     }
   };
 
@@ -117,7 +141,11 @@ export const AdminSystemAccess = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   {getStatusBadge(module.status)}
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleAccess(module)}
+                  >
                     Access
                   </Button>
                 </div>

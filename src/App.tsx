@@ -17,6 +17,10 @@ import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
 import AdminProfilePage from "./pages/AdminProfilePage";
+import AdminDatabasePage from "./pages/AdminDatabasePage";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import AdminDocumentsPage from "./pages/AdminDocumentsPage";
+import AdminSecurityPage from "./pages/AdminSecurityPage";
 import FieldRepSearchPage from "./pages/FieldRepSearchPage";
 import FieldRepDashboard from "./pages/FieldRepDashboard";
 import FieldRepPublicProfile from "./pages/FieldRepPublicProfile";
@@ -67,6 +71,10 @@ const App = () => (
                 <Route path="/fieldrep/search" element={<ProtectedRouteWithNDA><FieldRepSearchPage /></ProtectedRouteWithNDA>} />
                 <Route path="/fieldrep/profile" element={<ProtectedRouteWithNDA><FieldRepProfilePage /></ProtectedRouteWithNDA>} />
                 <Route path="/admin/profile" element={<ProtectedRouteWithNDA><AdminProfilePage /></ProtectedRouteWithNDA>} />
+                <Route path="/admin/database" element={<ProtectedRouteWithNDA><AdminDatabasePage /></ProtectedRouteWithNDA>} />
+                <Route path="/admin/analytics" element={<ProtectedRouteWithNDA><AdminAnalyticsPage /></ProtectedRouteWithNDA>} />
+                <Route path="/admin/documents" element={<ProtectedRouteWithNDA><AdminDocumentsPage /></ProtectedRouteWithNDA>} />
+                <Route path="/admin/security" element={<ProtectedRouteWithNDA><AdminSecurityPage /></ProtectedRouteWithNDA>} />
                  <Route path="/fieldrep/profile/:id" element={<FieldRepPublicProfile />} />
                  <Route path="/vendor/profile/:id" element={<VendorPublicProfile />} />
                 <Route path="/fieldrep/dashboard" element={
