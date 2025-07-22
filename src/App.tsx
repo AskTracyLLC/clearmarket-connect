@@ -32,6 +32,8 @@ import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import BetaRegister from "./pages/BetaRegister";
+import BetaNDA from "./pages/BetaNDA";
 import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
@@ -110,6 +112,8 @@ const App = () => (
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/verify-email" element={<EmailVerificationPage />} />
                 <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                <Route path="/beta-register" element={<BetaRegister />} />
+                <Route path="/beta-nda" element={<BetaNDA />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
