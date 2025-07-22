@@ -33,6 +33,8 @@ import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import NotFound from "./pages/NotFound";
+import AdminRoute from "@/components/admin/AdminRoute";
+import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +92,13 @@ const App = () => (
                     <AdminDashboard />
                   </ProtectedRoute>
                 } />
+                <Route path="/admin/giveaways" element={
+                  <ProtectedRoute>
+                    <AdminRoute>
+                  <AdminGiveawayDashboard />
+                </AdminRoute>
+              </ProtectedRoute>
+            } />
                 <Route path="/moderator" element={
                   <ProtectedRoute>
                     <ModeratorDashboard />
