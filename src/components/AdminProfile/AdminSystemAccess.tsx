@@ -13,7 +13,8 @@ import {
   CreditCard,
   Crown,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Trophy
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -87,6 +88,14 @@ export const AdminSystemAccess = () => {
       status: "active",
       lastUsed: "Today",
       route: "/admin/security"
+    },
+    {
+      name: "Giveaway Management",
+      icon: Trophy,
+      description: "Create and manage monthly and vendor network giveaways",
+      status: "active",
+      lastUsed: "Today",
+      route: "/admin/giveaways"
     }
   ];
 
