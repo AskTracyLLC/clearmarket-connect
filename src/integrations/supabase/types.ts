@@ -288,6 +288,48 @@ export type Database = {
         }
         Relationships: []
       }
+      communication_badges: {
+        Row: {
+          badge_color: string | null
+          badge_type: string
+          created_at: string
+          criteria: Json
+          description: string
+          display_name: string
+          display_order: number | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_type: string
+          created_at?: string
+          criteria: Json
+          description: string
+          display_name: string
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          badge_color?: string | null
+          badge_type?: string
+          created_at?: string
+          criteria?: Json
+          description?: string
+          display_name?: string
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       community_analytics: {
         Row: {
           created_at: string | null
@@ -843,6 +885,83 @@ export type Database = {
             columns: ["rule_id"]
             isOneToOne: false
             referencedRelation: "credit_earning_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      direct_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_system_message: boolean | null
+          message_type: string | null
+          metadata: Json | null
+          read_at: string | null
+          recipient_id: string
+          responded_at: string | null
+          sender_id: string
+          sent_at: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_system_message?: boolean | null
+          message_type?: string | null
+          metadata?: Json | null
+          read_at?: string | null
+          recipient_id: string
+          responded_at?: string | null
+          sender_id: string
+          sent_at?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_system_message?: boolean | null
+          message_type?: string | null
+          metadata?: Json | null
+          read_at?: string | null
+          recipient_id?: string
+          responded_at?: string | null
+          sender_id?: string
+          sent_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
             referencedColumns: ["id"]
           },
         ]
@@ -1932,6 +2051,69 @@ export type Database = {
         }
         Relationships: []
       }
+      response_time_tracking: {
+        Row: {
+          avg_business_hours_response_minutes: number | null
+          avg_response_minutes: number
+          calculation_period_days: number
+          created_at: string
+          fastest_response_minutes: number | null
+          id: string
+          last_calculated_at: string
+          response_rate: number
+          slowest_response_minutes: number | null
+          total_messages_received: number
+          total_messages_responded: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_business_hours_response_minutes?: number | null
+          avg_response_minutes?: number
+          calculation_period_days?: number
+          created_at?: string
+          fastest_response_minutes?: number | null
+          id?: string
+          last_calculated_at?: string
+          response_rate?: number
+          slowest_response_minutes?: number | null
+          total_messages_received?: number
+          total_messages_responded?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_business_hours_response_minutes?: number | null
+          avg_response_minutes?: number
+          calculation_period_days?: number
+          created_at?: string
+          fastest_response_minutes?: number | null
+          id?: string
+          last_calculated_at?: string
+          response_rate?: number
+          slowest_response_minutes?: number | null
+          total_messages_received?: number
+          total_messages_responded?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "response_time_tracking_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "response_time_tracking_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           created_at: string
@@ -2331,6 +2513,57 @@ export type Database = {
         }
         Relationships: []
       }
+      user_business_hours: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean | null
+          start_time: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean | null
+          start_time: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean | null
+          start_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_business_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_business_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_comments: {
         Row: {
           comment_text: string
@@ -2357,6 +2590,58 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_communication_badges: {
+        Row: {
+          badge_id: string
+          created_at: string
+          earned_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          created_at?: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          created_at?: string
+          earned_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_communication_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "communication_badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_communication_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_communication_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_documents: {
         Row: {
@@ -2488,6 +2773,7 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          business_hours_only: boolean | null
           created_at: string
           direct_invite_only: boolean
           email_community_activity: boolean
@@ -2500,11 +2786,14 @@ export type Database = {
           push_enabled: boolean
           push_network_updates: boolean
           push_new_messages: boolean
+          response_time_timezone: string | null
           search_visibility: boolean
+          show_response_time: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          business_hours_only?: boolean | null
           created_at?: string
           direct_invite_only?: boolean
           email_community_activity?: boolean
@@ -2517,11 +2806,14 @@ export type Database = {
           push_enabled?: boolean
           push_network_updates?: boolean
           push_new_messages?: boolean
+          response_time_timezone?: string | null
           search_visibility?: boolean
+          show_response_time?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          business_hours_only?: boolean | null
           created_at?: string
           direct_invite_only?: boolean
           email_community_activity?: boolean
@@ -2534,7 +2826,9 @@ export type Database = {
           push_enabled?: boolean
           push_network_updates?: boolean
           push_new_messages?: boolean
+          response_time_timezone?: string | null
           search_visibility?: boolean
+          show_response_time?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -2642,7 +2936,9 @@ export type Database = {
       users: {
         Row: {
           anonymous_username: string | null
+          avg_response_time_minutes: number | null
           boost_expiration: string | null
+          communication_score: number | null
           community_score: number | null
           created_at: string | null
           display_name: string | null
@@ -2652,6 +2948,7 @@ export type Database = {
           last_active: string | null
           profile_complete: number | null
           referred_by: string | null
+          response_rate: number | null
           role: Database["public"]["Enums"]["user_role"]
           storage_limit_mb: number | null
           storage_used_mb: number | null
@@ -2661,7 +2958,9 @@ export type Database = {
         }
         Insert: {
           anonymous_username?: string | null
+          avg_response_time_minutes?: number | null
           boost_expiration?: string | null
+          communication_score?: number | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
@@ -2671,6 +2970,7 @@ export type Database = {
           last_active?: string | null
           profile_complete?: number | null
           referred_by?: string | null
+          response_rate?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           storage_limit_mb?: number | null
           storage_used_mb?: number | null
@@ -2680,7 +2980,9 @@ export type Database = {
         }
         Update: {
           anonymous_username?: string | null
+          avg_response_time_minutes?: number | null
           boost_expiration?: string | null
+          communication_score?: number | null
           community_score?: number | null
           created_at?: string | null
           display_name?: string | null
@@ -2690,6 +2992,7 @@ export type Database = {
           last_active?: string | null
           profile_complete?: number | null
           referred_by?: string | null
+          response_rate?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           storage_limit_mb?: number | null
           storage_used_mb?: number | null
@@ -3211,6 +3514,10 @@ export type Database = {
         Args: { data: string }
         Returns: string
       }
+      calculate_response_metrics: {
+        Args: { target_user_id: string; period_days?: number }
+        Returns: undefined
+      }
       calculate_user_storage_usage: {
         Args: { target_user_id: string }
         Returns: number
@@ -3268,6 +3575,7 @@ export type Database = {
       get_or_create_user_preferences: {
         Args: { target_user_id: string }
         Returns: {
+          business_hours_only: boolean | null
           created_at: string
           direct_invite_only: boolean
           email_community_activity: boolean
@@ -3280,7 +3588,9 @@ export type Database = {
           push_enabled: boolean
           push_network_updates: boolean
           push_new_messages: boolean
+          response_time_timezone: string | null
           search_visibility: boolean
+          show_response_time: boolean | null
           updated_at: string
           user_id: string
         }
@@ -3425,6 +3735,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_message_responded: {
+        Args: { message_id: string; responder_user_id: string }
+        Returns: boolean
+      }
       populate_location_data_from_csv: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3499,6 +3813,10 @@ export type Database = {
       toggle_user_activation: {
         Args: { target_user_id: string; is_active_param: boolean }
         Returns: boolean
+      }
+      update_communication_badges: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
       update_trust_score: {
         Args: { target_user_id: string }

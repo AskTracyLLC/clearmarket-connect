@@ -6,95 +6,58 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, MessageSquare, Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-
-interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  senderInitials: string;
-  content: string;
-  timestamp: Date;
-  read: boolean;
-}
-
-interface Conversation {
-  id: string;
-  otherUserId: string;
-  otherUserName: string;
-  otherUserInitials: string;
-  lastMessage: Message;
-  unreadCount: number;
-  messages: Message[];
-}
-
-const mockConversations: Conversation[] = [
-  {
-    id: "conv-1",
-    otherUserId: "user-1",
-    otherUserName: "Tom Martinez",
-    otherUserInitials: "T.M.",
-    unreadCount: 2,
-    lastMessage: {
-      id: "msg-1",
-      senderId: "user-1",
-      senderName: "Tom Martinez", 
-      senderInitials: "T.M.",
-      content: "I'm available for inspections in your area this week. What's your standard rate?",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-      read: false
-    },
-    messages: [
-      {
-        id: "msg-1",
-        senderId: "user-1",
-        senderName: "Tom Martinez",
-        senderInitials: "T.M.",
-        content: "Hi, I saw your profile and would like to connect regarding property inspections in the Atlanta area.",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        read: true
-      },
-      {
-        id: "msg-2",
-        senderId: "current-user",
-        senderName: "You",
-        senderInitials: "YOU",
-        content: "Thanks for reaching out! I have availability this week. What type of inspections are you looking for?",
-        timestamp: new Date(Date.now() - 90 * 60 * 1000), // 90 minutes ago
-        read: true
-      },
-      {
-        id: "msg-3",
-        senderId: "user-1",
-        senderName: "Tom Martinez",
-        senderInitials: "T.M.",
-        content: "I'm available for inspections in your area this week. What's your standard rate?",
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        read: false
-      }
-    ]
-  }
-];
+import { useDirectMessages, type Conversation } from "@/hooks/useDirectMessages";
+import { ResponseTimeDisplay } from "@/components/ui/ResponseTimeDisplay";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MessageInbox = () => {
+  const { user } = useAuth();
+  const { conversations, loading, sendMessage, markConversationAsRead } = useDirectMessages();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sending, setSending] = useState(false);
 
-  const filteredConversations = mockConversations.filter(conv =>
-    conv.otherUserName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = conversations.filter(conv =>
+    conv.other_user_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedConversation) return;
-    
-    // In a real app, this would send the message to the backend
-    console.log("Sending message:", newMessage);
-    setNewMessage("");
+  const handleConversationSelect = async (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    if (conversation.unread_count > 0) {
+      await markConversationAsRead(conversation.conversation_id);
+    }
   };
 
-  const formatMessageTime = (timestamp: Date) => {
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation || !user) return;
+    
+    setSending(true);
+    try {
+      const success = await sendMessage(
+        selectedConversation.other_user_id,
+        newMessage,
+        selectedConversation.conversation_id
+      );
+      
+      if (success) {
+        setNewMessage("");
+        toast.success("Message sent successfully");
+      } else {
+        toast.error("Failed to send message");
+      }
+    } catch (error) {
+      toast.error("Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const formatMessageTime = (timestamp: string) => {
+    const messageDate = new Date(timestamp);
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60));
+    const diffInMinutes = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 60) {
       return `${diffInMinutes}m ago`;
@@ -104,6 +67,23 @@ const MessageInbox = () => {
       return `${Math.floor(diffInMinutes / (24 * 60))}d ago`;
     }
   };
+
+  const getInitials = (name: string): string => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading conversations...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -128,37 +108,44 @@ const MessageInbox = () => {
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-0">
-                {filteredConversations.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
-                      selectedConversation?.id === conversation.id ? 'bg-muted' : ''
-                    }`}
-                    onClick={() => setSelectedConversation(conversation)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Avatar>
-                        <AvatarFallback>{conversation.otherUserInitials}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-sm">{conversation.otherUserName}</h4>
-                          {conversation.unreadCount > 0 && (
-                            <Badge variant="destructive" className="text-xs">
-                              {conversation.unreadCount}
-                            </Badge>
-                          )}
+                {filteredConversations.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No conversations yet</p>
+                  </div>
+                ) : (
+                  filteredConversations.map((conversation) => (
+                    <div
+                      key={conversation.conversation_id}
+                      className={`p-4 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors ${
+                        selectedConversation?.conversation_id === conversation.conversation_id ? 'bg-muted' : ''
+                      }`}
+                      onClick={() => handleConversationSelect(conversation)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Avatar>
+                          <AvatarFallback>{getInitials(conversation.other_user_name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm">{conversation.other_user_name}</h4>
+                            {conversation.unread_count > 0 && (
+                              <Badge variant="destructive" className="text-xs">
+                                {conversation.unread_count}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conversation.last_message.content}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            {formatMessageTime(conversation.last_message.sent_at)}
+                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {conversation.lastMessage.content}
-                        </p>
-                        <span className="text-xs text-muted-foreground">
-                          {formatMessageTime(conversation.lastMessage.timestamp)}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -170,13 +157,24 @@ const MessageInbox = () => {
             {selectedConversation ? (
               <>
                 <CardHeader className="border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{selectedConversation.otherUserInitials}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-medium">{selectedConversation.otherUserName}</h3>
-                      <p className="text-sm text-muted-foreground">Field Rep • Atlanta, GA</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{getInitials(selectedConversation.other_user_name)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-medium">{selectedConversation.other_user_name}</h3>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {selectedConversation.other_user_role.replace('_', ' ')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <ResponseTimeDisplay 
+                        userId={selectedConversation.other_user_id} 
+                        compact={true}
+                        showBadges={false}
+                      />
                     </div>
                   </div>
                 </CardHeader>
@@ -186,19 +184,26 @@ const MessageInbox = () => {
                     {selectedConversation.messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.senderId === 'current-user' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
                           className={`max-w-[70%] rounded-lg p-3 ${
-                            message.senderId === 'current-user'
+                            message.sender_id === user?.id
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}
                         >
                           <p className="text-sm">{message.content}</p>
-                          <span className="text-xs opacity-70 mt-1 block">
-                            {formatMessageTime(message.timestamp)}
-                          </span>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-xs opacity-70">
+                              {formatMessageTime(message.sent_at)}
+                            </span>
+                            {message.sender_id === user?.id && (
+                              <span className="text-xs opacity-70">
+                                {message.read_at ? '✓✓' : '✓'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -212,6 +217,7 @@ const MessageInbox = () => {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       className="min-h-[40px] resize-none"
+                      disabled={sending}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -221,7 +227,7 @@ const MessageInbox = () => {
                     />
                     <Button 
                       onClick={handleSendMessage}
-                      disabled={!newMessage.trim()}
+                      disabled={!newMessage.trim() || sending}
                       size="sm"
                       className="self-end"
                     >
