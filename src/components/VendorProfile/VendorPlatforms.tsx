@@ -11,16 +11,15 @@ interface VendorPlatformsProps {
 }
 
 export const VendorPlatforms = ({ form }: VendorPlatformsProps) => {
-  const { getPlatformNames, loading } = usePlatforms();
-  const platforms = getPlatformNames();
+  const { platforms, loading } = usePlatforms();
   
-  const handlePlatformChange = (platform: string, checked: boolean) => {
+  const handlePlatformChange = (platformName: string, checked: boolean) => {
     const currentPlatforms = form.getValues("platforms");
     if (checked) {
-      form.setValue("platforms", [...currentPlatforms, platform]);
+      form.setValue("platforms", [...currentPlatforms, platformName]);
     } else {
-      form.setValue("platforms", currentPlatforms.filter(p => p !== platform));
-      if (platform === "Other") {
+      form.setValue("platforms", currentPlatforms.filter(p => p !== platformName));
+      if (platformName === "Other") {
         form.setValue("otherPlatform", "");
       }
     }
@@ -44,13 +43,13 @@ export const VendorPlatforms = ({ form }: VendorPlatformsProps) => {
           <FormLabel className="text-base font-semibold">Platforms We Assign Through *</FormLabel>
           <div className="grid grid-cols-2 gap-3">
             {platforms.map((platform) => (
-              <div key={platform} className="flex items-center space-x-2">
+              <div key={platform.id} className="flex items-center space-x-2">
                 <Checkbox 
-                  id={platform.toLowerCase().replace(/[^a-z0-9]/g, "-")}
-                  onCheckedChange={(checked) => handlePlatformChange(platform, checked as boolean)}
+                  id={platform.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}
+                  onCheckedChange={(checked) => handlePlatformChange(platform.name, checked as boolean)}
                 />
-                <Label htmlFor={platform.toLowerCase().replace(/[^a-z0-9]/g, "-")} className="text-sm">
-                  {platform}
+                <Label htmlFor={platform.name.toLowerCase().replace(/[^a-z0-9]/g, "-")} className="text-sm">
+                  {platform.name}
                 </Label>
               </div>
             ))}

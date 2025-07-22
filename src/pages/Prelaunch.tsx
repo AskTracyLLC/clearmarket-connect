@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CheckCircle, UserCheck, Building2, MapPin, Calendar, TrendingUp, Users, Shield, ArrowRight, X, Briefcase, UserPlus, Search, MessageSquare, Star, Lock } from "lucide-react";
 import { useStates } from "@/hooks/useLocationData";
 import { useWorkTypes } from "@/hooks/useWorkTypes";
+import { usePlatforms } from "@/hooks/usePlatforms";
 import { toast } from "sonner";
 
 interface FormState {
@@ -78,6 +79,7 @@ const Prelaunch = () => {
   // Debug the states loading
   const { states, loading: statesLoading, error: statesError } = useStates();
   const { workTypes, loading: workTypesLoading } = useWorkTypes();
+  const { platforms, loading: platformsLoading } = usePlatforms();
   console.log('States loading:', statesLoading, 'States count:', states.length, 'Error:', statesError);
   
   // Fallback states list if hook fails

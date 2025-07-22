@@ -11,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, X, DollarSign } from "lucide-react";
 import { useStates, useCountiesByState, type State, type County } from "@/hooks/useLocationData";
-import { platforms, inspectionTypes } from "@/components/search/SearchFilters";
+import { usePlatforms } from "@/hooks/usePlatforms";
+import { useWorkTypes } from "@/hooks/useWorkTypes";
 
 interface PostCoverageRequestModalProps {
   open: boolean;
@@ -64,6 +65,8 @@ const experienceOptions = [
 
 const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestModalProps) => {
   const { states } = useStates();
+  const { platforms, loading: platformsLoading } = usePlatforms();
+  const { workTypes, loading: workTypesLoading } = useWorkTypes();
   const [form, setForm] = useState<CoverageRequestForm>({
     title: "",
     description: "",
@@ -351,18 +354,22 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>Platforms</Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {platforms.map((platform) => (
-                      <div key={platform} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={platform}
-                          checked={form.selectedPlatforms.includes(platform)}
-                          onCheckedChange={() => togglePlatform(platform)}
-                        />
-                        <Label htmlFor={platform} className="text-sm cursor-pointer">{platform}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  {platformsLoading ? (
+                    <div className="text-sm text-muted-foreground">Loading platforms...</div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {platforms.map((platform) => (
+                        <div key={platform.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={platform.id}
+                            checked={form.selectedPlatforms.includes(platform.name)}
+                            onCheckedChange={() => togglePlatform(platform.name)}
+                          />
+                          <Label htmlFor={platform.id} className="text-sm cursor-pointer">{platform.name}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   
                   {form.selectedPlatforms.length > 0 && (
                     <div className="flex flex-wrap gap-1">
@@ -380,18 +387,22 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
 
                 <div className="space-y-2">
                   <Label>Inspection Types</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {inspectionTypes.map((type) => (
-                      <div key={type} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={type}
-                          checked={form.selectedInspectionTypes.includes(type)}
-                          onCheckedChange={() => toggleInspectionType(type)}
-                        />
-                        <Label htmlFor={type} className="text-sm cursor-pointer">{type}</Label>
-                      </div>
-                    ))}
-                  </div>
+                  {workTypesLoading ? (
+                    <div className="text-sm text-muted-foreground">Loading work types...</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {workTypes.map((workType) => (
+                        <div key={workType.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={workType.id}
+                            checked={form.selectedInspectionTypes.includes(workType.name)}
+                            onCheckedChange={() => toggleInspectionType(workType.name)}
+                          />
+                          <Label htmlFor={workType.id} className="text-sm cursor-pointer">{workType.name}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   
                   {form.selectedInspectionTypes.length > 0 && (
                     <div className="flex flex-wrap gap-1">
@@ -465,40 +476,6 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                     </Select>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Privacy Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Privacy Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-1">
-                  <Label>Hide from All Network Field Reps</Label>
-                  <p className="text-xs text-muted-foreground">
-                    This request will not be visible to any field reps in your current network
-                  </p>
-                </div>
-                <Switch
-                  checked={form.hideFromAllNetwork}
-                  onCheckedChange={(checked) => setForm(prev => ({ ...prev, hideFromAllNetwork: checked }))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-1">
-                  <Label>Hide from Current Area Field Reps</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Hide from field reps currently assigned to this coverage area
-                  </p>
-                </div>
-                <Switch
-                  checked={form.hideFromCurrentNetwork}
-                  onCheckedChange={(checked) => setForm(prev => ({ ...prev, hideFromCurrentNetwork: checked }))}
-                />
               </div>
             </CardContent>
           </Card>

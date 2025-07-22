@@ -10,8 +10,7 @@ interface PlatformsUsedProps {
 }
 
 export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
-  const { getPlatformNames, loading } = usePlatforms();
-  const platforms = getPlatformNames();
+  const { platforms, loading } = usePlatforms();
   const selectedPlatforms = form.watch("platforms") || [];
   const isOtherSelected = selectedPlatforms.includes("Other");
 
@@ -35,28 +34,28 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {platforms.map((platform) => (
                 <FormField
-                  key={platform}
+                  key={platform.id}
                   control={form.control}
                   name="platforms"
                   render={({ field }) => {
                     return (
                       <FormItem
-                        key={platform}
+                        key={platform.id}
                         className="flex flex-row items-start space-x-3 space-y-0"
                       >
                         <FormControl>
                            <Checkbox
-                            checked={field.value?.includes(platform)}
+                            checked={field.value?.includes(platform.name)}
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                field.onChange([...field.value, platform])
+                                field.onChange([...field.value, platform.name])
                               } else {
                                 field.onChange(
                                   field.value?.filter(
-                                    (value) => value !== platform
+                                    (value) => value !== platform.name
                                   )
                                 )
-                                if (platform === "Other") {
+                                if (platform.name === "Other") {
                                   form.setValue("otherPlatform", "")
                                 }
                               }
@@ -64,7 +63,7 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-normal">
-                          {platform}
+                          {platform.name}
                         </FormLabel>
                       </FormItem>
                     )

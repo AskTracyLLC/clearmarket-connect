@@ -32,8 +32,7 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
   const [sortBy, setSortBy] = useState("");
 
   const { workTypes, loading: workTypesLoading } = useWorkTypes();
-  const { getPlatformNames, loading: platformsLoading } = usePlatforms();
-  const platformNames = getPlatformNames();
+  const { platforms, loading: platformsLoading } = usePlatforms();
 
   const handleWorkTypeChange = (workType: string, checked: boolean) => {
     if (checked) {
@@ -125,15 +124,15 @@ const FieldRepSearchForm = ({ onSearch }: FieldRepSearchFormProps) => {
               <div className="text-sm text-muted-foreground">Loading platforms...</div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {platformNames.map((platform) => (
-                  <div key={platform} className="flex items-center space-x-2">
+                {platforms.map((platform) => (
+                  <div key={platform.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={platform}
-                      checked={selectedPlatforms.includes(platform)}
-                      onCheckedChange={(checked) => handlePlatformChange(platform, checked as boolean)}
+                      id={platform.id}
+                      checked={selectedPlatforms.includes(platform.name)}
+                      onCheckedChange={(checked) => handlePlatformChange(platform.name, checked as boolean)}
                     />
-                    <Label htmlFor={platform} className="text-sm">
-                      {platform}
+                    <Label htmlFor={platform.id} className="text-sm">
+                      {platform.name}
                     </Label>
                   </div>
                 ))}

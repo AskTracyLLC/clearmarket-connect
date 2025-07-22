@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard } from "lucide-react";
 import { 
-  platforms, 
-  inspectionTypes, 
   experienceOptions, 
   availabilityOptions, 
   certificationOptions, 
   sortOptions 
 } from "./SearchFilters";
+import { usePlatforms } from "@/hooks/usePlatforms";
+import { useWorkTypes } from "@/hooks/useWorkTypes";
 
 interface AdvancedFiltersProps {
   selectedPlatforms: string[];
@@ -62,6 +62,8 @@ const AdvancedFilters = ({
   onAvailabilityStatusChange,
   onSortByChange
 }: AdvancedFiltersProps) => {
+  const { platforms, loading: platformsLoading } = usePlatforms();
+  const { workTypes, loading: workTypesLoading } = useWorkTypes();
   return (
     <div className="space-y-6">
       {/* Sort Options */}
@@ -150,20 +152,24 @@ const AdvancedFilters = ({
             </Badge>
           )}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {platforms.map((platform) => (
-            <div key={platform} className="flex items-center space-x-2">
-              <Checkbox
-                id={platform}
-                checked={selectedPlatforms.includes(platform)}
-                onCheckedChange={() => onPlatformToggle(platform)}
-              />
-              <Label htmlFor={platform} className="text-sm font-normal cursor-pointer">
-                {platform}
-              </Label>
-            </div>
-          ))}
-        </div>
+        {platformsLoading ? (
+          <div className="text-sm text-muted-foreground">Loading platforms...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {platforms.map((platform) => (
+              <div key={platform.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={platform.id}
+                  checked={selectedPlatforms.includes(platform.name)}
+                  onCheckedChange={() => onPlatformToggle(platform.name)}
+                />
+                <Label htmlFor={platform.id} className="text-sm font-normal cursor-pointer">
+                  {platform.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ABC# Required */}
@@ -274,20 +280,24 @@ const AdvancedFilters = ({
             </Badge>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {inspectionTypes.map((type) => (
-            <div key={type} className="flex items-center space-x-2">
-              <Checkbox
-                id={type}
-                checked={selectedInspectionTypes.includes(type)}
-                onCheckedChange={() => onInspectionTypeToggle(type)}
-              />
-              <Label htmlFor={type} className="text-sm font-normal cursor-pointer">
-                {type}
-              </Label>
-            </div>
-          ))}
-        </div>
+        {workTypesLoading ? (
+          <div className="text-sm text-muted-foreground">Loading work types...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {workTypes.map((workType) => (
+              <div key={workType.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={workType.id}
+                  checked={selectedInspectionTypes.includes(workType.name)}
+                  onCheckedChange={() => onInspectionTypeToggle(workType.name)}
+                />
+                <Label htmlFor={workType.id} className="text-sm font-normal cursor-pointer">
+                  {workType.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
