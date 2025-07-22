@@ -88,11 +88,17 @@ const BetaNDA = () => {
       const viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
         const { scrollTop, scrollHeight, clientHeight } = viewport;
-        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 20; // 20px tolerance
+        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50; // Increased tolerance
+        console.log('Scroll detection:', { scrollTop, scrollHeight, clientHeight, isAtBottom, hasScrolledToBottom });
         if (isAtBottom && !hasScrolledToBottom) {
+          console.log('Setting hasScrolledToBottom to true');
           setHasScrolledToBottom(true);
         }
+      } else {
+        console.log('Viewport not found');
       }
+    } else {
+      console.log('ScrollArea not found');
     }
   };
 
@@ -103,9 +109,15 @@ const BetaNDA = () => {
       if (viewport) {
         viewport.addEventListener('scroll', handleScroll);
         // Also check initial state in case content is already short enough
-        handleScroll();
+        setTimeout(handleScroll, 100); // Small delay to ensure content is rendered
         return () => viewport.removeEventListener('scroll', handleScroll);
+      } else {
+        console.log('Viewport not found during setup');
+        // Fallback: if no scroll area detected, enable immediately
+        setTimeout(() => setHasScrolledToBottom(true), 1000);
       }
+    } else {
+      console.log('ScrollArea not found during setup');
     }
   }, []); // Remove dependency to prevent re-setup
 
