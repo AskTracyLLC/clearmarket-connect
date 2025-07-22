@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
@@ -24,11 +25,24 @@ interface Platform {
   updated_at: string;
 }
 
+interface WorkType {
+  id: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  display_order: number;
+}
+
 const PlatformManagement = () => {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [workTypes, setWorkTypes] = useState<WorkType[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPlatform, setEditingPlatform] = useState<Platform | null>(null);
   const [showDialog, setShowDialog] = useState(false);
+  const [showNewWorkTypeDialog, setShowNewWorkTypeDialog] = useState(false);
+  const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
+  const [newWorkTypeName, setNewWorkTypeName] = useState("");
+  const [newWorkTypeDescription, setNewWorkTypeDescription] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -38,23 +52,29 @@ const PlatformManagement = () => {
   });
 
   useEffect(() => {
-    fetchPlatforms();
+    fetchData();
   }, []);
 
-  const fetchPlatforms = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("platforms")
-        .select("*")
-        .order("display_order", { ascending: true });
+      setLoading(true);
+      
+      // Fetch platforms and work types in parallel
+      const [platformsResult, workTypesResult] = await Promise.all([
+        supabase.from("platforms").select("*").order("display_order", { ascending: true }),
+        supabase.from("work_types").select("*").eq("is_active", true).order("display_order", { ascending: true })
+      ]);
 
-      if (error) throw error;
-      setPlatforms(data || []);
+      if (platformsResult.error) throw platformsResult.error;
+      if (workTypesResult.error) throw workTypesResult.error;
+
+      setPlatforms(platformsResult.data || []);
+      setWorkTypes(workTypesResult.data || []);
     } catch (error) {
-      console.error("Error fetching platforms:", error);
+      console.error("Error fetching data:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch platforms",
+        description: "Failed to fetch data",
         variant: "destructive",
       });
     } finally {
@@ -62,10 +82,77 @@ const PlatformManagement = () => {
     }
   };
 
+  const fetchExistingWorkTypes = async (platformId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("platform_work_type_mappings")
+        .select("work_type_id")
+        .eq("platform_id", platformId)
+        .eq("is_active", true);
+
+      if (error) throw error;
+      
+      setSelectedWorkTypes(data.map(item => item.work_type_id));
+    } catch (error) {
+      console.error("Error fetching existing work types:", error);
+    }
+  };
+
+  const handleCreateNewWorkType = async () => {
+    if (!newWorkTypeName.trim()) {
+      toast({
+        title: "Error",
+        description: "Work type name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("work_types")
+        .insert({
+          name: newWorkTypeName.trim(),
+          description: newWorkTypeDescription.trim(),
+          is_active: true,
+          display_order: workTypes.length + 1
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to local state
+      setWorkTypes([...workTypes, data]);
+      
+      // Auto-select the new work type
+      setSelectedWorkTypes([...selectedWorkTypes, data.id]);
+
+      // Reset form
+      setNewWorkTypeName("");
+      setNewWorkTypeDescription("");
+      setShowNewWorkTypeDialog(false);
+
+      toast({
+        title: "Success",
+        description: "New work type created successfully",
+      });
+    } catch (error) {
+      console.error("Error creating work type:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create work type",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      let platformId: string;
+
       if (editingPlatform) {
         // Update existing platform
         const { error } = await supabase
@@ -80,6 +167,13 @@ const PlatformManagement = () => {
           .eq("id", editingPlatform.id);
 
         if (error) throw error;
+        platformId = editingPlatform.id;
+
+        // Delete existing mappings for this platform
+        await supabase
+          .from("platform_work_type_mappings")
+          .delete()
+          .eq("platform_id", platformId);
 
         toast({
           title: "Success",
@@ -87,7 +181,7 @@ const PlatformManagement = () => {
         });
       } else {
         // Create new platform
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("platforms")
           .insert({
             name: formData.name,
@@ -95,9 +189,12 @@ const PlatformManagement = () => {
             category: formData.category,
             is_active: formData.is_active,
             display_order: formData.display_order,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
+        platformId = data.id;
 
         toast({
           title: "Success",
@@ -105,9 +202,24 @@ const PlatformManagement = () => {
         });
       }
 
+      // Create work type mappings
+      if (selectedWorkTypes.length > 0) {
+        const mappings = selectedWorkTypes.map(workTypeId => ({
+          platform_id: platformId,
+          work_type_id: workTypeId,
+          is_active: true
+        }));
+
+        const { error: mappingError } = await supabase
+          .from("platform_work_type_mappings")
+          .insert(mappings);
+
+        if (mappingError) throw mappingError;
+      }
+
       resetForm();
       setShowDialog(false);
-      fetchPlatforms();
+      fetchData();
     } catch (error) {
       console.error("Error saving platform:", error);
       toast({
@@ -127,6 +239,7 @@ const PlatformManagement = () => {
       is_active: platform.is_active,
       display_order: platform.display_order,
     });
+    fetchExistingWorkTypes(platform.id);
     setShowDialog(true);
   };
 
@@ -146,7 +259,7 @@ const PlatformManagement = () => {
         description: "Platform deleted successfully",
       });
 
-      fetchPlatforms();
+      fetchData();
     } catch (error) {
       console.error("Error deleting platform:", error);
       toast({
@@ -171,7 +284,7 @@ const PlatformManagement = () => {
         description: `Platform ${platform.is_active ? "deactivated" : "activated"} successfully`,
       });
 
-      fetchPlatforms();
+      fetchData();
     } catch (error) {
       console.error("Error updating platform status:", error);
       toast({
@@ -190,6 +303,7 @@ const PlatformManagement = () => {
       is_active: true,
       display_order: 0
     });
+    setSelectedWorkTypes([]);
     setEditingPlatform(null);
   };
 
@@ -293,6 +407,94 @@ const PlatformManagement = () => {
                   checked={formData.is_active}
                   onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                 />
+              </div>
+
+              {/* Work Types Selection */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Supported Work Types</Label>
+                  <Dialog open={showNewWorkTypeDialog} onOpenChange={setShowNewWorkTypeDialog}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm">
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Work Type
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-sm">
+                      <DialogHeader>
+                        <DialogTitle>Add New Work Type</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="new-work-type-name">Work Type Name *</Label>
+                          <Input
+                            id="new-work-type-name"
+                            value={newWorkTypeName}
+                            onChange={(e) => setNewWorkTypeName(e.target.value)}
+                            placeholder="e.g., Pool Inspections"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="new-work-type-description">Description</Label>
+                          <Textarea
+                            id="new-work-type-description"
+                            value={newWorkTypeDescription}
+                            onChange={(e) => setNewWorkTypeDescription(e.target.value)}
+                            placeholder="Brief description of this work type"
+                            rows={2}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={handleCreateNewWorkType} className="flex-1">
+                            Create
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setShowNewWorkTypeDialog(false)}
+                            className="flex-1"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                  {workTypes.length === 0 ? (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                      No work types available. Create one above.
+                    </div>
+                  ) : (
+                    workTypes.map((workType) => (
+                      <div key={workType.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`work-type-${workType.id}`}
+                          checked={selectedWorkTypes.includes(workType.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedWorkTypes([...selectedWorkTypes, workType.id]);
+                            } else {
+                              setSelectedWorkTypes(selectedWorkTypes.filter(id => id !== workType.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`work-type-${workType.id}`} className="text-sm flex-1">
+                          {workType.name}
+                          {workType.description && (
+                            <span className="text-xs text-muted-foreground block">
+                              {workType.description}
+                            </span>
+                          )}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select which work types this platform supports. Users will only see this platform when they select these work types.
+                </p>
               </div>
 
               <div className="flex gap-2 pt-4">
