@@ -1273,6 +1273,45 @@ export type Database = {
           },
         ]
       }
+      giveaway_prizes: {
+        Row: {
+          cooldown_days: number | null
+          created_at: string
+          credit_value: number | null
+          description: string
+          id: string
+          is_active: boolean | null
+          max_active: number | null
+          name: string
+          prize_type: Database["public"]["Enums"]["prize_type"]
+          updated_at: string
+        }
+        Insert: {
+          cooldown_days?: number | null
+          created_at?: string
+          credit_value?: number | null
+          description: string
+          id?: string
+          is_active?: boolean | null
+          max_active?: number | null
+          name: string
+          prize_type: Database["public"]["Enums"]["prize_type"]
+          updated_at?: string
+        }
+        Update: {
+          cooldown_days?: number | null
+          created_at?: string
+          credit_value?: number | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          max_active?: number | null
+          name?: string
+          prize_type?: Database["public"]["Enums"]["prize_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       helpful_votes: {
         Row: {
           created_at: string
@@ -1296,6 +1335,50 @@ export type Database = {
           voter_id?: string
         }
         Relationships: []
+      }
+      hidden_reviews: {
+        Row: {
+          admin_override: boolean | null
+          admin_user_id: string | null
+          created_at: string
+          expires_at: string
+          hidden_at: string
+          id: string
+          review_id: string
+          token_id: string
+          user_id: string
+        }
+        Insert: {
+          admin_override?: boolean | null
+          admin_user_id?: string | null
+          created_at?: string
+          expires_at: string
+          hidden_at?: string
+          id?: string
+          review_id: string
+          token_id: string
+          user_id: string
+        }
+        Update: {
+          admin_override?: boolean | null
+          admin_user_id?: string | null
+          created_at?: string
+          expires_at?: string
+          hidden_at?: string
+          id?: string
+          review_id?: string
+          token_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hidden_reviews_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "user_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       internal_users: {
         Row: {
@@ -2520,6 +2603,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_tokens: {
+        Row: {
+          cooldown_expires_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          review_id: string | null
+          token_type: Database["public"]["Enums"]["token_type"]
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          cooldown_expires_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          review_id?: string | null
+          token_type: Database["public"]["Enums"]["token_type"]
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          cooldown_expires_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          review_id?: string | null
+          token_type?: Database["public"]["Enums"]["token_type"]
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           anonymous_username: string | null
@@ -2908,6 +3027,27 @@ export type Database = {
       }
     }
     Views: {
+      active_hidden_reviews: {
+        Row: {
+          admin_override: boolean | null
+          expires_at: string | null
+          review_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_override?: boolean | null
+          expires_at?: string | null
+          review_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_override?: boolean | null
+          expires_at?: string | null
+          review_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       field_rep_full_profiles: {
         Row: {
           anonymous_username: string | null
@@ -3077,6 +3217,10 @@ export type Database = {
       }
       can_create_flag: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      can_use_bad_day_token: {
+        Args: { target_user_id: string }
         Returns: boolean
       }
       check_document_expiration: {
@@ -3376,6 +3520,10 @@ export type Database = {
         Args: { data: Json } | { string: string } | { string: string }
         Returns: string
       }
+      use_bad_day_token: {
+        Args: { target_user_id: string; target_review_id: string }
+        Returns: boolean
+      }
       validate_tag_length: {
         Args: { tags: string[] }
         Returns: boolean
@@ -3384,6 +3532,8 @@ export type Database = {
     Enums: {
       flag_status: "pending" | "reviewed" | "dismissed"
       flag_target_type: "profile" | "post" | "comment"
+      prize_type: "gift_card" | "boost_token" | "bad_day_token" | "bundle"
+      token_type: "bad_day" | "boost" | "review_spotlight"
       unlock_method: "credit" | "referral" | "purchase"
       user_role: "field_rep" | "vendor" | "moderator" | "admin"
     }
@@ -3531,6 +3681,8 @@ export const Constants = {
     Enums: {
       flag_status: ["pending", "reviewed", "dismissed"],
       flag_target_type: ["profile", "post", "comment"],
+      prize_type: ["gift_card", "boost_token", "bad_day_token", "bundle"],
+      token_type: ["bad_day", "boost", "review_spotlight"],
       unlock_method: ["credit", "referral", "purchase"],
       user_role: ["field_rep", "vendor", "moderator", "admin"],
     },

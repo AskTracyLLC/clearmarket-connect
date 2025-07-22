@@ -8,7 +8,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarIcon, Gift, Building } from 'lucide-react';
+import { useGiveawayPrizes } from '@/hooks/useGiveawayPrizes';
+import { CalendarIcon, Gift, Building, Zap, Shield } from 'lucide-react';
 
 interface CreateGiveawayFormProps {
   onSuccess: () => void;
@@ -18,7 +19,9 @@ interface GiveawayFormData {
   type: 'monthly' | 'vendor';
   title: string;
   description: string;
-  prizeDescription: string;
+  prizeId: string;
+  prizeType: 'gift_card' | 'boost_token' | 'bad_day_token' | 'bundle' | 'custom';
+  customPrizeDescription: string;
   prizeValue: number;
   entryCost: number;
   startDate: string;
@@ -30,12 +33,15 @@ interface GiveawayFormData {
 
 const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
   const { toast } = useToast();
+  const { prizes, loading: prizesLoading, getPrizeById } = useGiveawayPrizes();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<GiveawayFormData>({
     type: 'monthly',
     title: '',
     description: '',
-    prizeDescription: '',
+    prizeId: '',
+    prizeType: 'gift_card',
+    customPrizeDescription: '',
     prizeValue: 0,
     entryCost: 5,
     startDate: '',
@@ -61,10 +67,20 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
       return false;
     }
 
-    if (!formData.prizeDescription.trim()) {
+    // Validate prize selection
+    if (formData.prizeType === 'custom' && !formData.customPrizeDescription.trim()) {
       toast({
         title: "Validation Error", 
-        description: "Prize description is required",
+        description: "Custom prize description is required",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (formData.prizeType !== 'custom' && !formData.prizeId) {
+      toast({
+        title: "Validation Error", 
+        description: "Please select a prize",
         variant: "destructive"
       });
       return false;
@@ -113,6 +129,15 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
         throw new Error('User not authenticated');
       }
 
+      // Get prize description for database
+      let prizeDescription = '';
+      if (formData.prizeType === 'custom') {
+        prizeDescription = formData.customPrizeDescription;
+      } else {
+        const selectedPrize = getPrizeById(formData.prizeId);
+        prizeDescription = selectedPrize ? selectedPrize.name : '';
+      }
+
       if (formData.type === 'monthly') {
         // Create monthly giveaway
         const { error } = await (supabase as any)
@@ -120,7 +145,7 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
           .insert({
             title: formData.title,
             description: formData.description,
-            prize_description: formData.prizeDescription,
+            prize_description: prizeDescription,
             prize_value: formData.prizeValue || null,
             start_date: formData.startDate,
             end_date: formData.endDate,
@@ -139,7 +164,7 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
             vendor_id: formData.vendorId || user.id,
             title: formData.title,
             description: formData.description,
-            prize_description: formData.prizeDescription,
+            prize_description: prizeDescription,
             entry_cost_rep_points: formData.entryCost,
             start_date: formData.startDate,
             end_date: formData.endDate,
@@ -248,28 +273,122 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="prizeDescription">Prize Description</Label>
-              <Input
-                id="prizeDescription"
-                placeholder="e.g., $500 Amazon Gift Card"
-                value={formData.prizeDescription}
-                onChange={(e) => handleInputChange('prizeDescription', e.target.value)}
-                required
-              />
-            </div>
+          {/* Prize Selection */}
+          <div className="space-y-4">
+            <Label>Prize Type</Label>
+            <RadioGroup
+              value={formData.prizeType}
+              onValueChange={(value) => {
+                handleInputChange('prizeType', value);
+                // Reset prize selection when type changes
+                if (value !== 'custom') {
+                  handleInputChange('prizeId', '');
+                }
+              }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-2"
+            >
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <RadioGroupItem value="gift_card" id="gift_card" />
+                <div className="flex items-center gap-2">
+                  <Gift className="h-4 w-4" />
+                  <Label htmlFor="gift_card" className="text-sm">Gift Cards</Label>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <RadioGroupItem value="boost_token" id="boost_token" />
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  <Label htmlFor="boost_token" className="text-sm">Boost Token</Label>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <RadioGroupItem value="bad_day_token" id="bad_day_token" />
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <Label htmlFor="bad_day_token" className="text-sm">Bad Day Token</Label>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                <RadioGroupItem value="custom" id="custom" />
+                <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  <Label htmlFor="custom" className="text-sm">Custom Prize</Label>
+                </div>
+              </div>
+            </RadioGroup>
 
-            <div className="space-y-2">
-              <Label htmlFor="prizeValue">Prize Value (Optional)</Label>
-              <Input
-                id="prizeValue"
-                type="number"
-                placeholder="500"
-                value={formData.prizeValue || ''}
-                onChange={(e) => handleInputChange('prizeValue', parseFloat(e.target.value) || 0)}
-              />
-            </div>
+            {/* Prize Selection Dropdown */}
+            {formData.prizeType !== 'custom' && (
+              <div className="space-y-2">
+                <Label htmlFor="prizeSelect">Select Prize</Label>
+                <Select
+                  value={formData.prizeId}
+                  onValueChange={(value) => {
+                    handleInputChange('prizeId', value);
+                    const selectedPrize = getPrizeById(value);
+                    if (selectedPrize) {
+                      handleInputChange('prizeValue', selectedPrize.credit_value || 0);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a prize..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {prizes
+                      .filter(prize => prize.prize_type === formData.prizeType)
+                      .map(prize => (
+                        <SelectItem key={prize.id} value={prize.id}>
+                          <div className="flex flex-col">
+                            <span>{prize.name}</span>
+                            {prize.credit_value && (
+                              <span className="text-xs text-muted-foreground">
+                                Value: {prize.credit_value} credits
+                              </span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {formData.prizeId && (
+                  <div className="text-sm text-muted-foreground p-2 bg-muted rounded">
+                    {getPrizeById(formData.prizeId)?.description}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Custom Prize Input */}
+            {formData.prizeType === 'custom' && (
+              <div className="space-y-2">
+                <Label htmlFor="customPrize">Custom Prize Description</Label>
+                <Input
+                  id="customPrize"
+                  placeholder="e.g., Custom merchandise package"
+                  value={formData.customPrizeDescription}
+                  onChange={(e) => handleInputChange('customPrizeDescription', e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            {/* Prize Value */}
+            {(formData.prizeType === 'custom' || formData.prizeId) && (
+              <div className="space-y-2">
+                <Label htmlFor="prizeValue">Prize Value (Optional)</Label>
+                <Input
+                  id="prizeValue"
+                  type="number"
+                  placeholder="Enter prize value for display"
+                  value={formData.prizeValue || ''}
+                  onChange={(e) => handleInputChange('prizeValue', parseFloat(e.target.value) || 0)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Estimated value for display purposes
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -399,7 +518,9 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
               type: 'monthly',
               title: '',
               description: '',
-              prizeDescription: '',
+              prizeId: '',
+              prizeType: 'gift_card',
+              customPrizeDescription: '',
               prizeValue: 0,
               entryCost: 5,
               startDate: '',
