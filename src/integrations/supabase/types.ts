@@ -742,6 +742,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          currency_type: string | null
           id: string
           metadata: Json | null
           reference_id: string | null
@@ -753,6 +754,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          currency_type?: string | null
           id?: string
           metadata?: Json | null
           reference_id?: string | null
@@ -764,6 +766,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          currency_type?: string | null
           id?: string
           metadata?: Json | null
           reference_id?: string | null
@@ -787,6 +790,7 @@ export type Database = {
           current_balance: number | null
           earned_credits: number | null
           paid_credits: number | null
+          rep_points: number | null
           updated_at: string | null
           user_id: string
         }
@@ -794,6 +798,7 @@ export type Database = {
           current_balance?: number | null
           earned_credits?: number | null
           paid_credits?: number | null
+          rep_points?: number | null
           updated_at?: string | null
           user_id: string
         }
@@ -801,6 +806,7 @@ export type Database = {
           current_balance?: number | null
           earned_credits?: number | null
           paid_credits?: number | null
+          rep_points?: number | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1218,6 +1224,55 @@ export type Database = {
         }
         Relationships: []
       }
+      giveaway_entries: {
+        Row: {
+          entered_at: string | null
+          entry_count: number
+          giveaway_id: string
+          id: string
+          rep_points_spent: number
+          user_id: string
+        }
+        Insert: {
+          entered_at?: string | null
+          entry_count?: number
+          giveaway_id: string
+          id?: string
+          rep_points_spent: number
+          user_id: string
+        }
+        Update: {
+          entered_at?: string | null
+          entry_count?: number
+          giveaway_id?: string
+          id?: string
+          rep_points_spent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "giveaway_entries_giveaway_id_fkey"
+            columns: ["giveaway_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_giveaways"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "giveaway_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "giveaway_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       helpful_votes: {
         Row: {
           created_at: string
@@ -1457,6 +1512,92 @@ export type Database = {
           target_type?: string
         }
         Relationships: []
+      }
+      monthly_giveaways: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          drawing_date: string | null
+          end_date: string
+          entry_cost_rep_points: number
+          id: string
+          prize_description: string
+          prize_value: number | null
+          sponsor_id: string | null
+          sponsor_type: string
+          start_date: string
+          status: string
+          title: string
+          total_entries: number | null
+          updated_at: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          drawing_date?: string | null
+          end_date: string
+          entry_cost_rep_points?: number
+          id?: string
+          prize_description: string
+          prize_value?: number | null
+          sponsor_id?: string | null
+          sponsor_type?: string
+          start_date: string
+          status?: string
+          title: string
+          total_entries?: number | null
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          drawing_date?: string | null
+          end_date?: string
+          entry_cost_rep_points?: number
+          id?: string
+          prize_description?: string
+          prize_value?: number | null
+          sponsor_id?: string | null
+          sponsor_type?: string
+          start_date?: string
+          status?: string
+          title?: string
+          total_entries?: number | null
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_giveaways_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_giveaways_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_giveaways_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_giveaways_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nda_signatures: {
         Row: {
@@ -2439,6 +2580,55 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_giveaway_entries: {
+        Row: {
+          entered_at: string | null
+          entry_count: number
+          giveaway_id: string
+          id: string
+          rep_points_spent: number
+          user_id: string
+        }
+        Insert: {
+          entered_at?: string | null
+          entry_count?: number
+          giveaway_id: string
+          id?: string
+          rep_points_spent: number
+          user_id: string
+        }
+        Update: {
+          entered_at?: string | null
+          entry_count?: number
+          giveaway_id?: string
+          id?: string
+          rep_points_spent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_giveaway_entries_giveaway_id_fkey"
+            columns: ["giveaway_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_network_giveaways"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_giveaway_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_giveaway_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_network_alert_recipients: {
         Row: {
           alert_id: string
@@ -2521,6 +2711,95 @@ export type Database = {
           vendor_id?: string
         }
         Relationships: []
+      }
+      vendor_network_giveaways: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          drawing_date: string | null
+          eligibility_rules: Json | null
+          end_date: string
+          entry_cost_rep_points: number
+          id: string
+          max_entries_per_user: number | null
+          network_size: number | null
+          prize_description: string
+          start_date: string
+          status: string
+          title: string
+          total_entries: number | null
+          updated_at: string | null
+          vendor_id: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          drawing_date?: string | null
+          eligibility_rules?: Json | null
+          end_date: string
+          entry_cost_rep_points?: number
+          id?: string
+          max_entries_per_user?: number | null
+          network_size?: number | null
+          prize_description: string
+          start_date: string
+          status?: string
+          title: string
+          total_entries?: number | null
+          updated_at?: string | null
+          vendor_id: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          drawing_date?: string | null
+          eligibility_rules?: Json | null
+          end_date?: string
+          entry_cost_rep_points?: number
+          id?: string
+          max_entries_per_user?: number | null
+          network_size?: number | null
+          prize_description?: string
+          start_date?: string
+          status?: string
+          title?: string
+          total_entries?: number | null
+          updated_at?: string | null
+          vendor_id?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_network_giveaways_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_network_giveaways_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_network_giveaways_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_network_giveaways_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       work_types: {
         Row: {
@@ -2661,6 +2940,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_balances: {
+        Row: {
+          clear_credits: number | null
+          rep_points: number | null
+          total_earned_credits: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clear_credits?: never
+          rep_points?: never
+          total_earned_credits?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clear_credits?: never
+          rep_points?: never
+          total_earned_credits?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       users_with_display_names: {
         Row: {
           anonymous_username: string | null
@@ -2705,6 +3008,16 @@ export type Database = {
       }
     }
     Functions: {
+      add_clear_credits: {
+        Args: {
+          target_user_id: string
+          credit_amount: number
+          reference_id_param?: string
+          reference_type_param?: string
+          metadata_param?: Json
+        }
+        Returns: boolean
+      }
       add_new_role_type: {
         Args: { new_role_name: string }
         Returns: boolean
@@ -2725,8 +3038,28 @@ export type Database = {
         Returns: boolean
       }
       award_credits: {
+        Args:
+          | {
+              target_user_id: string
+              credit_amount: number
+              rule_name_param: string
+              reference_id_param?: string
+              reference_type_param?: string
+              metadata_param?: Json
+            }
+          | {
+              target_user_id: string
+              rule_name_param: string
+              reference_id_param?: string
+              reference_type_param?: string
+              metadata_param?: Json
+            }
+        Returns: boolean
+      }
+      award_rep_points: {
         Args: {
           target_user_id: string
+          points_amount: number
           rule_name_param: string
           reference_id_param?: string
           reference_type_param?: string
@@ -2769,6 +3102,20 @@ export type Database = {
       generate_anonymous_username: {
         Args: Record<PropertyKey, never> | { user_type_param: string }
         Returns: string
+      }
+      get_giveaway_eligibility: {
+        Args: {
+          user_id_param: string
+          giveaway_id_param: string
+          giveaway_type_param: string
+        }
+        Returns: {
+          eligible: boolean
+          reason: string
+          current_entries: number
+          max_entries: number
+          rep_points_balance: number
+        }[]
       }
       get_next_anonymous_username: {
         Args: { user_type_param: string }
@@ -2971,6 +3318,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      spend_clear_credits: {
+        Args: {
+          spender_user_id: string
+          amount_param: number
+          reference_id_param?: string
+          reference_type_param?: string
+          metadata_param?: Json
+        }
+        Returns: boolean
+      }
       spend_credits: {
         Args: {
           spender_user_id: string
@@ -2978,6 +3335,16 @@ export type Database = {
           reference_id_param?: string
           reference_type_param?: string
           metadata_param?: Json
+        }
+        Returns: boolean
+      }
+      spend_rep_points: {
+        Args: {
+          spender_user_id: string
+          points_amount: number
+          giveaway_id_param: string
+          giveaway_type_param: string
+          entry_count_param?: number
         }
         Returns: boolean
       }

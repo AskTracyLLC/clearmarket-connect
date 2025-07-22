@@ -115,7 +115,7 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
 
       if (formData.type === 'monthly') {
         // Create monthly giveaway
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('monthly_giveaways')
           .insert({
             title: formData.title,
@@ -133,7 +133,7 @@ const CreateGiveawayForm = ({ onSuccess }: CreateGiveawayFormProps) => {
 
       } else {
         // Create vendor network giveaway
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('vendor_network_giveaways')
           .insert({
             vendor_id: formData.vendorId || user.id,

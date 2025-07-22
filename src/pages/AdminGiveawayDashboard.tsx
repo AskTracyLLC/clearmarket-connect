@@ -88,7 +88,7 @@ const AdminGiveawayDashboard = () => {
       setIsLoading(true);
 
       // Fetch monthly giveaways
-      const { data: monthlyData, error: monthlyError } = await supabase
+      const { data: monthlyData, error: monthlyError } = await (supabase as any)
         .from('monthly_giveaways')
         .select('*')
         .order('created_at', { ascending: false });
@@ -96,7 +96,7 @@ const AdminGiveawayDashboard = () => {
       if (monthlyError) throw monthlyError;
 
       // Fetch vendor giveaways with vendor names
-      const { data: vendorData, error: vendorError } = await supabase
+      const { data: vendorData, error: vendorError } = await (supabase as any)
         .from('vendor_network_giveaways')
         .select(`
           *,
@@ -135,7 +135,7 @@ const AdminGiveawayDashboard = () => {
     try {
       const table = type === 'monthly' ? 'monthly_giveaways' : 'vendor_network_giveaways';
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from(table)
         .update({ status: newStatus })
         .eq('id', id);
@@ -165,7 +165,7 @@ const AdminGiveawayDashboard = () => {
     try {
       const table = type === 'monthly' ? 'monthly_giveaways' : 'vendor_network_giveaways';
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from(table)
         .delete()
         .eq('id', id);
