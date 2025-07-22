@@ -83,7 +83,7 @@ const FieldRepDashboard = () => {
   };
 
   const handleFindVendors = () => {
-    navigate('/vendor/search');
+    navigate('/fieldrep/search');
   };
 
   const handleMessageVendor = (vendorId) => {
