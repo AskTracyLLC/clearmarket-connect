@@ -102,10 +102,12 @@ const BetaNDA = () => {
       const viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
         viewport.addEventListener('scroll', handleScroll);
+        // Also check initial state in case content is already short enough
+        handleScroll();
         return () => viewport.removeEventListener('scroll', handleScroll);
       }
     }
-  }, [hasScrolledToBottom]);
+  }, []); // Remove dependency to prevent re-setup
 
   // Signature validation
   const validateSignature = (value: string): string[] => {
