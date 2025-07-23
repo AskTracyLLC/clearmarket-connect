@@ -4,7 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useDualBalance } from '@/hooks/dual_balance_hook';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { useAuth } from '@/contexts/AuthContext';
 import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
+import ProfileDropdown from '@/components/ui/ProfileDropdown';
+import NotificationBell from '@/components/ui/NotificationBell';
+import CreditBalance from '@/components/ui/CreditBalance';
 import { 
   User, 
   LogOut, 
@@ -13,7 +18,12 @@ import {
   Gift,
   Settings,
   Menu,
-  X
+  X,
+  MessageSquare,
+  MapPin,
+  Users,
+  Calendar,
+  Bell
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -28,15 +38,26 @@ import { useState } from 'react';
 const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signOut } = useAuth();
+  const { profile } = useUserProfile();
   const { balance, isLoading } = useDualBalance();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleSignOut = () => {
-    toast({
-      title: "Signed out successfully",
-      description: "You have been logged out of your account.",
-    });
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleViewGiveaways = () => {
@@ -63,99 +84,66 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/community" className="text-gray-700 hover:text-primary transition-colors">
-              Community
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link to="/community" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden lg:inline">Community</span>
             </Link>
-            <Link to="/coverage" className="text-gray-700 hover:text-primary transition-colors">
-              Coverage
+            <Link to="/coverage" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span className="hidden lg:inline">Coverage</span>
             </Link>
-            <Link to="/network" className="text-gray-700 hover:text-primary transition-colors">
-              Network
+            <Link to="/network" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden lg:inline">Network</span>
+            </Link>
+            <Link to="/calendar" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden lg:inline">Calendar</span>
             </Link>
           </nav>
 
-          {/* Desktop Balance & User Menu */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Desktop Actions & User Menu */}
+          <div className="hidden md:flex items-center space-x-3">
             
-            {/* Dual Balance Display */}
-            <div className="flex items-center space-x-2">
-              {/* RepPoints */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleViewGiveaways}
-                className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200"
-              >
-                <Trophy className="h-4 w-4 text-blue-600" />
-                <span className="text-blue-900 font-medium">
-                  {isLoading ? '...' : balance.repPoints}
-                </span>
-                <span className="text-blue-600 text-xs">RepPoints</span>
-              </Button>
+            {/* RepPoints */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleViewGiveaways}
+              className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+            >
+              <Trophy className="h-4 w-4" />
+              <span className="font-medium">
+                {isLoading ? '0' : balance.repPoints}
+              </span>
+              <span className="text-xs hidden lg:inline">RepPoints</span>
+            </Button>
 
-              {/* ClearCredits */}
+            {/* Credits */}
+            <CreditBalance />
+            
+            {/* Network Alert Button - only for field reps */}
+            {profile?.role === 'field_rep' && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={handleBuyCredits}
-                className="flex items-center gap-2 bg-green-50 hover:bg-green-100 border-green-200"
+                onClick={() => navigate('/network-alerts')}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary"
               >
-                <CreditCard className="h-4 w-4 text-green-600" />
-                <span className="text-green-900 font-medium">
-                  {isLoading ? '...' : balance.clearCredits}
-                </span>
-                <span className="text-green-600 text-xs">Credits</span>
+                <Bell className="h-4 w-4" />
+                <span className="text-xs hidden lg:inline">Alerts</span>
               </Button>
-            </div>
+            )}
 
-            {/* User Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">John D.</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                  <User className="mr-2 h-4 w-4" />
-                  Dashboard
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={handleViewGiveaways}>
-                  <Gift className="mr-2 h-4 w-4" />
-                  Giveaways
-                  <Badge variant="outline" className="ml-auto text-xs">
-                    {balance.repPoints} pts
-                  </Badge>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={handleBuyCredits}>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Buy Credits
-                  <Badge variant="outline" className="ml-auto text-xs">
-                    {balance.clearCredits}
-                  </Badge>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Notifications */}
+            <NotificationBell count={0} onClick={() => navigate('/notifications')} />
+
+            {/* User Profile */}
+            <ProfileDropdown
+              profile={profile}
+              onSignOut={handleSignOut}
+            />
           </div>
 
           {/* Mobile Menu Button */}
@@ -210,43 +198,57 @@ const Header = () => {
             {/* Mobile Navigation Links */}
             <nav className="space-y-2">
               <Link 
-                to="/dashboard" 
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                to="/fieldrep/dashboard" 
+                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <User className="h-4 w-4" />
                 Dashboard
               </Link>
               <Link 
                 to="/community" 
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <MessageSquare className="h-4 w-4" />
                 Community
               </Link>
               <Link 
                 to="/coverage" 
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <MapPin className="h-4 w-4" />
                 Coverage
               </Link>
               <Link 
                 to="/network" 
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <Users className="h-4 w-4" />
                 Network
+              </Link>
+              <Link 
+                to="/calendar" 
+                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Calendar className="h-4 w-4" />
+                Calendar
               </Link>
               <button 
                 onClick={handleViewGiveaways}
-                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
               >
+                <Gift className="h-4 w-4" />
                 Giveaways
               </button>
               <button 
                 onClick={handleSignOut}
-                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-md"
+                className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
               >
+                <LogOut className="h-4 w-4" />
                 Sign Out
               </button>
             </nav>
