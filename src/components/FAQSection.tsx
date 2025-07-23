@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle, MessageCircle } from "lucide-react";
 const faqs = [{
   id: "rep-points-earning",
-  question: "🎉 How to Earn Rep Points on ClearMarket",
+  question: "How to Earn Rep Points on ClearMarket",
   answer: <div className="space-y-6">
         <p className="text-sm text-muted-foreground">
           Rep Points reward community participation and enable giveaway entries. They cannot be purchased and are earned only through genuine engagement. Here's how to earn them:
@@ -68,7 +68,7 @@ const faqs = [{
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-primary">🎁 Use Rep Points For:</h4>
+          <h4 className="font-semibold mb-3 text-destructive">⚠️ Use Rep Points For:</h4>
           <ul className="space-y-2 text-sm">
             <li>🎯 Enter monthly giveaways (5 Rep Points = 1 entry)</li>
             <li>🏢 Enter vendor network giveaways (cost varies by vendor)</li>
