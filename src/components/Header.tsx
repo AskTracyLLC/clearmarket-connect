@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,8 @@ import {
   MapPin,
   Users,
   Calendar,
-  Bell
+  Bell,
+  Megaphone
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -40,10 +42,13 @@ const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signOut } = useAuth();
-  const { profile } = useUserProfile();
+  const { profile, loading } = useUserProfile();
   const { balance, isLoading } = useDualBalance();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
+
+  // Debug logging to check profile data
+  console.log('Header - Profile data:', { profile, loading, role: profile?.role });
 
   const handleSignOut = async () => {
     try {
@@ -71,6 +76,14 @@ const Header = () => {
     navigate('/credits/purchase');
     setMobileMenuOpen(false);
   };
+
+  const handleNetworkAlerts = () => {
+    setNetworkAlertOpen(true);
+    setMobileMenuOpen(false);
+  };
+
+  // Show network alert button for field reps or if profile is still loading
+  const showNetworkAlerts = !loading && profile?.role === 'field_rep';
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -126,15 +139,15 @@ const Header = () => {
             <CreditBalance />
             
             {/* Network Alert Button - only for field reps */}
-            {profile?.role === 'field_rep' && (
+            {showNetworkAlerts && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setNetworkAlertOpen(true)}
-                className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                onClick={handleNetworkAlerts}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary bg-blue-50 hover:bg-blue-100 border border-blue-200"
               >
-                <Bell className="h-4 w-4" />
-                <span className="text-xs hidden lg:inline">Alerts</span>
+                <Megaphone className="h-4 w-4 text-blue-600" />
+                <span className="text-xs hidden lg:inline text-blue-900">Network Alerts</span>
               </Button>
             )}
 
@@ -239,6 +252,18 @@ const Header = () => {
                 <Calendar className="h-4 w-4" />
                 Calendar
               </Link>
+              
+              {/* Network Alerts in Mobile Menu for Field Reps */}
+              {showNetworkAlerts && (
+                <button 
+                  onClick={handleNetworkAlerts}
+                  className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md bg-blue-50 border border-blue-200"
+                >
+                  <Megaphone className="h-4 w-4 text-blue-600" />
+                  <span className="text-blue-900">Network Alerts</span>
+                </button>
+              )}
+              
               <button 
                 onClick={handleViewGiveaways}
                 className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
@@ -259,7 +284,7 @@ const Header = () => {
       </div>
 
       {/* Network Alert Modal */}
-      {profile?.role === 'field_rep' && (
+      {showNetworkAlerts && (
         <SendFieldRepNetworkAlert
           open={networkAlertOpen}
           onOpenChange={setNetworkAlertOpen}
