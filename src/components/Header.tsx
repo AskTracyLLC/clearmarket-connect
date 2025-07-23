@@ -10,6 +10,7 @@ import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
 import ProfileDropdown from '@/components/ui/ProfileDropdown';
 import NotificationBell from '@/components/ui/NotificationBell';
 import CreditBalance from '@/components/ui/CreditBalance';
+import SendFieldRepNetworkAlert from '@/components/FieldRepDashboard/SendFieldRepNetworkAlert';
 import { 
   User, 
   LogOut, 
@@ -42,6 +43,7 @@ const Header = () => {
   const { profile } = useUserProfile();
   const { balance, isLoading } = useDualBalance();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -128,7 +130,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/network-alerts')}
+                onClick={() => setNetworkAlertOpen(true)}
                 className="flex items-center gap-2 text-muted-foreground hover:text-primary"
               >
                 <Bell className="h-4 w-4" />
@@ -255,6 +257,15 @@ const Header = () => {
           </div>
         )}
       </div>
+
+      {/* Network Alert Modal */}
+      {profile?.role === 'field_rep' && (
+        <SendFieldRepNetworkAlert
+          open={networkAlertOpen}
+          onOpenChange={setNetworkAlertOpen}
+          networkSize={0}
+        />
+      )}
     </header>
   );
 };
