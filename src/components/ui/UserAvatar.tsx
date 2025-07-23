@@ -1,6 +1,7 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import TrustScoreBadge from "@/components/TrustScore/TrustScoreBadge";
 
 interface UserAvatarProps {
   displayName?: string | null;
@@ -10,6 +11,11 @@ interface UserAvatarProps {
   companyLogo?: string | null;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  trustScore?: {
+    overall_trust_score: number;
+    badge_level: string;
+  };
+  showTrustBadge?: boolean;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({
@@ -19,7 +25,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   role,
   companyLogo,
   size = 'md',
-  className
+  className,
+  trustScore,
+  showTrustBadge = false
 }) => {
   const getInitials = () => {
     if (firstName && lastName) {
@@ -44,18 +52,30 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   const showCompanyLogo = role === 'vendor' && companyLogo;
 
   return (
-    <Avatar className={cn(sizeClasses[size], className)}>
-      {showCompanyLogo && (
-        <AvatarImage 
-          src={companyLogo} 
-          alt="Company logo" 
-          className="object-cover"
-        />
+    <div className="relative inline-block">
+      <Avatar className={cn(sizeClasses[size], className)}>
+        {showCompanyLogo && (
+          <AvatarImage 
+            src={companyLogo} 
+            alt="Company logo" 
+            className="object-cover"
+          />
+        )}
+        <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+          {getInitials()}
+        </AvatarFallback>
+      </Avatar>
+      
+      {showTrustBadge && trustScore && (role === 'field_rep' || role === 'vendor') && (
+        <div className="absolute -bottom-1 -right-1">
+          <TrustScoreBadge
+            badgeLevel={trustScore.badge_level}
+            score={trustScore.overall_trust_score}
+            size="sm"
+          />
+        </div>
       )}
-      <AvatarFallback className="bg-primary text-primary-foreground font-medium">
-        {getInitials()}
-      </AvatarFallback>
-    </Avatar>
+    </div>
   );
 };
 

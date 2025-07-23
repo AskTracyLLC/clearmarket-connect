@@ -6,6 +6,9 @@ import { Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import TrustScoreReviewModal from "@/components/TrustScore/TrustScoreReviewModal";
+
+// Legacy review modal - replaced by Trust Score Review Modal
 
 interface ReviewModalProps {
   open: boolean;

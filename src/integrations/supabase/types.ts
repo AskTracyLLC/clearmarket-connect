@@ -2255,6 +2255,33 @@ export type Database = {
           },
         ]
       }
+      review_frequency_tracking: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_review_date: string
+          reviewed_user_id: string
+          reviewer_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_review_date: string
+          reviewed_user_id: string
+          reviewer_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_review_date?: string
+          reviewed_user_id?: string
+          reviewer_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           created_at: string
@@ -2651,6 +2678,144 @@ export type Database = {
           transaction_type?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      trust_score_reviews: {
+        Row: {
+          attachments: string[] | null
+          communication_score: number | null
+          completion_date: string
+          created_at: string | null
+          dispute_attachments: string[] | null
+          dispute_reason: string | null
+          dispute_status: string | null
+          hidden_by_credits: boolean | null
+          hidden_until: string | null
+          id: string
+          is_disputed: boolean | null
+          is_featured: boolean | null
+          is_hidden: boolean | null
+          is_negative: boolean | null
+          job_number: string
+          moderator_decision: string | null
+          moderator_id: string | null
+          on_time_performance_score: number | null
+          paid_on_time_score: number | null
+          platform_system: string
+          provided_what_needed_score: number | null
+          quality_of_work_score: number | null
+          review_text: string | null
+          review_type: string
+          reviewed_user_id: string
+          reviewer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          communication_score?: number | null
+          completion_date: string
+          created_at?: string | null
+          dispute_attachments?: string[] | null
+          dispute_reason?: string | null
+          dispute_status?: string | null
+          hidden_by_credits?: boolean | null
+          hidden_until?: string | null
+          id?: string
+          is_disputed?: boolean | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          is_negative?: boolean | null
+          job_number: string
+          moderator_decision?: string | null
+          moderator_id?: string | null
+          on_time_performance_score?: number | null
+          paid_on_time_score?: number | null
+          platform_system: string
+          provided_what_needed_score?: number | null
+          quality_of_work_score?: number | null
+          review_text?: string | null
+          review_type: string
+          reviewed_user_id: string
+          reviewer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          communication_score?: number | null
+          completion_date?: string
+          created_at?: string | null
+          dispute_attachments?: string[] | null
+          dispute_reason?: string | null
+          dispute_status?: string | null
+          hidden_by_credits?: boolean | null
+          hidden_until?: string | null
+          id?: string
+          is_disputed?: boolean | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          is_negative?: boolean | null
+          job_number?: string
+          moderator_decision?: string | null
+          moderator_id?: string | null
+          on_time_performance_score?: number | null
+          paid_on_time_score?: number | null
+          platform_system?: string
+          provided_what_needed_score?: number | null
+          quality_of_work_score?: number | null
+          review_text?: string | null
+          review_type?: string
+          reviewed_user_id?: string
+          reviewer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      trust_scores: {
+        Row: {
+          badge_level: string | null
+          communication_score: number | null
+          created_at: string | null
+          last_review_date: string | null
+          on_time_performance_score: number | null
+          overall_trust_score: number | null
+          paid_on_time_score: number | null
+          provided_what_needed_score: number | null
+          quality_of_work_score: number | null
+          total_reviews: number | null
+          updated_at: string | null
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          badge_level?: string | null
+          communication_score?: number | null
+          created_at?: string | null
+          last_review_date?: string | null
+          on_time_performance_score?: number | null
+          overall_trust_score?: number | null
+          paid_on_time_score?: number | null
+          provided_what_needed_score?: number | null
+          quality_of_work_score?: number | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          badge_level?: string | null
+          communication_score?: number | null
+          created_at?: string | null
+          last_review_date?: string | null
+          on_time_performance_score?: number | null
+          overall_trust_score?: number | null
+          paid_on_time_score?: number | null
+          provided_what_needed_score?: number | null
+          quality_of_work_score?: number | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_id?: string
+          user_role?: string
         }
         Relationships: []
       }
@@ -3663,12 +3828,20 @@ export type Database = {
         Args: { target_user_id: string; period_days?: number }
         Returns: undefined
       }
+      calculate_trust_score: {
+        Args: { target_user_id: string; target_role: string }
+        Returns: undefined
+      }
       calculate_user_storage_usage: {
         Args: { target_user_id: string }
         Returns: number
       }
       can_create_flag: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      can_submit_review: {
+        Args: { reviewer_user_id: string; target_user_id: string }
         Returns: boolean
       }
       can_use_bad_day_token: {
@@ -3831,6 +4004,10 @@ export type Database = {
       }
       has_signed_nda: {
         Args: { target_user_id: string }
+        Returns: boolean
+      }
+      hide_review_with_credits: {
+        Args: { review_id: string; hide_days?: number }
         Returns: boolean
       }
       http: {
