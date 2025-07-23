@@ -22,7 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/Header';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import ReviewModal from '@/components/ReviewModal';
+import TrustScoreReviewModal from '@/components/TrustScore/TrustScoreReviewModal';
 import UserCommentModal from '@/components/ui/UserCommentModal';
 import { useDirectMessages } from '@/hooks/useDirectMessages';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -445,10 +445,14 @@ const NetworkPage = () => {
 
         {/* Modals */}
         {selectedUser && (
-          <ReviewModal
+          <TrustScoreReviewModal
             open={reviewModalOpen}
             onOpenChange={setReviewModalOpen}
-            targetUser={selectedUser}
+            targetUser={{
+              id: selectedUser.id,
+              display_name: selectedUser.name,
+              role: selectedUser.role as 'field_rep' | 'vendor'
+            }}
             onReviewSubmitted={() => {
               toast.success('Review submitted successfully');
               setReviewModalOpen(false);
