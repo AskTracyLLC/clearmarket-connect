@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
       ? 'field inspection professional' 
       : 'inspection vendor';
 
-    const loginUrl = `${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com') || 'https://34544cc9-f36f-4fa8-8a05-17348470ccfc.lovableproject.com'}/auth`;
+    const loginUrl = 'https://34544cc9-f36f-4fa8-8a05-17348470ccfc.lovableproject.com/auth';
 
     const emailResponse = await resend.emails.send({
       from: "ClearMarket <hello@useclearmarket.io>",
