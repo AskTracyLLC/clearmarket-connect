@@ -38,6 +38,7 @@ import Prelaunch from "./pages/Prelaunch";
 import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
+import NetworkPage from "./pages/NetworkPage";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,11 @@ const App = () => (
                 <Route path="/calendar" element={
                   <ProtectedRoute>
                     <CalendarPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/network" element={
+                  <ProtectedRoute>
+                    <NetworkPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/settings" element={
