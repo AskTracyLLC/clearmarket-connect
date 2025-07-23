@@ -34,6 +34,7 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import BetaRegister from "./pages/BetaRegister";
 import BetaNDA from "./pages/BetaNDA";
+import Prelaunch from "./pages/Prelaunch";
 import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
@@ -114,6 +115,7 @@ const App = () => (
                 <Route path="/payment-success" element={<PaymentSuccessPage />} />
                 <Route path="/beta-register" element={<BetaRegister />} />
                 <Route path="/beta-nda" element={<BetaNDA />} />
+                <Route path="/prelaunch" element={<Prelaunch />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
