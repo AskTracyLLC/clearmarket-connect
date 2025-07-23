@@ -20,6 +20,7 @@ import {
   Trophy
 } from "lucide-react";
 import { useDualBalance } from "@/hooks/dual_balance_hook";
+import Header from "@/components/Header";
 
 interface DashboardStats {
   trustScore: number;
@@ -96,43 +97,14 @@ const FieldRepDashboard = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header with Dual Balance */}
-      <div className="flex items-center justify-between">
-        <div>
+    <>
+      <Header />
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Page Title */}
+        <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">Field Rep Dashboard</h1>
           <p className="text-muted-foreground">Track your performance and grow your network</p>
         </div>
-        
-        {/* Dual Balance Display */}
-        <div className="flex gap-4">
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center gap-2 justify-center mb-1">
-                <Trophy className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-blue-900">RepPoints</span>
-              </div>
-              <div className="text-2xl font-bold text-blue-700">
-                {balanceLoading ? '...' : balance.repPoints}
-              </div>
-              <p className="text-xs text-blue-600">For giveaway entries</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center gap-2 justify-center mb-1">
-                <CreditCard className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-green-900">ClearCredits</span>
-              </div>
-              <div className="text-2xl font-bold text-green-700">
-                {balanceLoading ? '...' : balance.clearCredits}
-              </div>
-              <p className="text-xs text-green-600">For premium features</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -306,6 +278,7 @@ const FieldRepDashboard = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
