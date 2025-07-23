@@ -512,6 +512,45 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_requests: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          personal_message: string | null
+          recipient_email: string | null
+          recipient_id: string | null
+          recipient_username: string | null
+          sender_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          personal_message?: string | null
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_username?: string | null
+          sender_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          personal_message?: string | null
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_username?: string | null
+          sender_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_unlocks: {
         Row: {
           created_at: string | null
@@ -942,6 +981,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_invite_limits: {
+        Row: {
+          date: string
+          id: string
+          invite_count: number
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          id?: string
+          invite_count?: number
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          invite_count?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       direct_messages: {
         Row: {
@@ -1885,6 +1945,33 @@ export type Database = {
           signed_date?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      network_connections: {
+        Row: {
+          connection_date: string
+          created_at: string
+          how_connected: string
+          id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          connection_date?: string
+          created_at?: string
+          how_connected?: string
+          id?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          connection_date?: string
+          created_at?: string
+          how_connected?: string
+          id?: string
+          user1_id?: string
+          user2_id?: string
         }
         Relationships: []
       }
@@ -3505,6 +3592,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_connection_request: {
+        Args: { request_id_param: string }
+        Returns: boolean
+      }
       add_clear_credits: {
         Args: {
           target_user_id: string
@@ -3584,6 +3675,10 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      check_daily_invite_limit: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       check_document_expiration: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3599,6 +3694,10 @@ export type Database = {
       complete_beta_registration: {
         Args: { registration_token: string; user_password: string }
         Returns: Json
+      }
+      decline_connection_request: {
+        Args: { request_id_param: string }
+        Returns: boolean
       }
       ensure_admin_exists: {
         Args: Record<PropertyKey, never>
@@ -3784,6 +3883,10 @@ export type Database = {
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
         Returns: boolean
+      }
+      increment_daily_invite_count: {
+        Args: { user_id_param: string }
+        Returns: undefined
       }
       is_beta_tester: {
         Args: { user_email: string }

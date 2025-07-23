@@ -15,7 +15,8 @@ import {
   NotebookPen,
   Search,
   Filter,
-  Eye
+  Eye,
+  UserPlus
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +28,7 @@ import { useDirectMessages } from '@/hooks/useDirectMessages';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { InviteModal } from '@/components/InviteModal';
 
 const NetworkPage = () => {
   const { profile } = useUserProfile();
@@ -37,6 +39,7 @@ const NetworkPage = () => {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
@@ -176,11 +179,18 @@ const NetworkPage = () => {
       <Header />
       <div className="container mx-auto p-6 space-y-6">
         {/* Page Header */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold text-foreground">{networkTitle}</h1>
           <p className="text-muted-foreground">
             Manage your professional network and connections
           </p>
+          <Button 
+            onClick={() => setInviteModalOpen(true)}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite to Network
+          </Button>
         </div>
 
         {/* Network Stats */}
@@ -480,6 +490,16 @@ const NetworkPage = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Invite Modal */}
+        <InviteModal
+          open={inviteModalOpen}
+          onOpenChange={setInviteModalOpen}
+          onInviteSent={() => {
+            toast.success('Invitation sent successfully!');
+            setInviteModalOpen(false);
+          }}
+        />
       </div>
     </>
   );
