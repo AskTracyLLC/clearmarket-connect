@@ -1,4 +1,4 @@
-import { Coins, Loader2 } from "lucide-react";
+import { Coins, Star, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserCredits } from "@/hooks/useUserCredits";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -23,14 +23,24 @@ const CreditBalance = () => {
   }
 
   return (
-    <Button variant="ghost" size="sm" asChild className="flex items-center gap-2 hover:bg-muted">
-      <Link to={getCreditPath()}>
-        <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-        <span className="text-sm font-medium">
-          {credits?.current_balance ?? 0}
-        </span>
-      </Link>
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button variant="ghost" size="sm" asChild className="flex items-center gap-1 hover:bg-muted">
+        <Link to={getCreditPath()}>
+          <Star className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">
+            {credits?.rep_points ?? 0}
+          </span>
+        </Link>
+      </Button>
+      <Button variant="ghost" size="sm" asChild className="flex items-center gap-1 hover:bg-muted">
+        <Link to={getCreditPath()}>
+          <Coins className="h-4 w-4 text-accent" />
+          <span className="text-sm font-medium">
+            {credits?.current_balance ?? 0}
+          </span>
+        </Link>
+      </Button>
+    </div>
   );
 };
 

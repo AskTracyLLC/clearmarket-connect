@@ -3,9 +3,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UserCredits {
-  current_balance: number;
+  current_balance: number; // ClearCredits
   earned_credits: number;
   paid_credits: number;
+  rep_points: number; // Rep Points for giveaways
 }
 
 export const useUserCredits = () => {
@@ -20,7 +21,7 @@ export const useUserCredits = () => {
     try {
       const { data, error } = await supabase
         .from('credits')
-        .select('current_balance, earned_credits, paid_credits')
+        .select('current_balance, earned_credits, paid_credits, rep_points')
         .eq('user_id', user.id)
         .single();
 
