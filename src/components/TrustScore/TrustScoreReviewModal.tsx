@@ -48,7 +48,7 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
     const getButtonOptions = () => {
       if (category === 'communication') {
         return [
-          { value: 2, label: "✅ Helpful and clear response (+2 pts)", variant: "default" as const },
+          { value: 2, label: "✅ Helpful and responsive (+2 pts)", variant: "default" as const },
           { value: 0, label: "😐 Responded, but not helpful (0 pts)", variant: "secondary" as const },
           { value: -2, label: "❌ No Response (–2 pts)", variant: "destructive" as const }
         ];
@@ -65,7 +65,7 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
             { value: -2, label: "❌ Order Rejected, No Fix Within 72 hrs (–2 pts)", variant: "destructive" as const }
           ];
         }
-      } else { // vendor
+      } else { // vendor - Field Rep reviewing Vendor
         if (category === 'second') { // Paid On-Time
           return [
             { value: 2, label: "✅ Paid On Time (+2 pts)", variant: "default" as const },
@@ -73,8 +73,8 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
           ];
         } else { // Provided What Was Needed
           return [
-            { value: 2, label: "✅ Yes, all info was complete (+2 pts)", variant: "default" as const },
-            { value: -2, label: "❌ No, missing info delayed completion (–2 pts)", variant: "destructive" as const }
+            { value: 2, label: "✅ Yes, all instructions/docs were provided (+2 pts)", variant: "default" as const },
+            { value: -2, label: "❌ No, missing details/instructions prevented completion (–2 pts)", variant: "destructive" as const }
           ];
         }
       }
@@ -110,10 +110,10 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
       };
     } else {
       return {
-        second: 'Paid On-Time',
-        third: 'Provided What Was Needed',
-        secondDesc: 'Did they pay you on time?',
-        thirdDesc: 'Did they provide all necessary details for completion?'
+        second: '💸 Paid On-Time',
+        third: '📦 Provided What Was Needed',
+        secondDesc: 'Did the vendor pay you on time for this job?',
+        thirdDesc: 'Did the vendor give you everything you needed to complete the job?'
       };
     }
   };
@@ -271,9 +271,9 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
             
             {/* Communication */}
             <div className="space-y-2">
-              <Label>Communication *</Label>
+              <Label>🧩 Communication *</Label>
               <p className="text-sm text-muted-foreground">
-                How was communication with this {targetUser.role.replace('_', ' ')}?
+                Did the vendor respond to messages in a timely and helpful way?
               </p>
               {getScoreButtons(communicationScore, setCommunicationScore, 'communication')}
             </div>
@@ -306,11 +306,14 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
             </div>
           )}
 
-          {/* Review Text */}
+          {/* Review Comments */}
           <div>
             <Label htmlFor="reviewText">
-              Review Details {isNegativeReview ? '*' : '(optional)'}
+              💬 Review Comments {isNegativeReview ? '*' : '(optional)'}
             </Label>
+            <p className="text-sm text-muted-foreground mb-2">
+              Explain what went well or what caused issues {isNegativeReview ? '(required for negative reviews)' : '(optional for positive)'}
+            </p>
             <Textarea
               id="reviewText"
               value={reviewText}
@@ -323,15 +326,18 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
           {/* Attachments */}
           <div>
             <Label>
-              Attachments {isNegativeReview && attachments.length === 0 && !reviewText.trim() ? '*' : '(optional)'}
+              📎 Upload Screenshot(s) {isNegativeReview && attachments.length === 0 && !reviewText.trim() ? '*' : '(optional)'}
             </Label>
+            <p className="text-sm text-muted-foreground mb-2">
+              {isNegativeReview ? 'Required if any category is marked ❌' : 'Optional for positive reviews'}
+            </p>
             <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
               <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
                 Click to upload screenshots or documents
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                PDF, PNG, JPG up to 10MB
+                Image or PDF files accepted
               </p>
             </div>
           </div>
