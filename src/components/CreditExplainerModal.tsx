@@ -217,7 +217,7 @@ const CreditExplainerModal = ({ open, onOpenChange }: CreditExplainerModalProps)
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             <Coins className="h-6 w-6 text-primary" />
-            How to Earn Credits on ClearMarket
+            How to Earn Rep Points on ClearMarket
           </DialogTitle>
         </DialogHeader>
 

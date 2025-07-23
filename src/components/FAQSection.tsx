@@ -3,79 +3,64 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, MessageCircle } from "lucide-react";
 const faqs = [{
-  id: "credit-earning",
-  question: "🎉 How to Earn Credits on ClearMarket",
+  id: "rep-points-earning",
+  question: "🎉 How to Earn Rep Points on ClearMarket",
   answer: <div className="space-y-6">
         <p className="text-sm text-muted-foreground">
-          Credits help you unlock contact info, boost visibility, and stay active on the platform — all without needing to pay out of pocket. Here's how to earn them:
+          Rep Points reward community participation and enable giveaway entries. They cannot be purchased and are earned only through genuine engagement. Here's how to earn them:
         </p>
         
         <div>
-          <h4 className="font-semibold mb-3 text-primary">🧠 Earn Credits Through Activity:</h4>
+          <h4 className="font-semibold mb-3 text-primary">🌟 Earn Rep Points Through Activity:</h4>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-2 font-medium">Action</th>
-                  <th className="text-left p-2 font-medium">Credits Earned</th>
+                  <th className="text-left p-2 font-medium">Rep Points Earned</th>
                   <th className="text-left p-2 font-medium">Limit</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
                 <tr className="border-b border-muted/30">
                   <td className="p-2">✅ Your post is marked "Helpful" by another user</td>
-                  <td className="p-2">+1 credit for the first, +0.5 for the second, +0.25 for the third</td>
-                  <td className="p-2">Diminishing after 3</td>
+                  <td className="p-2">+1 point for first, +0.5 for second, +0.25 for third</td>
+                  <td className="p-2">Diminishing returns</td>
                 </tr>
                 <tr className="border-b border-muted/30">
-                  <td className="p-2">👍 You mark someone else's post as "Helpful"</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">Max 1 credit/day</td>
+                  <td className="p-2">👍 You give helpful votes to others</td>
+                  <td className="p-2">+1 point</td>
+                  <td className="p-2">Max 1 per day</td>
                 </tr>
                 <tr className="border-b border-muted/30">
-                  <td className="p-2">📝 Leave a review for a Vendor you've worked with</td>
-                  <td className="p-2">+1 credit</td>
+                  <td className="p-2">⭐ Leave verified vendor/field rep reviews</td>
+                  <td className="p-2">+1 point each</td>
                   <td className="p-2">No limit</td>
                 </tr>
                 <tr className="border-b border-muted/30">
-                  <td className="p-2">📝 Leave a review for a Field Rep in your network</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">No limit</td>
+                  <td className="p-2">✅ Complete profile to 100%</td>
+                  <td className="p-2">+5 points</td>
+                  <td className="p-2">One-time bonus</td>
                 </tr>
                 <tr className="border-b border-muted/30">
-                  <td className="p-2">👥 Refer someone who joins and becomes active (joins a Network)</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">Spam prevention in place</td>
+                  <td className="p-2">📅 Monthly active participation</td>
+                  <td className="p-2">+5 points</td>
+                  <td className="p-2">Monthly bonus</td>
                 </tr>
                 <tr className="border-b border-muted/30">
-                  <td className="p-2">📢 Send a Network Alert that vendors mark as "Helpful"</td>
-                  <td className="p-2">+1 credit (first), +0.5 (second), +0.25 (third)</td>
-                  <td className="p-2">Max 3 credits per alert</td>
+                  <td className="p-2">🏆 Trust Score milestones (80+ Trust Score)</td>
+                  <td className="p-2">+15 points</td>
+                  <td className="p-2">Achievement bonus</td>
                 </tr>
                 <tr className="border-b border-muted/30">
-                  <td className="p-2">🌎 Connect to a Rep/Vendor in a new county</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">First connection only</td>
-                </tr>
-                <tr className="border-b border-muted/30">
-                  <td className="p-2">📸 Upload verified work history (admin approved)</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">No limit</td>
-                </tr>
-                <tr className="border-b border-muted/30">
-                  <td className="p-2">💡 Submit a tip or best practice that's approved or rated helpful</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">No limit</td>
-                </tr>
-                <tr className="border-b border-muted/30">
-                  <td className="p-2">📬 Respond to vendor messages within 24 hours (weekly streak)</td>
-                  <td className="p-2">+1 credit/week</td>
-                  <td className="p-2">Ongoing bonus</td>
+                  <td className="p-2">📬 Vendor message response streak</td>
+                  <td className="p-2">+1 point per week</td>
+                  <td className="p-2">Ongoing streak</td>
                 </tr>
                 <tr>
-                  <td className="p-2">✅ Complete your full profile (100%)</td>
-                  <td className="p-2">+1 credit</td>
-                  <td className="p-2">One-time bonus</td>
+                  <td className="p-2">👥 Successful referrals (when referred user becomes active)</td>
+                  <td className="p-2">+1 point</td>
+                  <td className="p-2">Must be active user</td>
                 </tr>
               </tbody>
             </table>
@@ -83,26 +68,41 @@ const faqs = [{
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-primary">🚀 Use Credits To:</h4>
+          <h4 className="font-semibold mb-3 text-primary">🎁 Use Rep Points For:</h4>
           <ul className="space-y-2 text-sm">
-            <li>🔓 Unlock contact details for Vendors or Field Reps</li>
-            <li>💼 Boost your Field Rep profile to the top of local search results (Must meet minimum Trust Score and Community Score to qualify)</li>
+            <li>🎯 Enter monthly giveaways (5 Rep Points = 1 entry)</li>
+            <li>🏢 Enter vendor network giveaways (cost varies by vendor)</li>
+            <li>🚫 <strong>Cannot</strong> be purchased with money</li>
+            <li>🚫 <strong>Cannot</strong> be used for platform features (use ClearCredits instead)</li>
+          </ul>
+        </div>
+
+        <div className="bg-accent/10 rounded-lg p-4">
+          <h4 className="font-semibold mb-3 text-accent">💳 For Platform Features - Use ClearCredits</h4>
+          <ul className="space-y-2 text-sm">
+            <li>🔓 Unlock contact information: 2 ClearCredits</li>
+            <li>🚀 Boost profile visibility: 5 ClearCredits</li>
+            <li>⭐ Access premium opportunities: 3 ClearCredits</li>
+            <li>🎯 Priority customer support: 1 ClearCredit</li>
+            <li>💡 ClearCredits are purchased with real money</li>
           </ul>
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-primary">🔒 Protecting the System</h4>
+          <h4 className="font-semibold mb-3 text-primary">🔒 Protection Measures</h4>
           <ul className="space-y-1 text-sm">
             <li>• "Helpful" votes only count once per user per post</li>
-            <li>• Daily caps prevent abuse (like toggling votes)</li>
-            <li>• Referrals only count when the user becomes active (joins a Network)</li>
-            <li>• Spam alerts or system misuse may result in credit removal</li>
+            <li>• Daily caps prevent abuse and manipulation</li>
+            <li>• Referrals only count when referred user becomes active</li>
+            <li>• Review authenticity verified through work history</li>
+            <li>• Spam or system misuse results in point removal</li>
+            <li>• All transactions logged and auditable</li>
           </ul>
         </div>
 
         <div className="pt-4 border-t border-muted/30">
           <p className="text-sm text-muted-foreground">
-            <strong>Need more help?</strong> Visit your Credit Activity section to track how you're earning and spending your credits.
+            <strong>Need more help?</strong> Visit your dashboard to track Rep Points and ClearCredits separately in your balance section.
           </p>
         </div>
       </div>
