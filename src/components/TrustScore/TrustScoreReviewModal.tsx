@@ -44,37 +44,61 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const getScoreButtons = (currentScore: ScoreValue | null, onChange: (score: ScoreValue) => void) => (
-    <div className="flex gap-2">
-      <Button
-        type="button"
-        variant={currentScore === 2 ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange(2)}
-        className="text-xs"
-      >
-        ✅ Great (+2)
-      </Button>
-      <Button
-        type="button"
-        variant={currentScore === 0 ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange(0)}
-        className="text-xs"
-      >
-        😐 Meh (0)
-      </Button>
-      <Button
-        type="button"
-        variant={currentScore === -2 ? "destructive" : "outline"}
-        size="sm"
-        onClick={() => onChange(-2)}
-        className="text-xs"
-      >
-        ❌ Bad (-2)
-      </Button>
-    </div>
-  );
+  const getScoreButtons = (currentScore: ScoreValue | null, onChange: (score: ScoreValue) => void, category: 'communication' | 'second' | 'third') => {
+    const getButtonOptions = () => {
+      if (category === 'communication') {
+        return [
+          { value: 2, label: "✅ Helpful and clear response (+2 pts)", variant: "default" as const },
+          { value: 0, label: "😐 Responded, but not helpful (0 pts)", variant: "secondary" as const },
+          { value: -2, label: "❌ No Response (–2 pts)", variant: "destructive" as const }
+        ];
+      } else if (targetUser.role === 'field_rep') {
+        if (category === 'second') { // On-Time Performance
+          return [
+            { value: 2, label: "✅ Completed On Time (+2 pts)", variant: "default" as const },
+            { value: -2, label: "❌ Missed Due Date (–2 pts)", variant: "destructive" as const }
+          ];
+        } else { // Quality of Work
+          return [
+            { value: 2, label: "✅ Client Accepted Without Rejection (+2 pts)", variant: "default" as const },
+            { value: 0, label: "😐 Rejected but Corrected Within 72 hrs (0 pts)", variant: "secondary" as const },
+            { value: -2, label: "❌ Order Rejected, No Fix Within 72 hrs (–2 pts)", variant: "destructive" as const }
+          ];
+        }
+      } else { // vendor
+        if (category === 'second') { // Paid On-Time
+          return [
+            { value: 2, label: "✅ Paid On Time (+2 pts)", variant: "default" as const },
+            { value: -2, label: "❌ Paid Late / Not at All (–2 pts)", variant: "destructive" as const }
+          ];
+        } else { // Provided What Was Needed
+          return [
+            { value: 2, label: "✅ Yes, all info was complete (+2 pts)", variant: "default" as const },
+            { value: -2, label: "❌ No, missing info delayed completion (–2 pts)", variant: "destructive" as const }
+          ];
+        }
+      }
+    };
+
+    const options = getButtonOptions();
+    
+    return (
+      <div className="flex flex-col gap-2">
+        {options.map((option) => (
+          <Button
+            key={option.value}
+            type="button"
+            variant={currentScore === option.value ? option.variant : "outline"}
+            size="sm"
+            onClick={() => onChange(option.value as ScoreValue)}
+            className="justify-start text-left h-auto py-3 px-4 whitespace-normal"
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+    );
+  };
 
   const getCategoryLabels = () => {
     if (targetUser.role === 'field_rep') {
@@ -249,23 +273,23 @@ const TrustScoreReviewModal: React.FC<TrustScoreReviewModalProps> = ({
             <div className="space-y-2">
               <Label>Communication *</Label>
               <p className="text-sm text-muted-foreground">
-                How was their communication throughout the process?
+                How was communication with this {targetUser.role.replace('_', ' ')}?
               </p>
-              {getScoreButtons(communicationScore, setCommunicationScore)}
+              {getScoreButtons(communicationScore, setCommunicationScore, 'communication')}
             </div>
 
             {/* Second Category */}
             <div className="space-y-2">
               <Label>{second} *</Label>
               <p className="text-sm text-muted-foreground">{secondDesc}</p>
-              {getScoreButtons(secondScore, setSecondScore)}
+              {getScoreButtons(secondScore, setSecondScore, 'second')}
             </div>
 
             {/* Third Category */}
             <div className="space-y-2">
               <Label>{third} *</Label>
               <p className="text-sm text-muted-foreground">{thirdDesc}</p>
-              {getScoreButtons(thirdScore, setThirdScore)}
+              {getScoreButtons(thirdScore, setThirdScore, 'third')}
             </div>
           </div>
 
