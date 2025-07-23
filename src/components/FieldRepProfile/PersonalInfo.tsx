@@ -56,22 +56,30 @@ export const PersonalInfo = ({ form }: PersonalInfoProps) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button type="button" className="p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      <button type="button" className="p-1 rounded-full bg-muted text-muted-foreground hover:bg-muted/90">
                         <Info className="h-3 w-3" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p className="text-sm">
-                        Since this is a fresh platform, you can establish yourself under an alias until you become a "Trusted Field Rep". 
-                        This allows you to build your reputation without preconceived notions.
+                        During the beta phase, display names are locked to prevent confusion. 
+                        Username customization will be available after the beta period ends.
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
               <FormControl>
-                <Input placeholder="ProInspector123" {...field} />
+                <Input 
+                  {...field} 
+                  disabled 
+                  className="bg-muted text-muted-foreground cursor-not-allowed"
+                  placeholder="Locked during beta"
+                />
               </FormControl>
+              <div className="text-xs text-muted-foreground">
+                🔒 Username editing locked during beta - Renaming will be available post-beta
+              </div>
               <FormMessage />
             </FormItem>
           )}
