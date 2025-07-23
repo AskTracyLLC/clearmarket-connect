@@ -4,8 +4,9 @@ import { CreateUserForm } from "./CreateUserForm";
 import { InvitationStatus } from "./InvitationStatus";
 import { UserDirectory } from "./UserDirectory";
 import { RoleAssignment } from "./RoleAssignment";
+import { BetaTesterManagement } from "./BetaTesterManagement";
 import { UserActivityLog } from "../UserActivityLog";
-import { UserPlus, Mail, Users, UserCog, ClipboardList } from "lucide-react";
+import { UserPlus, Mail, Users, UserCog, ClipboardList, TestTube } from "lucide-react";
 
 export const UserManagement = () => {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -18,10 +19,14 @@ export const UserManagement = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="roles" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="roles" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Users & Directory
+          </TabsTrigger>
+          <TabsTrigger value="beta" className="flex items-center gap-2">
+            <TestTube className="h-4 w-4" />
+            Beta Testers
           </TabsTrigger>
           <TabsTrigger value="activity" className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4" />
@@ -39,6 +44,10 @@ export const UserManagement = () => {
 
         <TabsContent value="roles" className="mt-6">
           <RoleAssignment />
+        </TabsContent>
+
+        <TabsContent value="beta" className="mt-6">
+          <BetaTesterManagement />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
