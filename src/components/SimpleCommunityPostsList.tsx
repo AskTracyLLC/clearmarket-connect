@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { CommunityPost } from "@/hooks/useCommunityPosts";
 import SimpleCommunityPostCard from "./SimpleCommunityPostCard";
-import PostDetailModal from "./PostDetailModal";
+import SimplePostDetailModal from "./SimplePostDetailModal";
+import { Dialog } from "@/components/ui/dialog";
 
 interface SimpleCommunityPostsListProps {
   posts: CommunityPost[];
   onVote: (postId: string, type: 'helpful' | 'not-helpful') => void;
   onFlag: (postId: string) => void;
+  onFunnyVote?: (postId: string) => void;
 }
 
 const SimpleCommunityPostsList = ({ 
   posts, 
   onVote, 
-  onFlag
+  onFlag,
+  onFunnyVote
 }: SimpleCommunityPostsListProps) => {
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -45,17 +48,22 @@ const SimpleCommunityPostsList = ({
             onReply={() => handleReplyClick(post)}
             onVote={onVote}
             onFlag={onFlag}
+            onFunnyVote={onFunnyVote}
           />
         ))}
       </div>
 
-      <PostDetailModal
-        post={selectedPost}
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        onVote={onVote}
-        onFlag={onFlag}
-      />
+      {selectedPost && (
+        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+          <SimplePostDetailModal
+            post={selectedPost}
+            onClose={() => setIsDetailModalOpen(false)}
+            onVote={onVote}
+            onFlag={onFlag}
+            onFunnyVote={onFunnyVote}
+          />
+        </Dialog>
+      )}
     </>
   );
 };

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, Flag, MessageSquare } from "lucide-react";
+import { ThumbsUp, Flag, Bookmark, MessageCircle, Laugh, Camera } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/hooks/useCommunityPosts";
+import { useSavedPosts } from "@/hooks/useSavedPosts";
 import { getPostTypeColor } from "@/utils/postTypeColors";
 
 interface SimpleCommunityPostCardProps {
@@ -13,151 +14,187 @@ interface SimpleCommunityPostCardProps {
   onReply: () => void;
   onVote: (postId: string, type: 'helpful' | 'not-helpful') => void;
   onFlag: (postId: string) => void;
+  onFunnyVote?: (postId: string) => void;
 }
 
-const SimpleCommunityPostCard = ({ post, onClick, onReply, onVote, onFlag }: SimpleCommunityPostCardProps) => {
-  const [isVoting, setIsVoting] = useState(false);
+const SimpleCommunityPostCard = ({ 
+  post, 
+  onClick, 
+  onReply, 
+  onVote, 
+  onFlag,
+  onFunnyVote
+}: SimpleCommunityPostCardProps) => {
+  const { toggleSavePost, isPostSaved } = useSavedPosts();
+  const [isSaved, setIsSaved] = useState(false);
 
-  const handleVote = async () => {
-    setIsVoting(true);
-    try {
-      await onVote(post.id, 'helpful');
-    } finally {
-      setIsVoting(false);
+  // Check if post is saved on component mount
+  useState(() => {
+    isPostSaved(post.id).then(setIsSaved);
+  });
+
+  const handleVote = () => {
+    onVote(post.id, 'helpful');
+  };
+
+  const handleFlag = () => {
+    onFlag(post.id);
+  };
+
+  const handleFunnyVote = () => {
+    if (onFunnyVote) {
+      onFunnyVote(post.id);
     }
   };
 
-  const handleFlag = async () => {
-    await onFlag(post.id);
+  const handleSave = async () => {
+    await toggleSavePost(post.id);
+    const saved = await isPostSaved(post.id);
+    setIsSaved(saved);
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+    <Card 
+      className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${
+        post.flagged ? 'opacity-60 bg-muted/30' : 'hover:shadow-lg'
+      } ${getPostTypeColor(post.post_type)}`}
+      onClick={onClick}
+    >
       <CardContent className="p-6">
-        <div className="flex gap-4">
-          {/* Author info - Left side */}
-          <div className="flex flex-col items-center gap-2 min-w-[80px]">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-              {post.is_anonymous ? "A" : (post.author_display_name?.charAt(0)?.toUpperCase() || post.author_anonymous_username?.charAt(0)?.toUpperCase() || "U")}
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+              {post.is_anonymous ? "A" : post.author_anonymous_username?.[0] || "U"}
             </div>
-            <div className="text-center">
-              <div className="text-sm font-medium leading-tight">
-                {post.is_anonymous 
-                  ? "Anonymous" 
-                  : (post.author_display_name || post.author_anonymous_username || "Community Member")
-                }
-              </div>
-              {!post.is_anonymous && (
-                <div className="flex flex-col gap-1 mt-1">
-                  {post.author_role && (
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {post.author_role.replace('_', ' ')}
-                    </Badge>
-                  )}
-                  <div className="flex flex-col text-xs text-muted-foreground">
-                    {post.author_trust_score !== null && (
-                      <span>Trust: {post.author_trust_score}</span>
-                    )}
-                    {post.author_community_score !== null && (
-                      <span>Pulse: {post.author_community_score}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Post content - Right side */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-medium text-sm">
+                  {post.is_anonymous ? "Anonymous" : post.author_display_name || "Community Member"}
+                </span>
                 <Badge 
                   variant="outline" 
                   className={`${getPostTypeColor(post.post_type)} text-xs`}
                 >
                   {post.post_type.replace('-', ' ')}
                 </Badge>
-                {post.flagged && (
-                  <Badge variant="destructive" className="text-xs">
-                    Flagged
-                  </Badge>
-                )}
               </div>
-              <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-              </span>
-            </div>
-
-            <div onClick={onClick}>
-              {post.title && (
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                  {post.title}
-                </h3>
-              )}
-              
-              <p className="text-muted-foreground mb-4 line-clamp-3 whitespace-pre-wrap">
-                {post.content}
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} • {post.section}
               </p>
             </div>
+          </div>
+        </div>
 
-            {/* Tags */}
-            {(post.user_tags?.length > 0 || post.system_tags?.length > 0) && (
-              <div className="flex flex-wrap gap-1 mb-4">
-                {post.user_tags?.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-                {post.system_tags?.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
+        {/* Title */}
+        {post.title && (
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+            {post.title}
+          </h3>
+        )}
+
+        {/* Content */}
+        <div className="mb-4">
+          <p className="text-muted-foreground line-clamp-3 whitespace-pre-wrap">
+            {post.content}
+          </p>
+        </div>
+
+        {/* Tags */}
+        {(post.user_tags?.length > 0 || post.system_tags?.length > 0) && (
+          <div className="flex flex-wrap gap-1 mb-4">
+            {post.user_tags?.slice(0, 3).map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+            {post.system_tags?.slice(0, 2).map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Screenshots indicator */}
+        {post.screenshots && post.screenshots.length > 0 && (
+          <div className="flex items-center gap-1 mb-4 text-sm text-muted-foreground">
+            <Camera className="h-4 w-4" />
+            <span>{post.screenshots.length} image{post.screenshots.length > 1 ? 's' : ''}</span>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-3 border-t">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleVote();
+              }}
+              className="text-muted-foreground hover:text-primary"
+            >
+              <ThumbsUp className="h-4 w-4 mr-1" />
+              <span className="text-xs">{post.helpful_votes}</span>
+            </Button>
+
+            {onFunnyVote && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFunnyVote();
+                }}
+                className="text-muted-foreground hover:text-orange-500"
+              >
+                <Laugh className="h-4 w-4 mr-1" />
+                <span className="text-xs">{post.funny_votes || 0}</span>
+              </Button>
             )}
 
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleVote}
-                  disabled={isVoting}
-                  className="flex items-center gap-1 text-muted-foreground hover:text-primary"
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                  <span>{post.helpful_votes}</span>
-                </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onReply();
+              }}
+              className="text-muted-foreground hover:text-primary"
+            >
+              <MessageCircle className="h-4 w-4 mr-1" />
+              <span className="text-xs">Reply</span>
+            </Button>
+          </div>
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onReply();
-                  }}
-                  className="flex items-center gap-1 text-muted-foreground hover:text-primary"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  <span>Reply</span>
-                </Button>
-              </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSave();
+              }}
+              className={`text-muted-foreground hover:text-primary ${
+                isSaved ? 'text-primary' : ''
+              }`}
+            >
+              <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+            </Button>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFlag();
-                  }}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Flag className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFlag();
+              }}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Flag className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </CardContent>

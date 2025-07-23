@@ -11,6 +11,7 @@ export interface CommunityPost {
   user_id: string;
   is_anonymous: boolean;
   helpful_votes: number;
+  funny_votes?: number;
   flagged: boolean;
   created_at: string;
   updated_at: string;
@@ -39,16 +40,7 @@ export const useCommunityPosts = (section?: string) => {
     try {
       let query = supabase
         .from('community_posts')
-        .select(`
-          *,
-          users!community_posts_user_id_fkey (
-            display_name,
-            anonymous_username,
-            role,
-            trust_score,
-            community_score
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (section) {
@@ -61,15 +53,15 @@ export const useCommunityPosts = (section?: string) => {
         throw new Error(fetchError.message);
       }
 
-      // Transform data to include author details
+      // For now, just use the posts without user data joins
+      // User info can be added later when we have proper profiles table
       const transformedPosts = (data || []).map((post: any) => ({
         ...post,
-        author_display_name: post.users?.display_name,
-        author_anonymous_username: post.users?.anonymous_username,
-        author_role: post.users?.role,
-        author_trust_score: post.users?.trust_score,
-        author_community_score: post.users?.community_score,
-        users: undefined // Remove the nested object
+        author_display_name: 'Community Member',
+        author_anonymous_username: `User${post.user_id.slice(-4)}`,
+        author_role: 'member',
+        author_trust_score: 50,
+        author_community_score: 25
       }));
       
       setPosts(transformedPosts);
@@ -185,6 +177,37 @@ export const useCommunityPosts = (section?: string) => {
     }
   };
 
+  const handleFunnyVote = async (postId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to vote",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // For now, just show a toast since the tables don't exist yet
+      toast({
+        title: "Feature coming soon",
+        description: "Funny voting will be available after database setup",
+        variant: "default"
+      });
+
+      // Refresh posts
+      fetchPosts();
+    } catch (err: any) {
+      console.error('Error voting funny:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add funny vote",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreatePost = async (newPost: {
     type: string;
     title: string;
@@ -253,6 +276,7 @@ export const useCommunityPosts = (section?: string) => {
     error,
     handleVote,
     handleFlag,
+    handleFunnyVote,
     handleCreatePost,
     refetch: fetchPosts
   };

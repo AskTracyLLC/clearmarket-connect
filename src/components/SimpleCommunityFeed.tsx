@@ -28,7 +28,7 @@ const SimpleCommunityFeed = ({
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   
   // Get all posts for filtering
-  const { posts: allPosts, loading: allLoading, handleVote, handleFlag, handleCreatePost } = useCommunityPosts();
+  const { posts: allPosts, loading: allLoading, handleVote, handleFlag, handleFunnyVote, handleCreatePost } = useCommunityPosts();
   const { posts: fieldRepPosts, loading: fieldRepLoading } = useCommunityPosts('field-rep-forum');
   const { posts: vendorPosts, loading: vendorLoading } = useCommunityPosts('vendor-bulletin');
   const { posts: betaTestersPost, loading: betaTestersLoading } = useCommunityPosts('beta-testers');
@@ -168,9 +168,10 @@ const SimpleCommunityFeed = ({
         </div>
       ) : (
         <SimpleCommunityPostsList 
-          posts={filteredPosts} 
+          posts={filteredPosts}
           onVote={handleVote}
           onFlag={handleFlag}
+          onFunnyVote={handleFunnyVote}
         />
       )}
 
