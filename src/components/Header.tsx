@@ -1,32 +1,39 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle,
+  SheetTrigger 
+} from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
 import { useDualBalance } from '@/hooks/dual_balance_hook';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
 import ProfileDropdown from '@/components/ui/ProfileDropdown';
 import NotificationBell from '@/components/ui/NotificationBell';
-import CreditBalance from '@/components/ui/CreditBalance';
 import SendFieldRepNetworkAlert from '@/components/FieldRepDashboard/SendFieldRepNetworkAlert';
 import { 
   User, 
   LogOut, 
-  Trophy, 
+  Star, 
   CreditCard, 
-  Gift,
   Settings,
   Menu,
-  X,
   MessageSquare,
-  MapPin,
-  Users,
   Calendar,
-  Bell,
-  Megaphone
+  HelpCircle,
+  ShoppingCart,
+  LayoutDashboard,
+  X,
+  Mail
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -36,7 +43,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from 'react';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -44,11 +50,8 @@ const Header = () => {
   const { signOut } = useAuth();
   const { profile, loading } = useUserProfile();
   const { balance, isLoading } = useDualBalance();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [networkAlertOpen, setNetworkAlertOpen] = useState(false);
-
-  // Debug logging to check profile data
-  console.log('Header - Profile data:', { profile, loading, role: profile?.role });
+  const isMobile = useIsMobile();
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -67,231 +70,272 @@ const Header = () => {
     }
   };
 
-  const handleViewGiveaways = () => {
-    navigate('/giveaways');
-    setMobileMenuOpen(false);
-  };
-
   const handleBuyCredits = () => {
     navigate('/credits/purchase');
-    setMobileMenuOpen(false);
+    setMobileSheetOpen(false);
   };
 
-  const handleNetworkAlerts = () => {
-    setNetworkAlertOpen(true);
-    setMobileMenuOpen(false);
+  // Get appropriate dashboard route based on user role
+  const getDashboardRoute = () => {
+    if (!profile) return '/dashboard';
+    return profile.role === 'vendor' ? '/vendor/dashboard' : '/fieldrep/dashboard';
   };
 
-  // Show network alert button for field reps or if profile is still loading
-  const showNetworkAlerts = !loading && profile?.role === 'field_rep';
+  // Mobile navigation close handler
+  const handleMobileNavClick = (path: string) => {
+    navigate(path);
+    setMobileSheetOpen(false);
+  };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <ClearMarketLogo size={32} />
-              <span className="font-bold text-xl text-gray-900">ClearMarket</span>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/community" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden lg:inline">Community</span>
-            </Link>
-            <Link to="/coverage" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span className="hidden lg:inline">Coverage</span>
-            </Link>
-            <Link to="/network" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden lg:inline">Network</span>
-            </Link>
-            <Link to="/calendar" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden lg:inline">Calendar</span>
-            </Link>
-          </nav>
-
-          {/* Desktop Actions & User Menu */}
-          <div className="hidden md:flex items-center space-x-3">
+    <>
+      <header className="bg-background border-b border-border sticky top-0 z-50 backdrop-blur-sm bg-background/95">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             
-            {/* RepPoints */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleViewGiveaways}
-              className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-            >
-              <Trophy className="h-4 w-4" />
-              <span className="font-medium">
-                {isLoading ? '0' : balance.repPoints}
-              </span>
-              <span className="text-xs hidden lg:inline">RepPoints</span>
-            </Button>
+            {/* Desktop Layout */}
+            {!isMobile ? (
+              <>
+                {/* Logo */}
+                <div className="flex items-center">
+                  <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+                    <ClearMarketLogo size={32} />
+                    <span className="font-bold text-xl text-foreground">ClearMarket</span>
+                  </Link>
+                </div>
 
-            {/* Credits */}
-            <CreditBalance />
-            
-            {/* Network Alert Button - only for field reps */}
-            {showNetworkAlerts && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNetworkAlerts}
-                className="flex items-center gap-2 text-muted-foreground hover:text-primary bg-blue-50 hover:bg-blue-100 border border-blue-200"
-              >
-                <Megaphone className="h-4 w-4 text-blue-600" />
-                <span className="text-xs hidden lg:inline text-blue-900">Network Alerts</span>
-              </Button>
+                {/* Main Navigation */}
+                <nav className="flex items-center space-x-8">
+                  <Link 
+                    to={getDashboardRoute()} 
+                    className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    to="/community" 
+                    className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50"
+                  >
+                    Community
+                  </Link>
+                  <Link 
+                    to="/messages" 
+                    className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50"
+                  >
+                    Messages
+                  </Link>
+                </nav>
+
+                {/* User Area */}
+                <div className="flex items-center space-x-4">
+                  {/* Currency Display */}
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                    >
+                      <Star className="h-4 w-4 text-primary" />
+                      <span className="font-medium">
+                        {isLoading ? '0' : balance?.repPoints || 0}
+                      </span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBuyCredits}
+                      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                    >
+                      <CreditCard className="h-4 w-4 text-accent" />
+                      <span className="font-medium">
+                        {isLoading ? '0' : balance?.clearCredits || 0}
+                      </span>
+                    </Button>
+                  </div>
+
+                  {/* Notifications */}
+                  <NotificationBell count={0} onClick={() => navigate('/notifications')} />
+
+                  {/* User Profile */}
+                  <ProfileDropdown
+                    profile={profile}
+                    onSignOut={handleSignOut}
+                  />
+                </div>
+              </>
+            ) : (
+              /* Mobile Layout */
+              <>
+                {/* Mobile Menu Button */}
+                <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-10 w-10">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-80 p-0">
+                    <SheetHeader className="p-6 pb-4">
+                      <SheetTitle className="text-left">Menu</SheetTitle>
+                    </SheetHeader>
+                    
+                    {/* User Info Section */}
+                    <div className="px-6 pb-4 border-b border-border">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {profile?.display_name?.[0] || profile?.anonymous_username?.[0] || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {profile?.display_name || profile?.anonymous_username || 'User'}
+                          </div>
+                          <div className="text-xs text-muted-foreground capitalize">
+                            {profile?.role || 'field_rep'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Currency Section */}
+                    <div className="p-6 space-y-3">
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center">
+                              <div className="flex items-center justify-center space-x-1 mb-1">
+                                <Star className="h-4 w-4 text-primary" />
+                                <span className="text-lg font-bold">
+                                  {isLoading ? '0' : balance?.repPoints || 0}
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">RepPoints</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="flex items-center justify-center space-x-1 mb-1">
+                                <CreditCard className="h-4 w-4 text-accent" />
+                                <span className="text-lg font-bold">
+                                  {isLoading ? '0' : balance?.clearCredits || 0}
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">ClearCredits</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Button 
+                        onClick={handleBuyCredits} 
+                        className="w-full" 
+                        size="sm"
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Buy More Credits
+                      </Button>
+                    </div>
+
+                    {/* Navigation */}
+                    <nav className="px-6 space-y-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick(getDashboardRoute())}
+                      >
+                        <LayoutDashboard className="h-5 w-5 mr-3" />
+                        Dashboard
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick('/community')}
+                      >
+                        <MessageSquare className="h-5 w-5 mr-3" />
+                        Community
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick('/messages')}
+                      >
+                        <Mail className="h-5 w-5 mr-3" />
+                        Messages
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick('/calendar')}
+                      >
+                        <Calendar className="h-5 w-5 mr-3" />
+                        Calendar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick('/settings')}
+                      >
+                        <Settings className="h-5 w-5 mr-3" />
+                        Settings
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick('/help')}
+                      >
+                        <HelpCircle className="h-5 w-5 mr-3" />
+                        Help & FAQ
+                      </Button>
+                    </nav>
+
+                    {/* Sign Out */}
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setMobileSheetOpen(false);
+                          handleSignOut();
+                        }}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </Button>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                {/* Mobile Logo */}
+                <Link to="/" className="flex items-center space-x-2">
+                  <ClearMarketLogo size={28} />
+                  <span className="font-bold text-lg text-foreground">ClearMarket</span>
+                </Link>
+
+                {/* Mobile Notifications */}
+                <NotificationBell count={0} onClick={() => navigate('/notifications')} />
+              </>
             )}
-
-            {/* Notifications */}
-            <NotificationBell count={0} onClick={() => navigate('/notifications')} />
-
-            {/* User Profile */}
-            <ProfileDropdown
-              profile={profile}
-              onSignOut={handleSignOut}
-            />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4 space-y-4">
-            
-            {/* Mobile Balance Display */}
-            <div className="flex justify-center space-x-2 pb-4 border-b border-gray-100">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleViewGiveaways}
-                className="flex items-center gap-2 bg-blue-50 border-blue-200"
-              >
-                <Trophy className="h-4 w-4 text-blue-600" />
-                <span className="text-blue-900 font-medium">
-                  {isLoading ? '...' : balance.repPoints}
-                </span>
-                <span className="text-blue-600 text-xs">RepPoints</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBuyCredits}
-                className="flex items-center gap-2 bg-green-50 border-green-200"
-              >
-                <CreditCard className="h-4 w-4 text-green-600" />
-                <span className="text-green-900 font-medium">
-                  {isLoading ? '...' : balance.clearCredits}
-                </span>
-                <span className="text-green-600 text-xs">Credits</span>
-              </Button>
+        {/* Mobile Quick Currency Strip */}
+        {isMobile && (
+          <div className="bg-muted/30 border-t border-border px-4 py-2">
+            <div className="flex justify-center space-x-6">
+              <div className="flex items-center space-x-1 text-sm">
+                <Star className="h-3 w-3 text-primary" />
+                <span className="font-medium">{isLoading ? '0' : balance?.repPoints || 0}</span>
+                <span className="text-muted-foreground text-xs">RP</span>
+              </div>
+              <div className="flex items-center space-x-1 text-sm">
+                <CreditCard className="h-3 w-3 text-accent" />
+                <span className="font-medium">{isLoading ? '0' : balance?.clearCredits || 0}</span>
+                <span className="text-muted-foreground text-xs">Credits</span>
+              </div>
             </div>
-
-            {/* Mobile Navigation Links */}
-            <nav className="space-y-2">
-              <Link 
-                to="/fieldrep/dashboard" 
-                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <User className="h-4 w-4" />
-                Dashboard
-              </Link>
-              <Link 
-                to="/community" 
-                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <MessageSquare className="h-4 w-4" />
-                Community
-              </Link>
-              <Link 
-                to="/coverage" 
-                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <MapPin className="h-4 w-4" />
-                Coverage
-              </Link>
-              <Link 
-                to="/network" 
-                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Users className="h-4 w-4" />
-                Network
-              </Link>
-              <Link 
-                to="/calendar" 
-                className="flex items-center gap-3 px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Calendar className="h-4 w-4" />
-                Calendar
-              </Link>
-              
-              {/* Network Alerts in Mobile Menu for Field Reps */}
-              {showNetworkAlerts && (
-                <button 
-                  onClick={handleNetworkAlerts}
-                  className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md bg-blue-50 border border-blue-200"
-                >
-                  <Megaphone className="h-4 w-4 text-blue-600" />
-                  <span className="text-blue-900">Network Alerts</span>
-                </button>
-              )}
-              
-              <button 
-                onClick={handleViewGiveaways}
-                className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-              >
-                <Gift className="h-4 w-4" />
-                Giveaways
-              </button>
-              <button 
-                onClick={handleSignOut}
-                className="flex items-center gap-3 w-full text-left px-4 py-2 text-muted-foreground hover:bg-muted rounded-md"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </button>
-            </nav>
           </div>
         )}
-      </div>
-
-      {/* Network Alert Modal */}
-      {showNetworkAlerts && (
-        <SendFieldRepNetworkAlert
-          open={networkAlertOpen}
-          onOpenChange={setNetworkAlertOpen}
-          networkSize={0}
-        />
-      )}
-    </header>
+      </header>
+    </>
   );
 };
 
