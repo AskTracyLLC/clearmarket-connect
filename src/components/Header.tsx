@@ -133,7 +133,8 @@ const Header = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                      onClick={() => navigate('/giveaways')}
+                      className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Star className="h-4 w-4 text-primary" />
                       <span className="font-medium">
@@ -143,8 +144,8 @@ const Header = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleBuyCredits}
-                      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                      onClick={() => navigate('/store')}
+                      className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                     >
                       <CreditCard className="h-4 w-4 text-accent" />
                       <span className="font-medium">
