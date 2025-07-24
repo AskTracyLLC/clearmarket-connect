@@ -31,6 +31,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
+import EmailVerifyHandler from "./pages/EmailVerifyHandler";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import BetaRegister from "./pages/BetaRegister";
 import BetaNDA from "./pages/BetaNDA";
@@ -55,6 +56,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/auth/verify" element={<EmailVerifyHandler />} />
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />

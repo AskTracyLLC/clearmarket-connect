@@ -19,13 +19,23 @@ const Index = () => {
   const [searchParams] = useSearchParams();
 
   // Redirect to prelaunch page immediately when component mounts
-  // unless there's a bypass parameter indicating admin access
+  // unless there's a bypass parameter or email verification tokens
   useEffect(() => {
     const bypass = searchParams.get('bypass');
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
     const currentPath = window.location.pathname;
     
+    // Don't redirect if on admin routes
     if (currentPath.startsWith('/admin')) {
       console.log('✅ Index: Admin route detected, not redirecting to prelaunch');
+      return;
+    }
+    
+    // Don't redirect if this is an email verification scenario
+    if (token && type === 'signup') {
+      console.log('✅ Index: Email verification detected, redirecting to verify handler');
+      navigate('/auth/verify', { replace: true });
       return;
     }
     

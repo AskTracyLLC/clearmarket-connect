@@ -129,22 +129,40 @@ const AuthPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    try {
+      // Use dedicated verification handler route
+      const redirectUrl = `${window.location.origin}/auth/verify`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Error creating account",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
       toast({
         title: "Error creating account",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
-      });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
