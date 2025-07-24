@@ -50,10 +50,12 @@ const BetaNDA = () => {
         if (error) throw error;
 
         const displayName = data?.display_name || data?.anonymous_username || 'User';
+        const username = data?.anonymous_username || 'User';
+        
         setUserDisplayName(displayName);
-        setAnonymousUsername(data?.anonymous_username || '');
+        setAnonymousUsername(username);
         setUserEmail(user.email || '');
-        setSignature(displayName); // Auto-fill signature field
+        setSignature(username); // Auto-fill signature field with anonymous username
       } catch (err) {
         console.error('Error fetching user details:', err);
         setUserDisplayName('User');
