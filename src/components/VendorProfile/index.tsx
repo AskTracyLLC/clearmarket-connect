@@ -16,6 +16,7 @@ import { VendorCompanyBio } from "./VendorCompanyBio";
 import { VendorAdditionalInfo } from "./VendorAdditionalInfo";
 import VendorNetworkTab from "./VendorNetworkTab";
 import VendorReferralTab from "./VendorReferralTab";
+import VendorStaffTab from "./VendorStaffTab";
 import { mockCurrentVendor } from "@/data/mockVendorData";
 
 const VendorProfile = () => {
@@ -82,7 +83,7 @@ const VendorProfile = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile">Company Profile</TabsTrigger>
               <TabsTrigger value="network" className="flex items-center gap-2">
                 My Network 
@@ -96,6 +97,7 @@ const VendorProfile = () => {
                   {mockCurrentVendor.referrals.filter(ref => ref.creditEarned).length}
                 </span>
               </TabsTrigger>
+              <TabsTrigger value="staff">Staff</TabsTrigger>
             </TabsList>
             
             <TabsContent value="profile" className="mt-6">
@@ -127,6 +129,10 @@ const VendorProfile = () => {
             
             <TabsContent value="referrals" className="mt-6">
               <VendorReferralTab />
+            </TabsContent>
+            
+            <TabsContent value="staff" className="mt-6">
+              <VendorStaffTab />
             </TabsContent>
           </Tabs>
         </CardContent>
