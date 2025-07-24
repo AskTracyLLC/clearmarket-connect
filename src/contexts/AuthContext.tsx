@@ -66,8 +66,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           // Define public routes that should not trigger redirects
-          const publicRoutes = ['/', '/prelaunch', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/beta-nda'];
+          const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/beta-nda'];
           const isOnPublicRoute = publicRoutes.includes(window.location.pathname);
+          
+          // Special handling for prelaunch - authenticated users should be redirected away from it
+          if (window.location.pathname === '/prelaunch') {
+            console.log('🔍 AuthContext (SIGNED_IN): Authenticated user on prelaunch page, checking redirect');
+            if (isVerified) {
+              console.log('📍 AuthContext (SIGNED_IN): Redirecting verified user from prelaunch to NDA page');
+              window.location.href = '/beta-nda';
+              return;
+            } else {
+              console.log('📍 AuthContext (SIGNED_IN): Redirecting unverified user from prelaunch to verify email');
+              window.location.href = '/verify-email';
+              return;
+            }
+          }
           
           // Don't redirect if on a public route
           if (isOnPublicRoute) {
@@ -106,8 +120,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         // Define public routes that should not trigger redirects
-        const publicRoutes = ['/', '/prelaunch', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/beta-nda'];
+        const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/beta-nda'];
         const isOnPublicRoute = publicRoutes.includes(window.location.pathname);
+        
+        // Special handling for prelaunch - authenticated users should be redirected away from it
+        if (window.location.pathname === '/prelaunch') {
+          console.log('🔍 AuthContext: Authenticated user on prelaunch page, checking redirect');
+          if (isVerified) {
+            console.log('📍 AuthContext: Redirecting verified user from prelaunch to NDA page');
+            window.location.href = '/beta-nda';
+            return;
+          } else {
+            console.log('📍 AuthContext: Redirecting unverified user from prelaunch to verify email');
+            window.location.href = '/verify-email';
+            return;
+          }
+        }
         
         // Don't redirect if on a public route
         if (isOnPublicRoute) {
