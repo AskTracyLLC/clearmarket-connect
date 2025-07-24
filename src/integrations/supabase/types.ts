@@ -193,6 +193,13 @@ export type Database = {
             foreignKeyName: "beta_registration_tokens_created_user_id_fkey"
             columns: ["created_user_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_registration_tokens_created_user_id_fkey"
+            columns: ["created_user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1054,6 +1061,13 @@ export type Database = {
             foreignKeyName: "direct_messages_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1062,6 +1076,13 @@ export type Database = {
             columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1494,6 +1515,13 @@ export type Database = {
             foreignKeyName: "giveaway_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "giveaway_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1793,6 +1821,118 @@ export type Database = {
         }
         Relationships: []
       }
+      message_threads: {
+        Row: {
+          created_at: string
+          field_rep_id: string
+          id: string
+          last_message_at: string
+          vendor_org_id: string
+        }
+        Insert: {
+          created_at?: string
+          field_rep_id: string
+          id?: string
+          last_message_at?: string
+          vendor_org_id: string
+        }
+        Update: {
+          created_at?: string
+          field_rep_id?: string
+          id?: string
+          last_message_at?: string
+          vendor_org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_field_rep_id_fkey"
+            columns: ["field_rep_id"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_field_rep_id_fkey"
+            columns: ["field_rep_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_field_rep_id_fkey"
+            columns: ["field_rep_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_vendor_org_id_fkey"
+            columns: ["vendor_org_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          created_at: string
+          file_url: string | null
+          id: string
+          is_read_by: Json
+          message_text: string
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_read_by?: Json
+          message_text: string
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_read_by?: Json
+          message_text?: string
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moderation_actions: {
         Row: {
           action_type: string
@@ -1889,6 +2029,13 @@ export type Database = {
             foreignKeyName: "monthly_giveaways_sponsor_id_fkey"
             columns: ["sponsor_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_giveaways_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1897,6 +2044,13 @@ export type Database = {
             columns: ["sponsor_id"]
             isOneToOne: false
             referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_giveaways_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2239,6 +2393,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "response_time_tracking_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "response_time_tracking_user_id_fkey"
             columns: ["user_id"]
@@ -2858,6 +3019,13 @@ export type Database = {
             foreignKeyName: "user_business_hours_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_business_hours_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -2931,6 +3099,13 @@ export type Database = {
             columns: ["badge_id"]
             isOneToOne: false
             referencedRelation: "communication_badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_communication_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3015,6 +3190,13 @@ export type Database = {
             foreignKeyName: "user_documents_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -3023,6 +3205,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_documents_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3345,6 +3534,13 @@ export type Database = {
             foreignKeyName: "vendor_giveaway_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_giveaway_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -3503,6 +3699,13 @@ export type Database = {
             foreignKeyName: "vendor_network_giveaways_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_network_giveaways_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -3517,6 +3720,13 @@ export type Database = {
             foreignKeyName: "vendor_network_giveaways_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_network_giveaways_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -3525,6 +3735,80 @@ export type Database = {
             columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_organizations: {
+        Row: {
+          company_name: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      vendor_staff_members: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          role: string
+          user_id: string
+          vendor_org_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role: string
+          user_id: string
+          vendor_org_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          user_id?: string
+          vendor_org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_staff_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "field_rep_full_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_staff_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_staff_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_display_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_staff_members_vendor_org_id_fkey"
+            columns: ["vendor_org_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3659,54 +3943,41 @@ export type Database = {
       }
       field_rep_full_profiles: {
         Row: {
-          anonymous_username: string | null
-          aspen_grove_expiration: string | null
-          aspen_grove_id: string | null
-          aspen_grove_image: string | null
-          bio: string | null
-          city: string | null
           community_score: number | null
           created_at: string | null
-          credits: number | null
           display_name: string | null
+          email: string | null
           first_name: string | null
           hud_keys: string[] | null
           id: string | null
           inspection_types: string[] | null
-          interested_in_beta: boolean | null
+          is_active: boolean | null
           last_name: string | null
-          other_hud_key: string | null
-          other_platform: string | null
           phone: string | null
-          platforms: string[] | null
-          profile_complete_percentage: number | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          state: string | null
+          profile_complete: number | null
           trust_score: number | null
           updated_at: string | null
-          user_id: string | null
-          zip_code: string | null
         }
         Relationships: []
       }
       user_balances: {
         Row: {
           clear_credits: number | null
-          rep_points: number | null
+          paid_credits: number | null
           total_earned_credits: number | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           clear_credits?: never
-          rep_points?: never
+          paid_credits?: never
           total_earned_credits?: never
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           clear_credits?: never
-          rep_points?: never
+          paid_credits?: never
           total_earned_credits?: never
           updated_at?: string | null
           user_id?: string | null
@@ -3715,8 +3986,6 @@ export type Database = {
       }
       users_with_display_names: {
         Row: {
-          anonymous_username: string | null
-          boost_expiration: string | null
           community_score: number | null
           created_at: string | null
           display_name: string | null
@@ -3725,33 +3994,6 @@ export type Database = {
           profile_complete: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           trust_score: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          anonymous_username?: string | null
-          boost_expiration?: string | null
-          community_score?: number | null
-          created_at?: string | null
-          display_name?: never
-          id?: string | null
-          last_active?: string | null
-          profile_complete?: number | null
-          role?: Database["public"]["Enums"]["user_role"] | null
-          trust_score?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          anonymous_username?: string | null
-          boost_expiration?: string | null
-          community_score?: number | null
-          created_at?: string | null
-          display_name?: never
-          id?: string | null
-          last_active?: string | null
-          profile_complete?: number | null
-          role?: Database["public"]["Enums"]["user_role"] | null
-          trust_score?: number | null
-          updated_at?: string | null
         }
         Relationships: []
       }
