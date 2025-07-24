@@ -56,8 +56,30 @@ const AuthPage = () => {
           description: "You have successfully signed in.",
         });
       } else {
-        // Fetch user role from database and redirect to appropriate dashboard
+        // For non-admin users, check NDA status first
         try {
+          const { data: ndaSignature, error: ndaError } = await supabase
+            .from('nda_signatures')
+            .select('*')
+            .eq('user_id', user?.id)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (ndaError) {
+            console.error('Error checking NDA status:', ndaError);
+          }
+
+          // If user hasn't signed NDA, redirect to NDA page
+          if (!ndaSignature) {
+            navigate('/beta-nda');
+            toast({
+              title: "Welcome back!",
+              description: "Please review and sign the beta agreement to continue.",
+            });
+            return;
+          }
+
+          // User has signed NDA, fetch role and redirect to appropriate dashboard
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select('role')
@@ -90,11 +112,11 @@ const AuthPage = () => {
           });
         } catch (roleError) {
           console.error('Error fetching user role:', roleError);
-          // Fallback to home page if role fetch fails
-          navigate('/');
+          // Fallback to NDA page if anything fails for non-admin users
+          navigate('/beta-nda');
           toast({
             title: "Welcome back!",
-            description: "You have successfully signed in.",
+            description: "Please complete your account setup.",
           });
         }
       }
