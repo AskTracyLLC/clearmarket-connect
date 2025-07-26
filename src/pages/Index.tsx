@@ -39,9 +39,20 @@ const Index = () => {
       return;
     }
     
+    // Check if user came from /auth or is trying to access authentication
+    const referrer = document.referrer;
+    const fromAuth = referrer.includes('/auth') || bypass === 'auth' || bypass === 'beta';
+    
     if (bypass === 'admin') {
       // Bypass the redirect for admin access
       navigate('/auth', { replace: true });
+    } else if (bypass === 'beta') {
+      // Beta users can access auth directly
+      navigate('/auth', { replace: true });
+    } else if (fromAuth) {
+      // If coming from auth page, don't redirect to prelaunch
+      console.log('✅ Index: User coming from auth, staying on index');
+      return;
     } else {
       navigate('/prelaunch', { replace: true });
     }

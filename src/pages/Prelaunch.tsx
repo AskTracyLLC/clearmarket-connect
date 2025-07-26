@@ -739,6 +739,14 @@ const Prelaunch = () => {
             <p className="text-muted-foreground mb-4">
               The professional marketplace for field inspection services
             </p>
+            <div className="mb-4">
+              <a 
+                href="/auth?bypass=beta" 
+                className="text-primary hover:text-primary/80 transition-colors font-medium underline"
+              >
+                Beta User Sign In
+              </a>
+            </div>
             <p className="text-sm text-muted-foreground">
               © 2025 ClearMarket. All rights reserved. | 
               hello@useclearmarket.io

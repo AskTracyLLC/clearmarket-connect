@@ -28,7 +28,8 @@ const AuthPage = () => {
         console.log('✅ AuthPage: Admin user detected - staying on auth page for manual redirect');
         return;
       }
-      navigate('/');
+      // Redirect to beta-nda page instead of index to avoid redirect loop
+      navigate('/beta-nda');
     }
   }, [user, navigate]);
 
