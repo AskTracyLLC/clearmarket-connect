@@ -10,8 +10,13 @@ interface RecaptchaWrapperProps {
   className?: string;
 }
 
-// Note: In production, store this in environment variables
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Test key for development
+// SECURITY: Production reCAPTCHA site key - should be configured in Supabase secrets
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+// SECURITY WARNING: Verify production site key is configured
+if (!RECAPTCHA_SITE_KEY) {
+  console.error('SECURITY WARNING: reCAPTCHA site key not configured. This is required for production.');
+}
 
 export const RecaptchaWrapper: React.FC<RecaptchaWrapperProps> = ({
   onVerify,

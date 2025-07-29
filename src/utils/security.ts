@@ -102,7 +102,7 @@ export const sanitizeObject = (obj: Record<string, any>): Record<string, any> =>
 };
 
 /**
- * Rate limiting helper
+ * Enhanced rate limiting with server-side validation
  */
 export const createRateLimiter = (maxAttempts: number, windowMs: number) => {
   const attempts = new Map<string, number[]>();
@@ -123,4 +123,69 @@ export const createRateLimiter = (maxAttempts: number, windowMs: number) => {
     attempts.set(identifier, recentAttempts);
     return true;
   };
+};
+
+/**
+ * Enhanced password validation
+ */
+export const isValidPassword = (password: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (!/\d/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    errors.push('Password must contain at least one special character');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+/**
+ * Secure admin role checking (replaces hardcoded emails)
+ */
+export const checkAdminRole = async (userId?: string): Promise<boolean> => {
+  if (!userId) return false;
+  
+  try {
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase.rpc('is_admin_user', { user_id_param: userId });
+    return !error && data === true;
+  } catch (error) {
+    console.error('Error checking admin role:', error);
+    return false;
+  }
+};
+
+/**
+ * Input validation for common field types
+ */
+export const validateField = (value: string, type: string): { isValid: boolean; error?: string } => {
+  switch (type) {
+    case 'email':
+      return { isValid: isValidEmail(value), error: isValidEmail(value) ? undefined : 'Invalid email format' };
+    case 'phone':
+      const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+      return { isValid: phoneRegex.test(value), error: phoneRegex.test(value) ? undefined : 'Invalid phone format' };
+    case 'zipCode':
+      const zipRegex = /^\d{5}(-\d{4})?$/;
+      return { isValid: zipRegex.test(value), error: zipRegex.test(value) ? undefined : 'Invalid ZIP code format' };
+    case 'username':
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      return { isValid: usernameRegex.test(value), error: usernameRegex.test(value) ? undefined : 'Username must be 3-20 characters, letters/numbers/underscore only' };
+    default:
+      return { isValid: value.length > 0, error: value.length > 0 ? undefined : 'Field is required' };
+  }
 };

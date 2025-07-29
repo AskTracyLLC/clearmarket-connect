@@ -10,6 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft } from 'lucide-react';
 import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
+import SecureFormField from '@/components/ui/secure-form-field';
+import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
+import { useSecureAuth, useSecureRateLimit } from '@/hooks/useSecureAuth';
+import { isValidPassword, checkAdminRole } from '@/utils/security';
 
 const AuthPage = () => {
   const [email, setEmail] = useState('');
@@ -21,16 +25,20 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      // Check if user is admin - admins should not be redirected automatically
-      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-      if (adminEmails.includes(user.email || '')) {
-        console.log('✅ AuthPage: Admin user detected - staying on auth page for manual redirect');
-        return;
+    const handleUserRedirect = async () => {
+      if (user) {
+        // SECURITY: Use secure database role checking instead of hardcoded emails
+        const isAdmin = await checkAdminRole(user.id);
+        if (isAdmin) {
+          console.log('✅ AuthPage: Admin user detected - staying on auth page for manual redirect');
+          return;
+        }
+        // Redirect to beta-nda page instead of index to avoid redirect loop
+        navigate('/beta-nda');
       }
-      // Redirect to beta-nda page instead of index to avoid redirect loop
-      navigate('/beta-nda');
-    }
+    };
+
+    handleUserRedirect();
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -46,18 +54,20 @@ const AuthPage = () => {
         variant: "destructive",
       });
     } else {
-      // Check if this is an admin email before checking database
+      // SECURITY: Use secure database role checking instead of hardcoded emails
       const user = (await supabase.auth.getUser()).data.user;
-      const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
       
-      if (user && adminEmails.includes(user.email || '')) {
-        // Admin user - redirect directly to admin dashboard
-        navigate('/admin');
-        toast({
-          title: "Welcome back, Admin!",
-          description: "You have successfully signed in.",
-        });
-      } else {
+      if (user) {
+        const isAdmin = await checkAdminRole(user.id);
+        
+        if (isAdmin) {
+          // Admin user - redirect directly to admin dashboard
+          navigate('/admin');
+          toast({
+            title: "Welcome back, Admin!",
+            description: "You have successfully signed in.",
+          });
+        } else {
         // For non-admin users, check NDA status first
         try {
           const { data: ndaSignature, error: ndaError } = await supabase
@@ -120,6 +130,7 @@ const AuthPage = () => {
             title: "Welcome back!",
             description: "Please complete your account setup.",
           });
+        }
         }
       }
     }
