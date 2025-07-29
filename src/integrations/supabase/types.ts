@@ -4098,6 +4098,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      check_rate_limit: {
+        Args: {
+          user_id_param: string
+          operation_type: string
+          max_attempts?: number
+          window_minutes?: number
+        }
+        Returns: boolean
+      }
       check_storage_available: {
         Args: { target_user_id: string; file_size_bytes: number }
         Returns: boolean
@@ -4306,6 +4315,10 @@ export type Database = {
       increment_daily_invite_count: {
         Args: { user_id_param: string }
         Returns: undefined
+      }
+      is_admin_user: {
+        Args: { user_id_param?: string }
+        Returns: boolean
       }
       is_beta_tester: {
         Args: { user_email: string }
