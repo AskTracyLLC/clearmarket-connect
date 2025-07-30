@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNDAStatus } from './useNDAStatus';
@@ -26,12 +26,43 @@ export const useRequireNDA = () => {
   const { hasSignedNDA, loading } = useNDAStatus();
   const navigate = useNavigate();
   const location = useLocation();
+  const [userNdaSigned, setUserNdaSigned] = useState<boolean | null>(null);
+
+  // Check user's NDA status from users table (more reliable than nda_signatures table)
+  useEffect(() => {
+    const checkUserNDAStatus = async () => {
+      if (!user) {
+        setUserNdaSigned(null);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('nda_signed')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error checking user NDA status:', error);
+          setUserNdaSigned(false);
+        } else {
+          setUserNdaSigned(data?.nda_signed || false);
+        }
+      } catch (error) {
+        console.error('Error in checkUserNDAStatus:', error);
+        setUserNdaSigned(false);
+      }
+    };
+
+    checkUserNDAStatus();
+  }, [user]);
 
   useEffect(() => {
     // Don't redirect if still loading or user is not authenticated
-    if (loading || !user) return;
+    if (loading || !user || userNdaSigned === null) return;
 
-    console.log('🔍 useRequireNDA - Starting checks for user:', user.email, 'on path:', location.pathname);
+    console.log('🔍 useRequireNDA - Starting checks for user:', user.email, 'on path:', location.pathname, 'NDA signed:', userNdaSigned);
 
     // Don't redirect if on a public route (check this FIRST before any other logic)
     if (PUBLIC_ROUTES.includes(location.pathname)) {
@@ -75,15 +106,18 @@ export const useRequireNDA = () => {
           return;
         }
 
-        // Only redirect if user is on a protected route AND hasn't signed NDA
-        if (!hasSignedNDA && !PUBLIC_ROUTES.includes(location.pathname)) {
-          console.log('❌ User has not signed NDA, redirecting to NDA page');
+        // Check both hasSignedNDA (from nda_signatures table) AND userNdaSigned (from users table)
+        const ndaCompleted = hasSignedNDA && userNdaSigned;
+        
+        // Only redirect if user is on a protected route AND hasn't completed NDA process
+        if (!ndaCompleted && !PUBLIC_ROUTES.includes(location.pathname)) {
+          console.log('❌ User has not completed NDA process, redirecting to NDA page. hasSignedNDA:', hasSignedNDA, 'userNdaSigned:', userNdaSigned);
           navigate('/beta-nda', { 
             replace: true,
             state: { from: location.pathname } 
           });
         } else {
-          console.log('✅ User has signed NDA or on allowed route');
+          console.log('✅ User has completed NDA process or on allowed route');
         }
       } catch (error) {
         console.error('Error in useRequireNDA:', error);
@@ -97,11 +131,12 @@ export const useRequireNDA = () => {
     };
 
     checkAdminStatus();
-  }, [user, hasSignedNDA, loading, location.pathname, navigate]);
+  }, [user, hasSignedNDA, userNdaSigned, loading, location.pathname, navigate]);
 
   return {
-    hasSignedNDA,
-    loading,
-    isProtectedRoute: !PUBLIC_ROUTES.includes(location.pathname)
+    hasSignedNDA: hasSignedNDA && userNdaSigned, // Both must be true
+    loading: loading || userNdaSigned === null,
+    isProtectedRoute: !PUBLIC_ROUTES.includes(location.pathname),
+    userNdaSigned
   };
 };

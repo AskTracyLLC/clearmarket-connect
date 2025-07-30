@@ -70,19 +70,37 @@ const AuthPage = () => {
         } else {
         // For non-admin users, check NDA status first
         try {
-          const { data: ndaSignature, error: ndaError } = await supabase
-            .from('nda_signatures')
-            .select('*')
-            .eq('user_id', user?.id)
-            .eq('is_active', true)
-            .maybeSingle();
+          // Check both nda_signatures table AND users.nda_signed field
+          const [ndaSignatureResponse, userDataResponse] = await Promise.all([
+            supabase
+              .from('nda_signatures')
+              .select('*')
+              .eq('user_id', user?.id)
+              .eq('is_active', true)
+              .maybeSingle(),
+            supabase
+              .from('users')
+              .select('role, nda_signed')
+              .eq('id', user?.id)
+              .single()
+          ]);
+
+          const { data: ndaSignature, error: ndaError } = ndaSignatureResponse;
+          const { data: userData, error: userError } = userDataResponse;
 
           if (ndaError) {
             console.error('Error checking NDA status:', ndaError);
           }
+          
+          if (userError) {
+            console.error('Error fetching user data:', userError);
+          }
 
-          // If user hasn't signed NDA, redirect to NDA page
-          if (!ndaSignature) {
+          // Check if NDA process is complete (both signature exists AND users.nda_signed is true)
+          const ndaCompleted = ndaSignature && userData?.nda_signed;
+
+          // If user hasn't completed NDA process, redirect to NDA page
+          if (!ndaCompleted) {
             navigate('/beta-nda');
             toast({
               title: "Welcome back!",
@@ -91,23 +109,14 @@ const AuthPage = () => {
             return;
           }
 
-          // User has signed NDA, fetch role and redirect to appropriate dashboard
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user?.id)
-            .single();
-
-          if (userError) throw userError;
-
-           // Redirect based on role
-           switch (userData.role) {
-             case 'admin':
-               navigate('/admin');
-               break;
-             case 'moderator':
-               navigate('/moderator');
-               break;
+          // User has completed NDA, redirect to appropriate dashboard based on role
+          switch (userData?.role) {
+            case 'admin':
+              navigate('/admin');
+              break;
+            case 'moderator':
+              navigate('/moderator');
+              break;
             case 'vendor':
               navigate('/vendor/dashboard');
               break;
@@ -123,7 +132,7 @@ const AuthPage = () => {
             description: "You have successfully signed in.",
           });
         } catch (roleError) {
-          console.error('Error fetching user role:', roleError);
+          console.error('Error fetching user role or NDA status:', roleError);
           // Fallback to NDA page if anything fails for non-admin users
           navigate('/beta-nda');
           toast({

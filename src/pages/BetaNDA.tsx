@@ -182,14 +182,40 @@ const BetaNDA = () => {
         description: "Welcome to ClearMarket Beta! You now have full access to the platform.",
       });
       
+      // Small delay to ensure database trigger completes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Redirect to the intended destination or dashboard
       const redirectTo = location.state?.from || '/fieldrep/dashboard';
       navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error('Error signing NDA:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to sign NDA. Please try again.";
+      let errorTitle = "Error Signing NDA";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate')) {
+          errorTitle = "Already Signed";
+          errorMessage = "You have already signed the NDA. Redirecting...";
+          // Still redirect in case of duplicate error
+          setTimeout(() => {
+            const redirectTo = location.state?.from || '/fieldrep/dashboard';
+            navigate(redirectTo, { replace: true });
+          }, 2000);
+        } else if (error.message.includes('network')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else if (error.message.includes('permission')) {
+          errorMessage = "Permission denied. Please contact support.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
-        title: "Error Signing NDA",
-        description: error instanceof Error ? error.message : "Failed to sign NDA. Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

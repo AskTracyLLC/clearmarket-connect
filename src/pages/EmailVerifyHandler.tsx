@@ -73,46 +73,50 @@ const EmailVerifyHandler = () => {
           return;
         }
 
-        // For regular users, check NDA status
-        const { data: ndaSignature, error: ndaError } = await supabase
-          .from('nda_signatures')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_active', true)
-          .maybeSingle();
+        // For regular users, check NDA status (both nda_signatures AND users.nda_signed)
+        const [ndaSignatureResponse, userDataResponse] = await Promise.all([
+          supabase
+            .from('nda_signatures')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+            .maybeSingle(),
+          supabase
+            .from('users')
+            .select('role, nda_signed')
+            .eq('id', user.id)
+            .single()
+        ]);
+
+        const { data: ndaSignature, error: ndaError } = ndaSignatureResponse;
+        const { data: userData, error: userDataError } = userDataResponse;
 
         if (ndaError) {
           console.error('Error checking NDA status:', ndaError);
         }
 
-        // Redirect based on NDA status
-        if (!ndaSignature) {
+        if (userDataError) {
+          console.error('Error fetching user data:', userDataError);
+        }
+
+        // Check if NDA process is complete (both signature exists AND users.nda_signed is true)
+        const ndaCompleted = ndaSignature && userData?.nda_signed;
+
+        // Redirect based on NDA completion status
+        if (!ndaCompleted) {
           toast({
             title: "Welcome to ClearMarket!",
             description: "Please review and sign the beta agreement to continue.",
           });
           navigate('/beta-nda');
         } else {
-          // User has signed NDA, redirect to appropriate dashboard
-          const { data: userData, error: userDataError } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-          if (userDataError) {
-            console.error('Error fetching user role:', userDataError);
-            navigate('/beta-nda'); // Fallback to NDA page
-            return;
-          }
-
-          // Redirect based on role
-          switch (userData.role) {
+          // User has completed NDA, redirect to appropriate dashboard
+          switch (userData?.role) {
             case 'field_rep':
-              navigate('/field-rep-dashboard');
+              navigate('/fieldrep/dashboard');
               break;
             case 'vendor':
-              navigate('/vendor-dashboard');
+              navigate('/vendor/dashboard');
               break;
             case 'moderator':
               navigate('/moderator');
@@ -120,6 +124,11 @@ const EmailVerifyHandler = () => {
             default:
               navigate('/beta-nda');
           }
+
+          toast({
+            title: "Welcome to ClearMarket!",
+            description: "Email verified successfully!",
+          });
         }
 
       } catch (error) {

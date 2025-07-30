@@ -10,6 +10,7 @@ import LoadingBar from "@/components/ui/loading-bar";
 import BackToTop from "@/components/ui/back-to-top";
 import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRouteWithNDA from "@/components/ProtectedRouteWithNDA";
 import Index from "./pages/Index";
 import VendorSearchPage from "./pages/VendorSearchPage";
 import CommunityBoard from "./pages/CommunityBoard";
@@ -62,58 +63,58 @@ const App = () => (
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
                 <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
                 <Route path="/fieldrep/dashboard" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <FieldRepDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
                 <Route path="/community" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <CommunityBoard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/messages" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <MessagesPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/calendar" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <CalendarPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/network" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <NetworkPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/settings" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <SettingsPage />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/vendor/dashboard" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <VendorDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/admin" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <AdminDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/admin/giveaways" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <AdminRoute>
-                  <AdminGiveawayDashboard />
-                </AdminRoute>
-              </ProtectedRoute>
-            } />
+                      <AdminGiveawayDashboard />
+                    </AdminRoute>
+                  </ProtectedRouteWithNDA>
+                } />
                 <Route path="/moderator" element={
-                  <ProtectedRoute>
+                  <ProtectedRouteWithNDA>
                     <ModeratorDashboard />
-                  </ProtectedRoute>
+                  </ProtectedRouteWithNDA>
                 } />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

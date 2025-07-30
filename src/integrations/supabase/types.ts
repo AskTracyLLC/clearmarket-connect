@@ -2069,6 +2069,39 @@ export type Database = {
           },
         ]
       }
+      nda_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          status: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          status: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       nda_signatures: {
         Row: {
           created_at: string
@@ -3441,6 +3474,7 @@ export type Database = {
           email: string | null
           id: string
           last_active: string | null
+          nda_signed: boolean
           profile_complete: number | null
           referred_by: string | null
           response_rate: number | null
@@ -3463,6 +3497,7 @@ export type Database = {
           email?: string | null
           id: string
           last_active?: string | null
+          nda_signed?: boolean
           profile_complete?: number | null
           referred_by?: string | null
           response_rate?: number | null
@@ -3485,6 +3520,7 @@ export type Database = {
           email?: string | null
           id?: string
           last_active?: string | null
+          nda_signed?: boolean
           profile_complete?: number | null
           referred_by?: string | null
           response_rate?: number | null
@@ -4329,6 +4365,17 @@ export type Database = {
           doc_id: string
           access_type_param: string
           shared_with_param?: string
+        }
+        Returns: boolean
+      }
+      log_nda_attempt: {
+        Args: {
+          target_user_id: string
+          attempt_status: string
+          error_msg?: string
+          client_ip?: unknown
+          client_user_agent?: string
+          additional_metadata?: Json
         }
         Returns: boolean
       }

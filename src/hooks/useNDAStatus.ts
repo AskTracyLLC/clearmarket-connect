@@ -51,6 +51,17 @@ export const useNDAStatus = () => {
     }
 
     try {
+      // Log NDA attempt
+      await supabase.rpc('log_nda_attempt', {
+        target_user_id: user.id,
+        attempt_status: 'attempt',
+        additional_metadata: {
+          signature_name: signatureName,
+          user_agent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        }
+      });
+
       const { data, error: insertError } = await supabase
         .from('nda_signatures')
         .insert({
@@ -61,13 +72,40 @@ export const useNDAStatus = () => {
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Log failed NDA signature
+        await supabase.rpc('log_nda_attempt', {
+          target_user_id: user.id,
+          attempt_status: 'fail',
+          error_msg: insertError.message,
+          additional_metadata: {
+            signature_name: signatureName,
+            error_code: insertError.code,
+            error_details: insertError.details
+          }
+        });
+        throw insertError;
+      }
 
       setHasSignedNDA(true);
       setNdaSignature(data);
       return data;
     } catch (err) {
       console.error('Error signing NDA:', err);
+      
+      // Log any unexpected errors
+      if (err instanceof Error) {
+        await supabase.rpc('log_nda_attempt', {
+          target_user_id: user.id,
+          attempt_status: 'fail',
+          error_msg: err.message,
+          additional_metadata: {
+            signature_name: signatureName,
+            error_type: 'unexpected_error'
+          }
+        });
+      }
+      
       throw err;
     }
   };
