@@ -31,6 +31,7 @@ interface BetaTester {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  nda_signed?: boolean;
 }
 
 export const BetaTesterManagement = () => {
@@ -44,13 +45,18 @@ export const BetaTesterManagement = () => {
   const fetchBetaTesters = async () => {
     setLoading(true);
     try {
+      // For now, fetch beta testers without NDA status until we can properly join the data
+      // TODO: Create a stored procedure or edge function to get NDA status for beta testers
       const { data, error } = await supabase
         .from('beta_testers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBetaTesters(data || []);
+      
+      // Add default nda_signed = false for all beta testers for now
+      // This will be updated when we can properly fetch the user data
+      setBetaTesters(data?.map(bt => ({ ...bt, nda_signed: false })) || []);
     } catch (error) {
       console.error('Error fetching beta testers:', error);
       toast({
@@ -284,8 +290,8 @@ export const BetaTesterManagement = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={betaTester.is_active ? 'default' : 'secondary'}>
-                            {betaTester.is_active ? 'Active' : 'Inactive'}
+                          <Badge variant={betaTester.nda_signed ? 'default' : 'secondary'}>
+                            {betaTester.nda_signed ? 'NDA-Signed' : 'Pre-NDA'}
                           </Badge>
                         </TableCell>
                         <TableCell>
