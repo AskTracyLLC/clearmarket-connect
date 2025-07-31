@@ -45,18 +45,12 @@ export const BetaTesterManagement = () => {
   const fetchBetaTesters = async () => {
     setLoading(true);
     try {
-      // For now, fetch beta testers without NDA status until we can properly join the data
-      // TODO: Create a stored procedure or edge function to get NDA status for beta testers
-      const { data, error } = await supabase
-        .from('beta_testers')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Use the database function to get accurate NDA status for each beta tester
+      const { data, error } = await supabase.rpc('get_beta_testers_with_nda_status');
 
       if (error) throw error;
       
-      // Add default nda_signed = false for all beta testers for now
-      // This will be updated when we can properly fetch the user data
-      setBetaTesters(data?.map(bt => ({ ...bt, nda_signed: false })) || []);
+      setBetaTesters(data || []);
     } catch (error) {
       console.error('Error fetching beta testers:', error);
       toast({

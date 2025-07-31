@@ -4175,6 +4175,20 @@ export type Database = {
         Args: { user_email: string; user_type_param: string; username: string }
         Returns: string
       }
+      get_beta_testers_with_nda_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          user_type: string
+          name: string
+          signup_date: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          nda_signed: boolean
+        }[]
+      }
       get_giveaway_eligibility: {
         Args: {
           user_id_param: string
