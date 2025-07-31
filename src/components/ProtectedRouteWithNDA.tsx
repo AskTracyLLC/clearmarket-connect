@@ -15,7 +15,7 @@ interface ProtectedRouteWithNDAProps {
 const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children }) => {
   console.log('🔍 ProtectedRouteWithNDA - Component rendered for path:', window.location.pathname);
   const { user, loading: authLoading } = useAuth();
-  const { hasSignedNDA, loading: ndaLoading } = useRequireNDA();
+  const { hasSignedNDA, loading: ndaLoading, userNdaSigned } = useRequireNDA();
   const { profile, loading: profileLoading } = useUserProfile();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -43,7 +43,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     setIsAdmin(false);
   }, [user?.id, user?.email]);
 
-  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'profileLoading:', profileLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA, 'profile:', profile);
+  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'profileLoading:', profileLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA, 'userNdaSigned:', userNdaSigned, 'profile:', profile);
 
   // Show loading state while checking auth, NDA status, profile, and admin status
   if (authLoading || ndaLoading || profileLoading || isAdmin === null) {
@@ -78,13 +78,13 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     console.log('🔍 Field Rep detected, checking NDA and profile completion...');
     
     // If NDA not signed, redirect to NDA page
-    if (!hasSignedNDA) {
-      console.log('❌ Field Rep has not signed NDA, redirecting to NDA page');
+    if (!userNdaSigned) {
+      console.log('❌ Field Rep has not signed NDA, redirecting to NDA page. userNdaSigned:', userNdaSigned);
       return <Navigate to="/beta-nda" state={{ from: location.pathname }} replace />;
     }
     
     // If NDA signed but profile incomplete, redirect to profile page
-    if (hasSignedNDA && (profile.profile_complete === null || profile.profile_complete < 100)) {
+    if (userNdaSigned && (profile.profile_complete === null || profile.profile_complete < 100)) {
       console.log('❌ Field Rep profile incomplete, redirecting to profile page. Completion:', profile.profile_complete);
       return <Navigate to="/fieldrep/profile" state={{ from: location.pathname }} replace />;
     }
@@ -94,7 +94,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
   }
 
   // For non-Field Rep users, check NDA requirement
-  if (!hasSignedNDA) {
+  if (!userNdaSigned) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
         <Card className="p-8 max-w-lg mx-auto text-center">
