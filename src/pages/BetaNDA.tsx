@@ -89,6 +89,9 @@ const BetaNDA = () => {
       // Get the viewport div inside ScrollArea - try multiple selectors
       let viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
       if (!viewport) {
+        viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport] > div');
+      }
+      if (!viewport) {
         viewport = scrollArea.querySelector('.h-full.w-full.rounded-\\[inherit\\]');
       }
       if (!viewport) {
@@ -98,21 +101,22 @@ const BetaNDA = () => {
       
       if (viewport) {
         const { scrollTop, scrollHeight, clientHeight } = viewport;
-        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50; // 50px tolerance
+        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // Reduced tolerance
         console.log('Scroll detection:', { 
           scrollTop, 
           scrollHeight, 
           clientHeight, 
           isAtBottom, 
           hasScrolledToBottom,
-          selector: viewport === scrollArea ? 'fallback' : 'viewport'
+          threshold: scrollHeight - 10
         });
         if (isAtBottom && !hasScrolledToBottom) {
-          console.log('Setting hasScrolledToBottom to true');
+          console.log('✅ Setting hasScrolledToBottom to true');
           setHasScrolledToBottom(true);
         }
       } else {
-        console.log('No viewport found');
+        console.log('❌ No viewport found - enabling checkbox as fallback');
+        setHasScrolledToBottom(true);
       }
     }
   };
@@ -120,27 +124,51 @@ const BetaNDA = () => {
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (scrollArea) {
-      // Get the viewport div inside ScrollArea
-      let viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
-      if (!viewport) {
-        viewport = scrollArea.querySelector('.h-full.w-full.rounded-\\[inherit\\]');
-      }
-      if (!viewport) {
-        viewport = scrollArea;
-      }
-      
-      if (viewport) {
-        viewport.addEventListener('scroll', handleScroll);
-        // Also check initial state in case content is already short enough
-        setTimeout(handleScroll, 200); // Increased delay
-        return () => viewport.removeEventListener('scroll', handleScroll);
-      } else {
-        console.log('No viewport found during setup - enabling checkbox');
-        // Fallback: enable immediately if scroll detection fails
-        setTimeout(() => setHasScrolledToBottom(true), 1000);
-      }
+      // Wait for DOM to settle
+      setTimeout(() => {
+        // Get the viewport div inside ScrollArea
+        let viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+        if (!viewport) {
+          viewport = scrollArea.querySelector('[data-radix-scroll-area-viewport] > div');
+        }
+        if (!viewport) {
+          viewport = scrollArea.querySelector('.h-full.w-full.rounded-\\[inherit\\]');
+        }
+        if (!viewport) {
+          viewport = scrollArea;
+        }
+        
+        if (viewport) {
+          console.log('📋 Setting up scroll listener on:', viewport);
+          viewport.addEventListener('scroll', handleScroll);
+          // Check initial state
+          handleScroll();
+          
+          // Additional fallback - if content height is less than container, enable immediately
+          const { scrollHeight, clientHeight } = viewport;
+          if (scrollHeight <= clientHeight + 10) {
+            console.log('📄 Content fits in viewport, enabling checkbox immediately');
+            setHasScrolledToBottom(true);
+          }
+          
+          return () => viewport.removeEventListener('scroll', handleScroll);
+        } else {
+          console.log('❌ No viewport found during setup - enabling checkbox as fallback');
+          setHasScrolledToBottom(true);
+        }
+      }, 500); // Increased delay for DOM settling
     }
-  }, []);
+    
+    // Final fallback - enable after 3 seconds regardless
+    const fallbackTimer = setTimeout(() => {
+      if (!hasScrolledToBottom) {
+        console.log('⏰ Fallback timer triggered - enabling checkbox');
+        setHasScrolledToBottom(true);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(fallbackTimer);
+  }, [hasScrolledToBottom]);
 
   // Signature validation
   const validateSignature = (value: string): string[] => {
