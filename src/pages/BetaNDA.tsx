@@ -59,6 +59,7 @@ const BetaNDA = () => {
       } catch (err) {
         console.error('Error fetching user details:', err);
         setUserDisplayName('User');
+        setAnonymousUsername('User'); // Ensure username field is also set in error case
         setUserEmail(user?.email || '');
         setSignature('User');
       }
