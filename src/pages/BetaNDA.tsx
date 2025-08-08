@@ -43,14 +43,21 @@ const BetaNDA = () => {
       try {
         const { data, error } = await supabase
           .from('users')
-          .select('display_name, anonymous_username')
+          .select('display_name, anonymous_username, role')
           .eq('id', user.id)
           .maybeSingle();
 
         if (error) throw error;
 
         const displayName = data?.display_name || data?.anonymous_username || 'User';
-        const username = data?.anonymous_username || 'User';
+        let username = data?.anonymous_username || 'User';
+
+        // Normalize legacy usernames like "user123" to role-specific format
+        if (data?.anonymous_username && /^user\d+$/i.test(data.anonymous_username)) {
+          const num = data.anonymous_username.replace(/\D+/g, '');
+          const prefix = data.role === 'field_rep' ? 'fieldrep' : data.role === 'vendor' ? 'vendor' : 'user';
+          username = `${prefix}${num}`;
+        }
         
         setUserDisplayName(displayName);
         setAnonymousUsername(username);
