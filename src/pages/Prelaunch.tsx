@@ -16,6 +16,8 @@ import { useWorkTypes } from "@/hooks/useWorkTypes";
 import { usePlatforms } from "@/hooks/usePlatforms";
 import { toast } from "sonner";
 import { workTypes as vendorWorkTypeFallback } from "@/components/VendorProfile/utils";
+import { useJoinSubmission } from "@/hooks/useJoinSubmission";
+import UniversalSuccessModal from "@/components/UniversalSuccessModal";
 interface FormState {
   email: string;
   userType: 'field-rep' | 'vendor' | '';
