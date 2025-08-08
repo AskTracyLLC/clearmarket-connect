@@ -6,10 +6,25 @@ import TrustScoreDisplay from "@/components/TrustScore/TrustScoreDisplay";
 import TrustScoreReviewList from "@/components/TrustScore/TrustScoreReviewList";
 import { useTrustScore } from "@/hooks/useTrustScore";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const FieldRepProfilePage = () => {
   const { profile } = useUserProfile();
   const { trustScore, reviews, hideReviewWithCredits, disputeReview, featureReview } = useTrustScore();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (profile?.profile_complete && profile.profile_complete >= 100) {
+      toast({
+        title: "Profile complete",
+        description: "Redirecting to your dashboard...",
+      });
+      navigate('/fieldrep/dashboard', { replace: true });
+    }
+  }, [profile?.profile_complete, navigate, toast]);
 
   return (
     <div className="min-h-screen bg-background">
