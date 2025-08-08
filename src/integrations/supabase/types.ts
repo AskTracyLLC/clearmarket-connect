@@ -122,6 +122,7 @@ export type Database = {
         Row: {
           active_from: string | null
           active_until: string | null
+          anonymous_username: string | null
           created_at: string | null
           enabled: boolean | null
           id: string
@@ -132,6 +133,7 @@ export type Database = {
         Insert: {
           active_from?: string | null
           active_until?: string | null
+          anonymous_username?: string | null
           created_at?: string | null
           enabled?: boolean | null
           id?: string
@@ -142,6 +144,7 @@ export type Database = {
         Update: {
           active_from?: string | null
           active_until?: string | null
+          anonymous_username?: string | null
           created_at?: string | null
           enabled?: boolean | null
           id?: string
@@ -309,6 +312,7 @@ export type Database = {
       }
       calendar_events: {
         Row: {
+          anonymous_username: string | null
           created_at: string | null
           description: string | null
           end_date: string
@@ -322,6 +326,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           created_at?: string | null
           description?: string | null
           end_date: string
@@ -335,6 +340,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           created_at?: string | null
           description?: string | null
           end_date?: string
@@ -420,6 +426,7 @@ export type Database = {
       }
       community_comments: {
         Row: {
+          anonymous_username: string | null
           content: string
           created_at: string | null
           flagged: boolean | null
@@ -430,6 +437,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           content: string
           created_at?: string | null
           flagged?: boolean | null
@@ -440,6 +448,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           content?: string
           created_at?: string | null
           flagged?: boolean | null
@@ -461,6 +470,7 @@ export type Database = {
       }
       community_posts: {
         Row: {
+          anonymous_username: string | null
           board_type: string
           content: string
           created_at: string | null
@@ -480,6 +490,7 @@ export type Database = {
           user_tags: string[] | null
         }
         Insert: {
+          anonymous_username?: string | null
           board_type?: string
           content: string
           created_at?: string | null
@@ -499,6 +510,7 @@ export type Database = {
           user_tags?: string[] | null
         }
         Update: {
+          anonymous_username?: string | null
           board_type?: string
           content?: string
           created_at?: string | null
@@ -883,6 +895,7 @@ export type Database = {
       credit_transactions: {
         Row: {
           amount: number
+          anonymous_username: string | null
           created_at: string
           currency_type: string | null
           id: string
@@ -895,6 +908,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          anonymous_username?: string | null
           created_at?: string
           currency_type?: string | null
           id?: string
@@ -907,6 +921,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          anonymous_username?: string | null
           created_at?: string
           currency_type?: string | null
           id?: string
@@ -929,6 +944,7 @@ export type Database = {
       }
       credits: {
         Row: {
+          anonymous_username: string | null
           current_balance: number | null
           earned_credits: number | null
           paid_credits: number | null
@@ -937,6 +953,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           current_balance?: number | null
           earned_credits?: number | null
           paid_credits?: number | null
@@ -945,6 +962,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           current_balance?: number | null
           earned_credits?: number | null
           paid_credits?: number | null
@@ -956,6 +974,7 @@ export type Database = {
       }
       daily_credit_earnings: {
         Row: {
+          anonymous_username: string | null
           date: string
           id: string
           rule_id: string
@@ -964,6 +983,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           date?: string
           id?: string
           rule_id: string
@@ -972,6 +992,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           date?: string
           id?: string
           rule_id?: string
@@ -991,18 +1012,21 @@ export type Database = {
       }
       daily_invite_limits: {
         Row: {
+          anonymous_username: string | null
           date: string
           id: string
           invite_count: number
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           date?: string
           id?: string
           invite_count?: number
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           date?: string
           id?: string
           invite_count?: number
@@ -1309,6 +1333,7 @@ export type Database = {
       }
       feedback_posts: {
         Row: {
+          anonymous_username: string | null
           author: string
           category: string
           created_at: string
@@ -1321,6 +1346,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          anonymous_username?: string | null
           author: string
           category?: string
           created_at?: string
@@ -1333,6 +1359,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          anonymous_username?: string | null
           author?: string
           category?: string
           created_at?: string
@@ -1378,6 +1405,7 @@ export type Database = {
       }
       field_rep_profiles: {
         Row: {
+          anonymous_username: string | null
           aspen_grove_expiration: string | null
           aspen_grove_id: string | null
           aspen_grove_image: string | null
@@ -1401,6 +1429,7 @@ export type Database = {
           zip_code: string | null
         }
         Insert: {
+          anonymous_username?: string | null
           aspen_grove_expiration?: string | null
           aspen_grove_id?: string | null
           aspen_grove_image?: string | null
@@ -1424,6 +1453,7 @@ export type Database = {
           zip_code?: string | null
         }
         Update: {
+          anonymous_username?: string | null
           aspen_grove_expiration?: string | null
           aspen_grove_id?: string | null
           aspen_grove_image?: string | null
@@ -1480,6 +1510,7 @@ export type Database = {
       }
       giveaway_entries: {
         Row: {
+          anonymous_username: string | null
           entered_at: string | null
           entry_count: number
           giveaway_id: string
@@ -1488,6 +1519,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           entered_at?: string | null
           entry_count?: number
           giveaway_id: string
@@ -1496,6 +1528,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           entered_at?: string | null
           entry_count?: number
           giveaway_id?: string
@@ -2553,18 +2586,21 @@ export type Database = {
       }
       saved_posts: {
         Row: {
+          anonymous_username: string | null
           created_at: string | null
           id: string
           post_id: string
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           created_at?: string | null
           id?: string
           post_id: string
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           created_at?: string | null
           id?: string
           post_id?: string
@@ -3100,6 +3136,7 @@ export type Database = {
       }
       user_communication_badges: {
         Row: {
+          anonymous_username: string | null
           badge_id: string
           created_at: string
           earned_at: string
@@ -3109,6 +3146,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           badge_id: string
           created_at?: string
           earned_at?: string
@@ -3118,6 +3156,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymous_username?: string | null
           badge_id?: string
           created_at?: string
           earned_at?: string
@@ -3159,6 +3198,7 @@ export type Database = {
       }
       user_documents: {
         Row: {
+          anonymous_username: string | null
           created_at: string | null
           document_name: string
           document_type: string
@@ -3179,6 +3219,7 @@ export type Database = {
           visibility: string | null
         }
         Insert: {
+          anonymous_username?: string | null
           created_at?: string | null
           document_name: string
           document_type: string
@@ -3199,6 +3240,7 @@ export type Database = {
           visibility?: string | null
         }
         Update: {
+          anonymous_username?: string | null
           created_at?: string | null
           document_name?: string
           document_type?: string
@@ -3265,6 +3307,7 @@ export type Database = {
       }
       user_invitations: {
         Row: {
+          anonymous_username: string | null
           created_at: string
           email: string
           expires_at: string
@@ -3276,6 +3319,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          anonymous_username?: string | null
           created_at?: string
           email: string
           expires_at?: string
@@ -3287,6 +3331,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          anonymous_username?: string | null
           created_at?: string
           email?: string
           expires_at?: string
@@ -3592,6 +3637,7 @@ export type Database = {
       vendor_network_alert_recipients: {
         Row: {
           alert_id: string
+          anonymous_username: string | null
           created_at: string
           delivery_status: string | null
           id: string
@@ -3600,6 +3646,7 @@ export type Database = {
         }
         Insert: {
           alert_id: string
+          anonymous_username?: string | null
           created_at?: string
           delivery_status?: string | null
           id?: string
@@ -3608,6 +3655,7 @@ export type Database = {
         }
         Update: {
           alert_id?: string
+          anonymous_username?: string | null
           created_at?: string
           delivery_status?: string | null
           id?: string
@@ -3795,6 +3843,7 @@ export type Database = {
       }
       vendor_staff_members: {
         Row: {
+          anonymous_username: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -3803,6 +3852,7 @@ export type Database = {
           vendor_org_id: string
         }
         Insert: {
+          anonymous_username?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -3811,6 +3861,7 @@ export type Database = {
           vendor_org_id: string
         }
         Update: {
+          anonymous_username?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
