@@ -1,72 +1,150 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { FieldRepProfile as FieldRepDbProfile } from "@/components/FieldRepProfile/types";
+
+const toDbDate = (d?: Date | string) => {
+  if (!d) return undefined;
+  const date = typeof d === 'string' ? new Date(d) : d;
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString().slice(0, 10); // YYYY-MM-DD
+};
+
+const mapToDb = (p: Partial<FieldRepDbProfile>) => {
+  const { aspen_grove_expiration, ...rest } = p;
+  return {
+    ...rest,
+    ...(aspen_grove_expiration !== undefined
+      ? { aspen_grove_expiration: toDbDate(aspen_grove_expiration) }
+      : {}),
+  } as Record<string, unknown>;
+};
+
+const mapFromDb = (p: any): FieldRepDbProfile => ({
+  ...p,
+  aspen_grove_expiration: p?.aspen_grove_expiration
+    ? new Date(p.aspen_grove_expiration as string)
+    : undefined,
+});
 
 export const useFieldRepProfile = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const saveProfile = async (profileData: any) => {
+  const saveProfile = async (profileData: Partial<FieldRepDbProfile>): Promise<{ success: boolean }> => {
     if (!user) throw new Error("User not authenticated");
-    
+
     setLoading(true);
     try {
-      // Temporarily mock this to fix the circular dependency
-      // TODO: Replace with actual Supabase call once type issue is resolved
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Mock save profile:', profileData);
+      // Check if profile exists
+      const { data: existing, error: fetchError } = await supabase
+        .from("field_rep_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const toDb = mapToDb(profileData);
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from("field_rep_profiles")
+          .update({ ...toDb, updated_at: new Date().toISOString() })
+          .eq("user_id", user.id);
+        if (updateError) throw updateError;
+      } else {
+        const insertPayload = {
+          user_id: user.id,
+          ...toDb,
+        };
+        const { error: insertError } = await supabase
+          .from("field_rep_profiles")
+          .insert(insertPayload);
+        if (insertError) throw insertError;
+      }
+
+      // Recalculate and persist profile completeness
+      const { data: fullProfile, error: fullErr } = await supabase
+        .from("field_rep_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!fullErr && fullProfile) {
+        const completion = calculateCompleteness(mapFromDb(fullProfile));
+        await supabase.from("users").update({ profile_complete: completion }).eq("id", user.id);
+      }
+
       return { success: true };
     } catch (error) {
-      console.error('Error saving field rep profile:', error);
+      // Let caller handle user-friendly messaging
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProfile = async (): Promise<any> => {
+  const fetchProfile = async (): Promise<FieldRepDbProfile | null> => {
     if (!user) return null;
-    
+
     setLoading(true);
     try {
-      // Temporarily mock this to fix the circular dependency
-      // TODO: Replace with actual Supabase call once type issue is resolved
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return null; // Mock empty profile
+      const { data, error } = await supabase
+        .from("field_rep_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ? mapFromDb(data) : null;
     } catch (error) {
-      console.error('Error fetching field rep profile:', error);
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateCompleteness = (profile: any): number => {
-    const requiredFields = [
-      'first_name', 'last_name', 'phone', 'city', 'state', 'zip_code', 'bio'
+  const calculateCompleteness = (profile: FieldRepDbProfile): number => {
+    const requiredFields: (keyof FieldRepDbProfile)[] = [
+      "first_name",
+      "last_name",
+      "phone",
+      "city",
+      "state",
+      "zip_code",
+      "bio",
     ];
-    const optionalButValuableFields = [
-      'platforms', 'inspection_types', 'aspen_grove_id'
+    const optionalButValuableFields: (keyof FieldRepDbProfile)[] = [
+      "platforms",
+      "inspection_types",
+      "aspen_grove_id",
     ];
-    
+
     let score = 0;
-    
-    // Required fields worth more
-    requiredFields.forEach(field => {
-      if (profile[field]) score += 2;
-    });
-    
-    // Optional fields worth less but still valuable
-    optionalButValuableFields.forEach(field => {
+
+    requiredFields.forEach((field) => {
       const value = profile[field];
-      if (value && (Array.isArray(value) ? value.length > 0 : true)) score += 1;
+      if (typeof value === "string" && value.trim().length > 0) score += 2;
     });
-    
-    return Math.min(Math.round((score / (requiredFields.length * 2 + optionalButValuableFields.length)) * 100), 100);
+
+    optionalButValuableFields.forEach((field) => {
+      const value = profile[field];
+      if (Array.isArray(value)) {
+        if (value.length > 0) score += 1;
+      } else if (typeof value === "string") {
+        if (value.trim().length > 0) score += 1;
+      }
+    });
+
+    return Math.min(
+      Math.round((score / (requiredFields.length * 2 + optionalButValuableFields.length)) * 100),
+      100
+    );
   };
 
   return {
     saveProfile,
     fetchProfile,
-    loading
+    loading,
   };
 };

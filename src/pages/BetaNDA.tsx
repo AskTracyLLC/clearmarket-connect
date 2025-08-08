@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNDAStatus } from '@/hooks/useNDAStatus';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { generateAndSaveNDA } from '@/utils/ndaDocument';
 
 const BetaNDA = () => {
   const { user } = useAuth();
@@ -212,6 +213,15 @@ const BetaNDA = () => {
     
     try {
       await signNDA(signature);
+      
+      // Generate and store NDA document (non-blocking if it fails)
+      await generateAndSaveNDA({
+        userId: user!.id,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        email: userEmail || undefined,
+        username: anonymousUsername || undefined,
+      });
       
       toast({
         title: "NDA Successfully Signed",
