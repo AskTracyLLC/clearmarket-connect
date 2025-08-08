@@ -232,8 +232,8 @@ const BetaNDA = () => {
       // Small delay to ensure database trigger completes
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Redirect to the intended destination or dashboard
-      const redirectTo = location.state?.from || '/fieldrep/dashboard';
+      // Redirect to the intended destination or profile setup
+      const redirectTo = '/fieldrep/profile';
       navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error('Error signing NDA:', error);
