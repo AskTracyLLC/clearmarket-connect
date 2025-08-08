@@ -145,8 +145,18 @@ const Prelaunch = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid()) return;
-    
+    if (!isFormValid()) {
+      const missing: string[] = [];
+      if (!formState.userType) missing.push('I am a');
+      if (!formState.email) missing.push('Email');
+      if (!formState.experienceLevel) missing.push('Experience Level');
+      if (!formState.primaryState) missing.push('Primary State');
+      if (formState.workType.length === 0) missing.push('Type of Work');
+      if (formState.workType.includes('Other') && !formState.otherWorkType.trim()) missing.push('Other Work Type');
+      if (!formState.privacyConsent) missing.push('Consent to updates');
+      toast.error(`Please complete: ${missing.join(', ')}`);
+      return;
+    }
     console.log('🔥 NEW FORM HANDLER STARTING - USING PRE_LAUNCH_SIGNUPS TABLE 🔥');
     setIsLoading(true);
     
@@ -523,8 +533,9 @@ const Prelaunch = () => {
                 <Button
                   type="button"
                   className="w-full"
-                  disabled={!isFormValid() || isLoading}
+                  disabled={isLoading}
                   onClick={handleSubmit}
+                  aria-busy={isLoading}
                 >
                   {isLoading ? "Joining..." : "Join ClearMarket"}
                   <ArrowRight className="ml-2 h-4 w-4" />
