@@ -282,7 +282,7 @@ const Prelaunch = () => {
                 Join ClearMarket - Help Shape Our Platform
               </h3>
               
-              <div className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit} noValidate>
                 {/* User Type Selection - Required */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block">
@@ -531,10 +531,9 @@ const Prelaunch = () => {
 
                 {/* Submit Button */}
                 <Button
-                  type="button"
+                  type="submit"
                   className="w-full"
                   disabled={isLoading}
-                  onClick={handleSubmit}
                   aria-busy={isLoading}
                 >
                   {isLoading ? "Joining..." : "Join ClearMarket"}
@@ -546,7 +545,7 @@ const Prelaunch = () => {
                     Please complete all required fields and agree to receive updates
                   </p>
                 )}
-              </div>
+              </form>
               
               <p className="text-sm text-muted-foreground mt-4 text-center">
                 Join {emailCount}+ professionals already signed up
