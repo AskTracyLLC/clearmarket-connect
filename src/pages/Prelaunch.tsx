@@ -15,7 +15,7 @@ import { useStates } from "@/hooks/useLocationData";
 import { useWorkTypes } from "@/hooks/useWorkTypes";
 import { usePlatforms } from "@/hooks/usePlatforms";
 import { toast } from "sonner";
-
+import { workTypes as vendorWorkTypeFallback } from "@/components/VendorProfile/utils";
 interface FormState {
   email: string;
   userType: 'field-rep' | 'vendor' | '';
@@ -131,7 +131,7 @@ const Prelaunch = () => {
 
   // Get work type names from the database
   const workTypeNames = workTypes.map(wt => wt.name);
-
+  const availableWorkTypeNames = workTypeNames.length > 0 ? workTypeNames : vendorWorkTypeFallback;
   const isFormValid = () => {
     return formState.email && 
            formState.userType && 
@@ -382,7 +382,7 @@ const Prelaunch = () => {
                      <div className="text-sm text-muted-foreground">Loading work types...</div>
                    ) : (
                      <p className="text-xs text-muted-foreground">
-                       Debug: {workTypes.length} work types available
+                       Debug: {availableWorkTypeNames.length} work types available
                      </p>
                    )}
                   
@@ -414,11 +414,11 @@ const Prelaunch = () => {
                   )}
 
                    {/* Work Types Checkbox Grid */}
-                   {!workTypesLoading && (
+                   {availableWorkTypeNames.length > 0 && (
                      <div className="border rounded-lg p-4 bg-background">
                        <p className="text-sm font-medium mb-3">Select all that apply:</p>
                        <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                         {workTypeNames.map((workType) => (
+                         {availableWorkTypeNames.map((workType) => (
                            <div key={workType} className="flex items-center space-x-2">
                              <Checkbox
                                id={`workType-${workType}`}
