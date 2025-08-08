@@ -162,6 +162,7 @@ export type Database = {
           email: string
           expires_at: string
           id: string
+          temp_password: string | null
           token: string
           updated_at: string
           used_at: string | null
@@ -174,6 +175,7 @@ export type Database = {
           email: string
           expires_at?: string
           id?: string
+          temp_password?: string | null
           token: string
           updated_at?: string
           used_at?: string | null
@@ -186,6 +188,7 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
+          temp_password?: string | null
           token?: string
           updated_at?: string
           used_at?: string | null
