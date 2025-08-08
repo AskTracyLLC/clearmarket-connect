@@ -84,6 +84,8 @@ const Prelaunch = () => {
   const { platforms, loading: platformsLoading } = usePlatforms();
   console.log('States loading:', statesLoading, 'States count:', states.length, 'Error:', statesError);
   
+  const { handleJoinClick, isSubmitting, showSuccessModal, setShowSuccessModal, generatedUsername, userType } = useJoinSubmission();
+  
   // Fallback states list if hook fails
   const fallbackStates = [
     { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -163,50 +165,28 @@ const Prelaunch = () => {
     setIsLoading(true);
     
     try {
-      // Prepare insert data - use correct database fields
-      const insertData = {
-        email: formState.email,
-        user_type: formState.userType,
-        primary_state: formState.primaryState || null,
-        experience_level: formState.experienceLevel,
-        work_type: formState.workType.map(work => 
-          work === "Other" ? `Other: ${formState.otherWorkType}` : work
-        ),
-        current_challenges: formState.challenges || null,
-        interested_features: formState.interestedFeatures ? [formState.interestedFeatures] : null,
-        interested_in_beta_testing: formState.betaTesting,
-        anonymous_username: null, // Let the trigger generate this
-      };
+      const result = await handleJoinClick(
+        {
+          email: formState.email,
+          userType: formState.userType as 'field-rep' | 'vendor',
+          state: formState.primaryState,
+          experience: formState.experienceLevel,
+          workTypes: formState.workType.map((work) =>
+            work === "Other" ? `Other: ${formState.otherWorkType}` : work
+          ),
+          betaTesting: formState.betaTesting,
+          interestedFeatures: formState.interestedFeatures,
+        },
+        'prelaunch'
+      );
 
-      console.log('Submitting to pre_launch_signups table:', insertData);
-
-      const { data, error } = await supabase
-        .from('pre_launch_signups')
-        .insert(insertData)
-        .select('anonymous_username')
-        .single();
-
-      if (error) {
-        console.error('Supabase error details:', error);
-        throw error;
-      }
-
-      console.log('Signup successful:', data);
-
-      // Set the anonymous username from the signup
-      if (data?.anonymous_username) {
-        setUserPosition(prev => ({
-          ...prev,
-          fullUsername: data.anonymous_username
-        }));
+      if (result?.anonymous_username) {
+        setUserPosition((prev) => ({ ...prev, fullUsername: result.anonymous_username }));
       }
 
       setIsSubmitted(true);
-      toast.success("Successfully joined the waitlist! Check your email for a welcome message.");
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       toast.error(`Failed to join waitlist: ${error.message || 'Please try again.'}`);
     } finally {
       setIsLoading(false);
@@ -227,9 +207,16 @@ const Prelaunch = () => {
     return state ? state.name : formState.primaryState;
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    return (
+      <div className="min-h-screen bg-background">
+        <UniversalSuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          username={generatedUsername}
+          userType={userType}
+          signupType="prelaunch"
+        />
+        {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
@@ -535,10 +522,10 @@ const Prelaunch = () => {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading}
-                  aria-busy={isLoading}
+                  disabled={isSubmitting}
+                  aria-busy={isSubmitting}
                 >
-                  {isLoading ? "Joining..." : "Join ClearMarket"}
+                  {isSubmitting ? "Joining..." : "Join ClearMarket"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
 
