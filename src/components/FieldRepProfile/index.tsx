@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useFieldRepProfile } from "@/hooks/useFieldRepProfile";
+import { useCoverageAreas } from "@/hooks/useCoverageAreas";
 import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
 import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
 import CreditExplainerModal from "@/components/CreditExplainerModal";
@@ -28,6 +29,7 @@ const FieldRepProfile = () => {
   const { toast } = useToast();
   const { profile } = useUserProfile();
   const { saveProfile, loading: profileLoading } = useFieldRepProfile();
+  const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   
@@ -76,6 +78,20 @@ const FieldRepProfile = () => {
       form.setValue('displayUsername', profile.anonymous_username);
     }
   }, [profile, form]);
+
+  // Load existing coverage areas on component mount
+  useEffect(() => {
+    const loadCoverageAreas = async () => {
+      try {
+        const areas = await fetchCoverageAreas();
+        setCoverageAreas(areas);
+      } catch (error) {
+        console.error('Failed to load coverage areas:', error);
+      }
+    };
+    
+    loadCoverageAreas();
+  }, [fetchCoverageAreas]);
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
@@ -153,17 +169,21 @@ const FieldRepProfile = () => {
     
     if (coverageAreas.length > 0 && platforms.length > 0 && inspectionTypes.length > 0) {
       try {
-        await saveProfile({
-          platforms: platforms,
-          other_platform: values.otherPlatform,
-          inspection_types: inspectionTypes,
-          interested_in_beta: values.interestedInBeta
-        });
+        // Save both profile data and coverage areas
+        await Promise.all([
+          saveProfile({
+            platforms: platforms,
+            other_platform: values.otherPlatform,
+            inspection_types: inspectionTypes,
+            interested_in_beta: values.interestedInBeta
+          }),
+          saveCoverageAreas(coverageAreas)
+        ]);
         
         setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
         toast({
           title: "Coverage Setup Saved",
-          description: "Your coverage setup has been saved successfully!",
+          description: "Your coverage setup and pricing have been saved successfully!",
         });
       } catch (error) {
         toast({

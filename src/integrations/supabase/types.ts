@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -652,6 +652,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      coverage_areas: {
+        Row: {
+          anonymous_username: string | null
+          counties: string[]
+          created_at: string
+          id: string
+          inspection_types: Json
+          is_all_counties: boolean
+          rush_price: string
+          standard_price: string
+          state_code: string
+          state_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anonymous_username?: string | null
+          counties?: string[]
+          created_at?: string
+          id?: string
+          inspection_types?: Json
+          is_all_counties?: boolean
+          rush_price: string
+          standard_price: string
+          state_code: string
+          state_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anonymous_username?: string | null
+          counties?: string[]
+          created_at?: string
+          id?: string
+          inspection_types?: Json
+          is_all_counties?: boolean
+          rush_price?: string
+          standard_price?: string
+          state_code?: string
+          state_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       coverage_request_messages: {
         Row: {
@@ -4095,11 +4140,11 @@ export type Database = {
       }
       add_clear_credits: {
         Args: {
-          target_user_id: string
           credit_amount: number
+          metadata_param?: Json
           reference_id_param?: string
           reference_type_param?: string
-          metadata_param?: Json
+          target_user_id: string
         }
         Returns: boolean
       }
@@ -4109,46 +4154,46 @@ export type Database = {
       }
       admin_update_user_role: {
         Args: {
-          target_user_id: string
           new_role: Database["public"]["Enums"]["user_role"]
+          target_user_id: string
         }
         Returns: boolean
       }
       award_credit: {
         Args: {
-          target_user_id: string
           credit_amount: number
           credit_reason: string
+          target_user_id: string
         }
         Returns: boolean
       }
       award_credits: {
         Args:
           | {
-              target_user_id: string
               credit_amount: number
-              rule_name_param: string
+              metadata_param?: Json
               reference_id_param?: string
               reference_type_param?: string
-              metadata_param?: Json
+              rule_name_param: string
+              target_user_id: string
             }
           | {
-              target_user_id: string
-              rule_name_param: string
+              metadata_param?: Json
               reference_id_param?: string
               reference_type_param?: string
-              metadata_param?: Json
+              rule_name_param: string
+              target_user_id: string
             }
         Returns: boolean
       }
       award_rep_points: {
         Args: {
-          target_user_id: string
+          metadata_param?: Json
           points_amount: number
-          rule_name_param: string
           reference_id_param?: string
           reference_type_param?: string
-          metadata_param?: Json
+          rule_name_param: string
+          target_user_id: string
         }
         Returns: boolean
       }
@@ -4157,11 +4202,11 @@ export type Database = {
         Returns: string
       }
       calculate_response_metrics: {
-        Args: { target_user_id: string; period_days?: number }
+        Args: { period_days?: number; target_user_id: string }
         Returns: undefined
       }
       calculate_trust_score: {
-        Args: { target_user_id: string; target_role: string }
+        Args: { target_role: string; target_user_id: string }
         Returns: undefined
       }
       calculate_user_storage_usage: {
@@ -4190,15 +4235,15 @@ export type Database = {
       }
       check_rate_limit: {
         Args: {
-          user_id_param: string
-          operation_type: string
           max_attempts?: number
+          operation_type: string
+          user_id_param: string
           window_minutes?: number
         }
         Returns: boolean
       }
       check_storage_available: {
-        Args: { target_user_id: string; file_size_bytes: number }
+        Args: { file_size_bytes: number; target_user_id: string }
         Returns: boolean
       }
       cleanup_expired_ai_data: {
@@ -4232,28 +4277,28 @@ export type Database = {
       get_beta_testers_with_nda_status: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          email: string
-          user_type: string
-          name: string
-          signup_date: string
-          is_active: boolean
           created_at: string
-          updated_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
           nda_signed: boolean
+          signup_date: string
+          updated_at: string
+          user_type: string
         }[]
       }
       get_giveaway_eligibility: {
         Args: {
-          user_id_param: string
           giveaway_id_param: string
           giveaway_type_param: string
+          user_id_param: string
         }
         Returns: {
-          eligible: boolean
-          reason: string
           current_entries: number
+          eligible: boolean
           max_entries: number
+          reason: string
           rep_points_balance: number
         }[]
       }
@@ -4287,30 +4332,30 @@ export type Database = {
       get_role_counters: {
         Args: Record<PropertyKey, never>
         Returns: {
-          role: string
           counter: number
           created_at: string
+          role: string
         }[]
       }
       get_signup_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
-          total_signups: number
-          field_rep_signups: number
-          vendor_signups: number
           beta_interested: number
+          field_rep_signups: number
           recent_signups_24h: number
+          total_signups: number
+          vendor_signups: number
         }[]
       }
       get_trending_tags: {
         Args: {
           days_back?: number
-          tag_limit?: number
           section_filter?: string
+          tag_limit?: number
         }
         Returns: {
-          tag_name: string
           tag_count: number
+          tag_name: string
         }[]
       }
       get_user_display_name: {
@@ -4320,11 +4365,11 @@ export type Database = {
       get_user_document_stats: {
         Args: { target_user_id: string }
         Returns: {
+          document_types: Json
+          expired_documents: number
+          pending_documents: number
           total_documents: number
           verified_documents: number
-          pending_documents: number
-          expired_documents: number
-          document_types: Json
         }[]
       }
       get_user_email: {
@@ -4332,13 +4377,13 @@ export type Database = {
         Returns: string
       }
       get_user_login_analytics: {
-        Args: { target_anonymous_username: string; days_back?: number }
+        Args: { days_back?: number; target_anonymous_username: string }
         Returns: {
           anonymous_username: string
-          display_name: string
-          role: Database["public"]["Enums"]["user_role"]
-          last_active: string
           days_since_last_active: number
+          display_name: string
+          last_active: string
+          role: Database["public"]["Enums"]["user_role"]
         }[]
       }
       get_user_role: {
@@ -4348,13 +4393,13 @@ export type Database = {
       get_user_saved_posts: {
         Args: { target_user_id: string }
         Returns: {
-          post_id: string
-          title: string
           content: string
-          post_type: string
-          section: string
-          saved_at: string
           post_created_at: string
+          post_id: string
+          post_type: string
+          saved_at: string
+          section: string
+          title: string
         }[]
       }
       has_signed_nda: {
@@ -4362,7 +4407,7 @@ export type Database = {
         Returns: boolean
       }
       hide_review_with_credits: {
-        Args: { review_id: string; hide_days?: number }
+        Args: { hide_days?: number; review_id: string }
         Returns: boolean
       }
       http: {
@@ -4371,12 +4416,12 @@ export type Database = {
       }
       http_delete: {
         Args:
+          | { content: string; content_type: string; uri: string }
           | { uri: string }
-          | { uri: string; content: string; content_type: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_get: {
-        Args: { uri: string } | { uri: string; data: Json }
+        Args: { data: Json; uri: string } | { uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_head: {
@@ -4395,17 +4440,17 @@ export type Database = {
         }[]
       }
       http_patch: {
-        Args: { uri: string; content: string; content_type: string }
+        Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_post: {
         Args:
-          | { uri: string; content: string; content_type: string }
-          | { uri: string; data: Json }
+          | { content: string; content_type: string; uri: string }
+          | { data: Json; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_put: {
-        Args: { uri: string; content: string; content_type: string }
+        Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_reset_curlopt: {
@@ -4430,20 +4475,20 @@ export type Database = {
       }
       log_document_access: {
         Args: {
-          doc_id: string
           access_type_param: string
+          doc_id: string
           shared_with_param?: string
         }
         Returns: boolean
       }
       log_nda_attempt: {
         Args: {
-          target_user_id: string
+          additional_metadata?: Json
           attempt_status: string
-          error_msg?: string
           client_ip?: unknown
           client_user_agent?: string
-          additional_metadata?: Json
+          error_msg?: string
+          target_user_id: string
         }
         Returns: boolean
       }
@@ -4456,65 +4501,65 @@ export type Database = {
         Returns: undefined
       }
       reset_role_counter: {
-        Args: { target_role: string; new_value?: number }
+        Args: { new_value?: number; target_role: string }
         Returns: boolean
       }
       search_posts_by_tags: {
         Args: {
+          limit_count?: number
           search_tags: string[]
           section_filter?: string
-          limit_count?: number
         }
         Returns: {
-          id: string
-          title: string
           content: string
-          post_type: string
-          user_tags: string[]
-          system_tags: string[]
-          helpful_votes: number
           created_at: string
+          helpful_votes: number
+          id: string
+          post_type: string
+          system_tags: string[]
+          title: string
           user_id: string
+          user_tags: string[]
         }[]
       }
       setup_test_user: {
         Args: {
+          credits_val: number
+          display_name_val: string
+          profile_complete_val: number
+          trust_score_val: number
           user_email: string
           user_role: Database["public"]["Enums"]["user_role"]
-          display_name_val: string
-          trust_score_val: number
-          profile_complete_val: number
-          credits_val: number
         }
         Returns: undefined
       }
       spend_clear_credits: {
         Args: {
-          spender_user_id: string
           amount_param: number
+          metadata_param?: Json
           reference_id_param?: string
           reference_type_param?: string
-          metadata_param?: Json
+          spender_user_id: string
         }
         Returns: boolean
       }
       spend_credits: {
         Args: {
-          spender_user_id: string
           amount_param: number
+          metadata_param?: Json
           reference_id_param?: string
           reference_type_param?: string
-          metadata_param?: Json
+          spender_user_id: string
         }
         Returns: boolean
       }
       spend_rep_points: {
         Args: {
-          spender_user_id: string
-          points_amount: number
+          entry_count_param?: number
           giveaway_id_param: string
           giveaway_type_param: string
-          entry_count_param?: number
+          points_amount: number
+          spender_user_id: string
         }
         Returns: boolean
       }
@@ -4523,7 +4568,7 @@ export type Database = {
         Returns: string
       }
       toggle_user_activation: {
-        Args: { target_user_id: string; is_active_param: boolean }
+        Args: { is_active_param: boolean; target_user_id: string }
         Returns: boolean
       }
       update_communication_badges: {
@@ -4540,9 +4585,9 @@ export type Database = {
       }
       upgrade_user_to_admin: {
         Args: {
-          target_email: string
-          new_display_name?: string
           new_anonymous_username?: string
+          new_display_name?: string
+          target_email: string
         }
         Returns: boolean
       }
@@ -4551,7 +4596,7 @@ export type Database = {
         Returns: string
       }
       use_bad_day_token: {
-        Args: { target_user_id: string; target_review_id: string }
+        Args: { target_review_id: string; target_user_id: string }
         Returns: boolean
       }
       validate_tag_length: {
