@@ -14,7 +14,7 @@ import { CheckCircle, UserCheck, Building2, MapPin, Calendar, TrendingUp, Users,
 import { useStates } from "@/hooks/useLocationData";
 import { useWorkTypes } from "@/hooks/useWorkTypes";
 import { usePlatforms } from "@/hooks/usePlatforms";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { workTypes as vendorWorkTypeFallback } from "@/components/VendorProfile/utils";
 import { useJoinSubmission } from "@/hooks/useJoinSubmission";
 import UniversalSuccessModal from "@/components/UniversalSuccessModal";
@@ -77,6 +77,7 @@ const Prelaunch = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailCount, setEmailCount] = useState(78);
+  const { toast } = useToast();
   
   // Debug the states loading
   const { states, loading: statesLoading, error: statesError } = useStates();
@@ -158,7 +159,11 @@ const Prelaunch = () => {
       if (formState.workType.length === 0) missing.push('Type of Work');
       if (formState.workType.includes('Other') && !formState.otherWorkType.trim()) missing.push('Other Work Type');
       if (!formState.privacyConsent) missing.push('Consent to updates');
-      toast.error(`Please complete: ${missing.join(', ')}`);
+      toast({
+        title: "Validation Error",
+        description: `Please complete: ${missing.join(', ')}`,
+        variant: "destructive"
+      });
       return;
     }
     console.log('🔥 NEW FORM HANDLER STARTING - USING PRE_LAUNCH_SIGNUPS TABLE 🔥');
@@ -187,7 +192,11 @@ const Prelaunch = () => {
       setIsSubmitted(true);
     } catch (error: any) {
       console.error('Error submitting form:', error);
-      toast.error(`Failed to join waitlist: ${error.message || 'Please try again.'}`);
+      toast({
+        title: "Signup Failed",
+        description: `Failed to join waitlist: ${error.message || 'Please try again.'}`,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
