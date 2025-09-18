@@ -2557,6 +2557,48 @@ export type Database = {
         }
         Relationships: []
       }
+      review_reminders: {
+        Row: {
+          anonymous_username: string | null
+          connection_date: string
+          created_at: string
+          id: string
+          reminded_at: string | null
+          reminder_due_date: string
+          review_submitted_at: string | null
+          reviewed_user_id: string
+          reviewer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          anonymous_username?: string | null
+          connection_date: string
+          created_at?: string
+          id?: string
+          reminded_at?: string | null
+          reminder_due_date: string
+          review_submitted_at?: string | null
+          reviewed_user_id: string
+          reviewer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          anonymous_username?: string | null
+          connection_date?: string
+          created_at?: string
+          id?: string
+          reminded_at?: string | null
+          reminder_due_date?: string
+          review_submitted_at?: string | null
+          reviewed_user_id?: string
+          reviewer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           created_at: string
@@ -4328,6 +4370,16 @@ export type Database = {
           updated_at: string
           user_id: string
         }
+      }
+      get_pending_review_reminders: {
+        Args: { target_user_id: string }
+        Returns: {
+          connection_date: string
+          days_since_connection: number
+          id: string
+          reviewed_user_name: string
+          reviewed_user_role: string
+        }[]
       }
       get_role_counters: {
         Args: Record<PropertyKey, never>
