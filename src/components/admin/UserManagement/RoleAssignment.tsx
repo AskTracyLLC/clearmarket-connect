@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter } from "lucide-react";
+import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { ConnectionLimitManager } from "./ConnectionLimitManager";
 
 interface UserProfile {
   id: string;
@@ -42,6 +44,7 @@ export const RoleAssignment = () => {
   const [sortField, setSortField] = useState<SortField>('username');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [selectedUserForLimit, setSelectedUserForLimit] = useState<UserProfile | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -452,14 +455,24 @@ export const RoleAssignment = () => {
                           />
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleImpersonate(user)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Impersonate
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedUserForLimit(user)}
+                              title="Manage Connection Limits"
+                            >
+                              <Shield className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleImpersonate(user)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Impersonate
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -470,6 +483,21 @@ export const RoleAssignment = () => {
           )}
         </div>
       </CardContent>
+
+      {/* Connection Limit Management Modal */}
+      <Dialog open={!!selectedUserForLimit} onOpenChange={(open) => !open && setSelectedUserForLimit(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Manage Connection Request Limits</DialogTitle>
+          </DialogHeader>
+          {selectedUserForLimit && (
+            <ConnectionLimitManager
+              userId={selectedUserForLimit.user_id}
+              displayName={selectedUserForLimit.display_name}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

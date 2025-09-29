@@ -3673,6 +3673,7 @@ export type Database = {
           communication_score: number | null
           community_score: number | null
           created_at: string | null
+          daily_connection_request_limit: number | null
           display_name: string | null
           document_expiration_notifications: boolean | null
           email: string | null
@@ -3696,6 +3697,7 @@ export type Database = {
           communication_score?: number | null
           community_score?: number | null
           created_at?: string | null
+          daily_connection_request_limit?: number | null
           display_name?: string | null
           document_expiration_notifications?: boolean | null
           email?: string | null
@@ -3719,6 +3721,7 @@ export type Database = {
           communication_score?: number | null
           community_score?: number | null
           created_at?: string | null
+          daily_connection_request_limit?: number | null
           display_name?: string | null
           document_expiration_notifications?: boolean | null
           email?: string | null
@@ -4263,6 +4266,10 @@ export type Database = {
         Args: { new_role_name: string }
         Returns: boolean
       }
+      admin_set_connection_request_limit: {
+        Args: { new_limit: number; target_user_id: string }
+        Returns: boolean
+      }
       admin_update_user_role: {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]
@@ -4482,6 +4489,10 @@ export type Database = {
           tag_count: number
           tag_name: string
         }[]
+      }
+      get_user_connection_limit_info: {
+        Args: { target_user_id: string }
+        Returns: Json
       }
       get_user_display_name: {
         Args: { target_user_id: string }
