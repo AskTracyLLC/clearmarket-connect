@@ -4,8 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, X, Check, Clock } from "lucide-react";
+import { UserPlus, X, Check, Clock, AlertTriangle, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface ConnectionRequest {
   id: string;
@@ -174,6 +176,14 @@ export const ConnectionRequestsList = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Alert variant="default" className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-sm text-amber-800 dark:text-amber-200">
+            <strong>Important:</strong> Before accepting any invitation, please confirm you know who the vendor is. 
+            Review their profile details and avoid accepting blind invitations.
+          </AlertDescription>
+        </Alert>
+
         {requests.map((request) => {
           const displayName = request.sender_display_name || request.sender_anonymous_username || 'Unknown User';
           const isProcessing = processingId === request.id;
@@ -189,10 +199,18 @@ export const ConnectionRequestsList = () => {
                       {request.sender_role}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                     <Clock className="h-3 w-3" />
                     <span>Expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>
                   </div>
+                  <Link 
+                    to={`/vendor/profile/${request.sender_id}`}
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                    target="_blank"
+                  >
+                    View vendor profile
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
                 </div>
               </div>
 
