@@ -74,23 +74,24 @@ export const hasCreditsToUnlock = (): boolean => {
   return mockCurrentVendor.credits > 0;
 };
 
+// Track unlocked contacts separately from network
+export const unlockedContacts: number[] = [];
+
+export const isContactUnlocked = (repId: number): boolean => {
+  return unlockedContacts.includes(repId);
+};
+
 export const unlockRepContact = (repId: number, repInitials: string): boolean => {
   if (!hasCreditsToUnlock()) return false;
   
-  // Don't add if already in network
-  if (isRepInNetwork(repId)) return false;
+  // Don't unlock if already unlocked
+  if (isContactUnlocked(repId)) return false;
   
   // Consume credit
   mockCurrentVendor.credits -= 1;
   
-  // Add to network as unlocked
-  mockCurrentVendor.network.push({
-    repId,
-    repInitials,
-    addedMethod: 'unlocked',
-    addedDate: new Date(),
-    confirmed: true
-  });
+  // Add to unlocked contacts (NOT network)
+  unlockedContacts.push(repId);
   
   return true;
 };

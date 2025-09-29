@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Lock, Unlock, Shield, Key, Users, MessageCircle, FileText, Flag } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { isRepInNetwork, hasCreditsToUnlock, unlockRepContact, mockCurrentVendor } from "@/data/mockVendorData";
+import { isRepInNetwork, hasCreditsToUnlock, unlockRepContact, mockCurrentVendor, isContactUnlocked } from "@/data/mockVendorData";
 import { TrustBadge, LastActive } from "@/components/ui/trust-badges";
 import AddToNetworkModal from "./AddToNetworkModal";
 import UnlockContactModal from "./UnlockContactModal";
@@ -49,6 +49,7 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
   
   const inNetwork = isRepInNetwork(rep.id);
   const canUnlock = hasCreditsToUnlock();
+  const isUnlocked = isContactUnlocked(rep.id);
   
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -74,7 +75,7 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
     if (success) {
       toast({
         title: "Contact Unlocked!",
-        description: `${rep.initials} has been added to your network. Contact info is now visible.`,
+        description: `You can now view ${rep.initials}'s contact information. Add them to your network to start messaging.`,
       });
       handleRefresh(); // Trigger UI refresh
     } else {
@@ -123,7 +124,7 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
             </div>
 
             {/* Contact Information - Conditional Display */}
-            {inNetwork && (
+            {(inNetwork || isUnlocked) && (
               <div className="space-y-1 p-3 bg-primary/5 rounded-lg border">
                 <Label className="text-sm text-muted-foreground">Contact Information:</Label>
                 <div className="space-y-1">
@@ -137,7 +138,7 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
             <div className="space-y-1">
               <Label className="text-sm text-muted-foreground">Platforms:</Label>
               <div className="flex flex-wrap gap-2">
-                {inNetwork || paidFilters?.platforms ? (
+                {isUnlocked || inNetwork || paidFilters?.platforms ? (
                   rep.platforms.map((platform) => (
                     <Badge key={platform} variant="secondary">
                       {platform}
@@ -155,19 +156,19 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
             <div className="space-y-1">
               <Label className="text-sm text-muted-foreground">Certifications & Keys:</Label>
               <div className="flex flex-wrap gap-2">
-                {(inNetwork || paidFilters?.abcRequired) && rep.abcRequired && (
+                {(isUnlocked || inNetwork || paidFilters?.abcRequired) && rep.abcRequired && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Shield className="h-3 w-3" />
                     ABC# Certified
                   </Badge>
                 )}
-                {(inNetwork || paidFilters?.hudKeyRequired) && rep.hudKeyRequired && (
+                {(isUnlocked || inNetwork || paidFilters?.hudKeyRequired) && rep.hudKeyRequired && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Key className="h-3 w-3" />
                     HUD Key {rep.hudKeyCode && `(${rep.hudKeyCode})`}
                   </Badge>
                 )}
-                {!inNetwork && !paidFilters?.abcRequired && !paidFilters?.hudKeyRequired && (
+                {!isUnlocked && !inNetwork && !paidFilters?.abcRequired && !paidFilters?.hudKeyRequired && (
                   <Badge variant="outline" className="text-muted-foreground">
                     Unlock to see certifications
                   </Badge>
@@ -180,7 +181,7 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
             <div className="space-y-1">
               <Label className="text-sm text-muted-foreground">Inspection Types:</Label>
               <div className="flex flex-wrap gap-2">
-                {inNetwork || paidFilters?.inspectionTypes ? (
+                {isUnlocked || inNetwork || paidFilters?.inspectionTypes ? (
                   rep.inspectionTypes.map((type) => (
                     <Badge key={type} variant="outline">
                       {type}
@@ -206,8 +207,8 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
             {inNetwork ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-green-600 mb-2">
-                  <Unlock className="h-4 w-4" />
-                  <span className="text-sm font-medium">Contact Unlocked</span>
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm font-medium">In Your Network</span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
@@ -230,12 +231,24 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
                   </Button>
                 </div>
               </div>
+            ) : isUnlocked ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-blue-600 mb-2">
+                  <Unlock className="h-4 w-4" />
+                  <span className="text-sm font-medium">Contact Unlocked</span>
+                </div>
+                <AddToNetworkModal 
+                  repId={rep.id}
+                  repInitials={rep.initials}
+                  onNetworkAdded={handleRefresh}
+                />
+              </div>
             ) : (
               <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     onClick={handleUnlock}
-                    disabled={!canUnlock || isUpdating}
+                    disabled={!canUnlock || isUpdating || isUnlocked}
                     variant={canUnlock ? "outline-primary" : "outline"}
                     className="flex items-center gap-2 min-h-[44px] justify-center"
                   >
