@@ -80,13 +80,14 @@ export const SentConnectionRequests = () => {
 
           const enrichedData = data.map(request => ({
             ...request,
+            status: request.status as ConnectionRequest['status'],
             recipient_display_name: recipientMap.get(request.recipient_id)?.display_name,
             recipient_anonymous_username: recipientMap.get(request.recipient_id)?.anonymous_username,
-          }));
+          })) as ConnectionRequest[];
 
           setRequests(enrichedData);
         } else {
-          setRequests(data);
+          setRequests(data as ConnectionRequest[]);
         }
       } else {
         setRequests([]);
