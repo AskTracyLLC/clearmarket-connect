@@ -155,7 +155,7 @@ const Header = () => {
                   </div>
 
                   {/* Notifications */}
-                  <NotificationBell count={0} onClick={() => navigate('/notifications')} />
+                  <NotificationBell />
 
                   {/* User Profile */}
                   <ProfileDropdown
@@ -312,7 +312,7 @@ const Header = () => {
                 </Link>
 
                 {/* Mobile Notifications */}
-                <NotificationBell count={0} onClick={() => navigate('/notifications')} />
+                <NotificationBell />
               </>
             )}
           </div>

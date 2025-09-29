@@ -5,7 +5,7 @@ import { useRealtimeSubscription } from "./useRealtimeSubscription";
 
 interface Notification {
   id: string;
-  type: 'connection_accepted' | 'connection_rejected' | 'connection_cancelled' | 'review' | 'comment' | 'mention' | 'vote' | 'message';
+  type: 'connection_accepted' | 'connection_rejected' | 'connection_cancelled' | 'connection_request' | 'review' | 'comment' | 'mention' | 'vote' | 'message';
   title: string;
   message: string;
   read: boolean;
