@@ -14,25 +14,32 @@ import {
   Send, 
   NotebookPen,
   Search,
-  Filter,
   Eye,
-  UserPlus
+  UserPlus,
+  UserMinus,
+  Loader2
 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import Header from '@/components/Header';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import TrustScoreReviewModal from '@/components/TrustScore/TrustScoreReviewModal';
 import UserCommentModal from '@/components/ui/UserCommentModal';
 import { useDirectMessages } from '@/hooks/useDirectMessages';
+import { useNetworkConnections } from '@/hooks/useNetworkConnections';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { InviteModal } from '@/components/InviteModal';
+import { useNavigate } from 'react-router-dom';
 
 const NetworkPage = () => {
   const { profile } = useUserProfile();
   const { sendMessage } = useDirectMessages();
+  const { connections, isLoading, removeConnection } = useNetworkConnections();
+  const navigate = useNavigate();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [ratingFilter, setRatingFilter] = useState('all');
@@ -40,114 +47,53 @@ const NetworkPage = () => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  // Mock network data - in real app this would come from API based on user role
-  const networkConnections = profile?.role === 'vendor' ? [
-    {
-      id: 'rep-1',
-      initials: "J.D.",
-      name: "John Davis",
-      location: "Los Angeles, CA",
-      platforms: ["CoreLogic", "Clear Capital"],
-      connectedDate: "2024-01-15",
-      method: "Unlocked",
-      lastActive: "2 days ago",
-      rating: 4.8,
-      completedJobs: 145,
-      trustScore: 87,
-      role: 'field_rep'
-    },
-    {
-      id: 'rep-2',
-      initials: "S.M.",
-      name: "Sarah Miller",
-      location: "Dallas, TX",
-      platforms: ["ServiceLink", "AMC"],
-      connectedDate: "2024-02-08",
-      method: "Referral",
-      lastActive: "1 week ago",
-      rating: 4.9,
-      completedJobs: 89,
-      trustScore: 92,
-      role: 'field_rep'
-    },
-    {
-      id: 'rep-3',
-      initials: "R.W.",
-      name: "Robert Wilson",
-      location: "Miami, FL",
-      platforms: ["Clear Capital", "Solidifi"],
-      connectedDate: "2024-01-22",
-      method: "Unlocked",
-      lastActive: "Yesterday",
-      rating: 4.7,
-      completedJobs: 234,
-      trustScore: 84,
-      role: 'field_rep'
-    }
-  ] : [
-    {
-      id: 'vendor-1',
-      initials: "A.R.",
-      name: "Atlantic Real Estate",
-      location: "New York, NY",
-      platforms: ["CoreLogic", "Clear Capital", "ServiceLink"],
-      connectedDate: "2024-01-10",
-      method: "Unlocked",
-      lastActive: "Today",
-      rating: 4.6,
-      completedJobs: 89,
-      trustScore: 78,
-      role: 'vendor'
-    },
-    {
-      id: 'vendor-2',
-      initials: "S.P.",
-      name: "Sunset Properties",
-      location: "San Diego, CA",
-      platforms: ["AMC", "Solidifi"],
-      connectedDate: "2024-02-15",
-      method: "Referral",
-      lastActive: "2 hours ago",
-      rating: 4.8,
-      completedJobs: 156,
-      trustScore: 85,
-      role: 'vendor'
-    }
-  ];
-
-  const filteredConnections = networkConnections.filter(connection => {
-    const matchesSearch = connection.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         connection.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLocation = locationFilter === 'all' || connection.location.includes(locationFilter);
-    const matchesRating = ratingFilter === 'all' || connection.rating >= parseFloat(ratingFilter);
+  const filteredConnections = connections.filter(connection => {
+    const name = connection.display_name || connection.anonymous_username;
+    const location = connection.location || '';
+    
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLocation = locationFilter === 'all' || location.includes(locationFilter);
+    const matchesRating = ratingFilter === 'all' || (connection.trust_score || 0) >= parseFloat(ratingFilter);
     
     return matchesSearch && matchesLocation && matchesRating;
   });
 
   const getMethodBadgeVariant = (method: string) => {
     switch (method) {
-      case 'Unlocked':
+      case 'unlocked':
         return 'default';
-      case 'Referral':
+      case 'referral':
         return 'secondary';
+      case 'invitation':
+        return 'outline';
       default:
         return 'outline';
     }
   };
 
+  const formatMethod = (method: string) => {
+    return method.charAt(0).toUpperCase() + method.slice(1);
+  };
+
   const handleOpenReview = (user: any) => {
-    setSelectedUser(user);
+    setSelectedUser({
+      id: user.user_id,
+      display_name: user.display_name || user.anonymous_username,
+      role: user.role
+    });
     setReviewModalOpen(true);
   };
 
   const handleOpenComment = (user: any) => {
     setSelectedUser({
-      id: user.id,
-      name: user.name,
-      initials: user.initials,
+      id: user.user_id,
+      name: user.display_name || user.anonymous_username,
+      initials: (user.display_name || user.anonymous_username).split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
       role: user.role
     });
     setCommentModalOpen(true);
@@ -161,7 +107,7 @@ const NetworkPage = () => {
   const handleSendMessage = async () => {
     if (!messageContent.trim() || !selectedUser) return;
 
-    const success = await sendMessage(selectedUser.id, messageContent);
+    const success = await sendMessage(selectedUser.user_id, messageContent);
     if (success) {
       toast.success('Message sent successfully');
       setMessageContent('');
@@ -171,8 +117,43 @@ const NetworkPage = () => {
     }
   };
 
+  const handleRemoveConnection = async () => {
+    if (!selectedUser) return;
+
+    const success = await removeConnection(selectedUser.user_id);
+    if (success) {
+      toast.success('Connection removed successfully');
+      setRemoveDialogOpen(false);
+      setSelectedUser(null);
+    } else {
+      toast.error('Failed to remove connection');
+    }
+  };
+
+  const handleViewProfile = (connection: any) => {
+    if (connection.role === 'field_rep') {
+      navigate(`/field-rep/${connection.user_id}`);
+    } else {
+      navigate(`/vendor/${connection.user_id}`);
+    }
+  };
+
   const networkTitle = profile?.role === 'vendor' ? 'My Field Reps' : 'My Vendors';
   const connectionType = profile?.role === 'vendor' ? 'Field Reps' : 'Vendors';
+
+  if (isLoading) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-muted-foreground">Loading your network...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -202,7 +183,7 @@ const NetworkPage = () => {
                   <Users className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{networkConnections.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{connections.length}</p>
                   <p className="text-sm text-muted-foreground">Total Connections</p>
                 </div>
               </div>
@@ -217,12 +198,12 @@ const NetworkPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">
-                    {networkConnections.length > 0 
-                      ? (networkConnections.reduce((sum, conn) => sum + conn.rating, 0) / networkConnections.length).toFixed(1)
+                    {connections.length > 0 
+                      ? (connections.reduce((sum, conn) => sum + (conn.trust_score || 0), 0) / connections.length).toFixed(1)
                       : '0.0'
                     }
                   </p>
-                  <p className="text-sm text-muted-foreground">Avg Rating Received</p>
+                  <p className="text-sm text-muted-foreground">Avg Trust Score</p>
                 </div>
               </div>
             </CardContent>
@@ -236,7 +217,7 @@ const NetworkPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">
-                    {networkConnections.filter(conn => conn.method === 'Unlocked').length}
+                    {connections.filter(conn => conn.connection_method === 'unlocked').length}
                   </p>
                   <p className="text-sm text-muted-foreground">Credit Unlocks</p>
                 </div>
@@ -252,7 +233,7 @@ const NetworkPage = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">
-                    {networkConnections.filter(conn => conn.method === 'Referral').length}
+                    {connections.filter(conn => conn.connection_method === 'referral').length}
                   </p>
                   <p className="text-sm text-muted-foreground">Referrals</p>
                 </div>
@@ -294,9 +275,9 @@ const NetworkPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Ratings</SelectItem>
-                  <SelectItem value="4.5">4.5+ Stars</SelectItem>
-                  <SelectItem value="4.0">4.0+ Stars</SelectItem>
-                  <SelectItem value="3.5">3.5+ Stars</SelectItem>
+                  <SelectItem value="80">80+ Trust Score</SelectItem>
+                  <SelectItem value="70">70+ Trust Score</SelectItem>
+                  <SelectItem value="60">60+ Trust Score</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -316,58 +297,50 @@ const NetworkPage = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {filteredConnections.map((connection) => (
+              {filteredConnections.map((connection) => {
+                const name = connection.display_name || connection.anonymous_username;
+                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                
+                return (
                 <Card key={connection.id} className="border border-muted">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
                         <Avatar className="h-12 w-12">
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {connection.initials}
+                            {initials}
                           </AvatarFallback>
                         </Avatar>
                         
                         <div className="space-y-2">
                           <div>
-                            <h3 className="font-semibold text-foreground">{connection.name}</h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              {connection.location}
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-2">
-                            {connection.platforms.slice(0, 3).map((platform) => (
-                              <Badge key={platform} variant="outline" className="text-xs">
-                                {platform}
-                              </Badge>
-                            ))}
-                            {connection.platforms.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{connection.platforms.length - 3}
-                              </Badge>
+                            <h3 className="font-semibold text-foreground">{name}</h3>
+                            {connection.location && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                {connection.location}
+                              </div>
                             )}
                           </div>
                           
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              Connected: {new Date(connection.connectedDate).toLocaleDateString()}
+                              Connected: {new Date(connection.connected_date).toLocaleDateString()}
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-current text-yellow-500" />
-                              {connection.rating} ({connection.completedJobs} jobs)
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs">Trust Score: {connection.trustScore}</span>
-                            </div>
+                            {connection.trust_score && (
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-current text-yellow-500" />
+                                Trust Score: {connection.trust_score}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                       
                       <div className="flex items-start gap-2">
-                        <Badge variant={getMethodBadgeVariant(connection.method)}>
-                          {connection.method}
+                        <Badge variant={getMethodBadgeVariant(connection.connection_method)}>
+                          {formatMethod(connection.connection_method)}
                         </Badge>
                         
                         <DropdownMenu>
@@ -377,7 +350,7 @@ const NetworkPage = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewProfile(connection)}>
                               <Eye className="h-4 w-4 mr-2" />
                               View Full Profile
                             </DropdownMenuItem>
@@ -393,6 +366,17 @@ const NetworkPage = () => {
                               <Star className="h-4 w-4 mr-2" />
                               Leave Review
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setSelectedUser(connection);
+                                setRemoveDialogOpen(true);
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <UserMinus className="h-4 w-4 mr-2" />
+                              Remove Connection
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -400,7 +384,7 @@ const NetworkPage = () => {
                     
                     <div className="mt-3 pt-3 border-t border-muted">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Last active: {connection.lastActive}</span>
+                        <span>Last active: {connection.last_active ? new Date(connection.last_active).toLocaleDateString() : 'Never'}</span>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" onClick={() => handleOpenMessage(connection)}>
                             <MessageCircle className="h-3 w-3 mr-1" />
@@ -415,7 +399,7 @@ const NetworkPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )})}
             </div>
             
             {filteredConnections.length === 0 && (
@@ -430,63 +414,46 @@ const NetworkPage = () => {
                 <p className="text-muted-foreground mb-4">
                   {searchTerm || locationFilter !== 'all' || ratingFilter !== 'all'
                     ? 'Try adjusting your search criteria'
-                    : `Start building your network by searching for ${connectionType.toLowerCase()}.`
+                    : `Start building your network by searching for ${connectionType.toLowerCase()}`
                   }
                 </p>
-                {(!searchTerm && locationFilter === 'all' && ratingFilter === 'all') && (
-                  <Button>
-                    Find {connectionType}
-                  </Button>
-                )}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Modals */}
         {selectedUser && (
-          <TrustScoreReviewModal
+          <TrustScoreReviewModal 
             open={reviewModalOpen}
             onOpenChange={setReviewModalOpen}
-            targetUser={{
-              id: selectedUser.id,
-              display_name: selectedUser.name,
-              role: selectedUser.role as 'field_rep' | 'vendor'
-            }}
+            targetUser={selectedUser}
             onReviewSubmitted={() => {
-              toast.success('Review submitted successfully');
               setReviewModalOpen(false);
+              toast.success('Review submitted successfully');
             }}
           />
         )}
-        
-        <UserCommentModal
-          open={commentModalOpen}
-          onOpenChange={setCommentModalOpen}
-          targetUser={selectedUser}
-        />
 
-        {/* Message Modal */}
         <Dialog open={messageModalOpen} onOpenChange={setMessageModalOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Send Message</DialogTitle>
               <DialogDescription>
-                Send a message to {selectedUser?.name}
+                Send a message to {selectedUser?.display_name || selectedUser?.anonymous_username}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <Textarea
+              <Textarea 
                 placeholder="Type your message here..."
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
-                rows={4}
+                rows={5}
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setMessageModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSendMessage} disabled={!messageContent.trim()}>
+                <Button onClick={handleSendMessage}>
                   <Send className="h-4 w-4 mr-2" />
                   Send Message
                 </Button>
@@ -495,15 +462,34 @@ const NetworkPage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Invite Modal */}
-        <InviteModal
+        <InviteModal 
           open={inviteModalOpen}
           onOpenChange={setInviteModalOpen}
-          onInviteSent={() => {
-            toast.success('Invitation sent successfully!');
-            setInviteModalOpen(false);
-          }}
         />
+
+        <UserCommentModal
+          open={commentModalOpen}
+          onOpenChange={setCommentModalOpen}
+          targetUser={selectedUser}
+        />
+
+        <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove Connection</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove {selectedUser?.display_name || selectedUser?.anonymous_username} from your network? 
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRemoveConnection} className="bg-destructive hover:bg-destructive/90">
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );
