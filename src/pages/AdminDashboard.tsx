@@ -12,12 +12,13 @@ import { SystemSettings } from "@/components/admin/SystemSettings";
 import { ContentModeration } from "@/components/admin/ContentModeration";
 import { CreditOverrides } from "@/components/admin/CreditOverrides";
 import { UserActivityLog } from "@/components/admin/UserActivityLog";
+import { ConnectionLimitManager } from "@/components/admin/ConnectionLimitManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, Database, Settings, Coins, Mail, Calendar } from "lucide-react";
+import { Shield, Users, Database, Settings, Coins, Mail, Calendar, Network } from "lucide-react";
 import { AIDiscussionCreator } from "@/components/admin/AIDiscussionCreator";
 
 const AdminDashboard = () => {
@@ -132,7 +133,7 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="moderation" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Moderation
@@ -148,6 +149,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               User Management
+            </TabsTrigger>
+            <TabsTrigger value="connection-limits" className="flex items-center gap-2">
+              <Network className="h-4 w-4" />
+              Connection Limits
             </TabsTrigger>
             <TabsTrigger value="credits" className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
@@ -181,6 +186,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="users" className="mt-6">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="connection-limits" className="mt-6">
+            <ConnectionLimitManager />
           </TabsContent>
 
           <TabsContent value="credits" className="mt-6">
