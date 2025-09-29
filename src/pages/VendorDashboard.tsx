@@ -27,6 +27,7 @@ import CoverageRequests from '@/components/VendorDashboard/CoverageRequests';
 import VendorReviews from '@/components/VendorDashboard/VendorReviews';
 import AccountBilling from '@/components/VendorDashboard/AccountBilling';
 import NetworkAlertsTab from '@/components/VendorDashboard/NetworkAlertsTab';
+import { SentConnectionRequests } from '@/components/VendorDashboard/SentConnectionRequests';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('coverage');
@@ -160,7 +161,10 @@ const VendorDashboard = () => {
             </TabsContent>
 
             <TabsContent value="network">
-              <VendorNetwork />
+              <div className="space-y-6">
+                <SentConnectionRequests />
+                <VendorNetwork />
+              </div>
             </TabsContent>
 
             <TabsContent value="alerts">
