@@ -135,7 +135,7 @@ export const useRequireNDA = () => {
 
   return {
     hasSignedNDA: hasSignedNDA && userNdaSigned, // Both must be true
-    loading: loading || userNdaSigned === null,
+    loading: loading || (user && userNdaSigned === null), // Only loading if user exists but NDA status unknown
     isProtectedRoute: !PUBLIC_ROUTES.includes(location.pathname),
     userNdaSigned
   };
