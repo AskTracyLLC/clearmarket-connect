@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useDualBalance } from "@/hooks/dual_balance_hook";
 import Header from "@/components/Header";
+import { ConnectionRequestsList } from "@/components/FieldRepDashboard/ConnectionRequestsList";
 
 interface DashboardStats {
   trustScore: number;
@@ -111,6 +112,9 @@ const FieldRepDashboard = () => {
         
         {/* Performance Scores */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Connection Requests */}
+          <ConnectionRequestsList />
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
