@@ -22,6 +22,14 @@ interface AddToNetworkModalProps {
   onNetworkAdded: () => void;
 }
 
+interface ConnectionRequestValidation {
+  can_send: boolean;
+  reason: string | null;
+  message: string;
+  remaining_today?: number;
+  existing_status?: string;
+}
+
 const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkModalProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -35,20 +43,23 @@ const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkM
     setIsAdding(true);
     
     try {
-      // Check if request already exists
-      const { data: existing } = await supabase
-        .from('connection_requests')
-        .select('id, status')
-        .eq('sender_id', user.id)
-        .eq('recipient_id', repId)
-        .single();
+      // Validate request using database function
+      const { data: validationResult, error: validationError } = await supabase
+        .rpc('can_send_connection_request', {
+          sender_user_id: user.id,
+          recipient_user_id: repId
+        });
 
-      if (existing) {
+      if (validationError) throw validationError;
+
+      const validation = validationResult as unknown as ConnectionRequestValidation;
+
+      if (!validation?.can_send) {
         toast({
-          title: "Request Already Sent",
-          description: existing.status === 'pending' 
-            ? `Your connection request to ${repInitials} is pending their response.`
-            : `You already have a ${existing.status} connection request with ${repInitials}.`,
+          title: validation?.reason === 'daily_limit' 
+            ? "Daily Limit Reached" 
+            : "Cannot Send Request",
+          description: validation?.message || "Unable to send connection request at this time.",
           variant: "destructive",
         });
         setIsAdding(false);
@@ -69,7 +80,9 @@ const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkM
 
       toast({
         title: "Connection Request Sent!",
-        description: `${repInitials} will be notified of your request. You'll be able to message them once they accept.`,
+        description: validation?.remaining_today 
+          ? `${repInitials} will be notified. You have ${validation.remaining_today} request${validation.remaining_today === 1 ? '' : 's'} remaining today.`
+          : `${repInitials} will be notified of your request.`,
       });
       onNetworkAdded();
       setIsOpen(false);

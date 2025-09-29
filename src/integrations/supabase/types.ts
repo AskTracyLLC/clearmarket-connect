@@ -1020,6 +1020,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_connection_request_limits: {
+        Row: {
+          anonymous_username: string | null
+          created_at: string | null
+          date: string
+          id: string
+          request_count: number
+          user_id: string
+        }
+        Insert: {
+          anonymous_username?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          request_count?: number
+          user_id: string
+        }
+        Update: {
+          anonymous_username?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          request_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_credit_earnings: {
         Row: {
           anonymous_username: string | null
@@ -4301,6 +4328,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      can_send_connection_request: {
+        Args: { recipient_user_id: string; sender_user_id: string }
+        Returns: Json
+      }
       can_submit_review: {
         Args: { reviewer_user_id: string; target_user_id: string }
         Returns: boolean
@@ -4554,6 +4585,10 @@ export type Database = {
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
         Returns: boolean
+      }
+      increment_daily_connection_request_count: {
+        Args: { user_id_param: string }
+        Returns: undefined
       }
       increment_daily_invite_count: {
         Args: { user_id_param: string }

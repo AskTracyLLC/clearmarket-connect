@@ -16,6 +16,13 @@ interface InviteModalProps {
   onInviteSent?: () => void;
 }
 
+interface ConnectionRequestValidation {
+  can_send: boolean;
+  reason: string | null;
+  message: string;
+  remaining_today?: number;
+}
+
 export const InviteModal: React.FC<InviteModalProps> = ({
   open,
   onOpenChange,
@@ -34,23 +41,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 
     setIsLoading(true);
     try {
-      // Check daily invite limit
-      const { data: canInvite } = await supabase.rpc('check_daily_invite_limit', {
-        user_id_param: user.id
-      });
-
-      if (!canInvite) {
-        toast.error("You've reached your daily invite limit (5 invites per day)");
-        return;
-      }
-
-      // Prepare invite data
-      const inviteData: any = {
-        sender_id: user.id,
-        recipient_email: inviteType === "email" ? email : null,
-        recipient_username: inviteType === "username" ? username : null,
-        personal_message: personalMessage.trim() || null
-      };
+      // Prepare recipient ID
+      let recipientId: string | null = null;
 
       // If username provided, try to find the user
       if (inviteType === "username") {
@@ -61,9 +53,52 @@ export const InviteModal: React.FC<InviteModalProps> = ({
           .single();
         
         if (userData) {
-          inviteData.recipient_id = userData.id;
+          recipientId = userData.id;
         }
       }
+
+      // Validate connection request if we have recipient ID
+      if (recipientId) {
+        const { data: validationResult, error: validationError } = await supabase
+          .rpc('can_send_connection_request', {
+            sender_user_id: user.id,
+            recipient_user_id: recipientId
+          });
+
+        if (validationError) throw validationError;
+
+        const validation = validationResult as unknown as ConnectionRequestValidation;
+
+        if (!validation?.can_send) {
+          toast.error(
+            validation?.reason === 'daily_limit' 
+              ? validation.message
+              : validation?.message || "Cannot send connection request at this time"
+          );
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // For email invites, still check daily limit using the old function
+        const { data: canInvite } = await supabase.rpc('check_daily_invite_limit', {
+          user_id_param: user.id
+        });
+
+        if (!canInvite) {
+          toast.error("You've reached your daily invite limit (5 invites per day)");
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Prepare invite data
+      const inviteData: any = {
+        sender_id: user.id,
+        recipient_email: inviteType === "email" ? email : null,
+        recipient_username: inviteType === "username" ? username : null,
+        recipient_id: recipientId,
+        personal_message: personalMessage.trim() || null
+      };
 
       // Create connection request
       const { error: insertError } = await supabase
@@ -72,10 +107,12 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 
       if (insertError) throw insertError;
 
-      // Increment daily invite count
-      await supabase.rpc('increment_daily_invite_count', {
-        user_id_param: user.id
-      });
+      // Increment daily invite count for email invites (username invites already tracked by trigger)
+      if (inviteType === "email") {
+        await supabase.rpc('increment_daily_invite_count', {
+          user_id_param: user.id
+        });
+      }
 
       // Send invitation email via edge function
       const { error: emailError } = await supabase.functions.invoke('send-network-invitation', {
