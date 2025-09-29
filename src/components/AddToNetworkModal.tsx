@@ -8,41 +8,77 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Users } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { addRepToNetwork } from "@/data/mockVendorData";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddToNetworkModalProps {
-  repId: number;
+  repId: string;
   repInitials: string;
   onNetworkAdded: () => void;
 }
 
 const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkModalProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [personalMessage, setPersonalMessage] = useState("");
 
   const handleAddToNetwork = async () => {
+    if (!user) return;
+    
     setIsAdding(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const success = addRepToNetwork(repId, repInitials);
-    
-    if (success) {
+    try {
+      // Check if request already exists
+      const { data: existing } = await supabase
+        .from('connection_requests')
+        .select('id, status')
+        .eq('sender_id', user.id)
+        .eq('recipient_id', repId)
+        .single();
+
+      if (existing) {
+        toast({
+          title: "Request Already Sent",
+          description: existing.status === 'pending' 
+            ? `Your connection request to ${repInitials} is pending their response.`
+            : `You already have a ${existing.status} connection request with ${repInitials}.`,
+          variant: "destructive",
+        });
+        setIsAdding(false);
+        return;
+      }
+
+      // Create connection request
+      const { error } = await supabase
+        .from('connection_requests')
+        .insert({
+          sender_id: user.id,
+          recipient_id: repId,
+          personal_message: personalMessage || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
       toast({
-        title: "Added to Network!",
-        description: `${repInitials} has been added to your network. Their profile will remain visible in all future searches.`,
+        title: "Connection Request Sent!",
+        description: `${repInitials} will be notified of your request. You'll be able to message them once they accept.`,
       });
       onNetworkAdded();
       setIsOpen(false);
-    } else {
+      setPersonalMessage("");
+    } catch (error) {
+      console.error('Error sending connection request:', error);
       toast({
-        title: "Failed to Add",
-        description: "This rep is already in your network or an error occurred.",
+        title: "Failed to Send Request",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
     }
@@ -61,12 +97,29 @@ const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkM
       
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add {repInitials} to Your Network</DialogTitle>
+          <DialogTitle>Send Connection Request to {repInitials}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to add {repInitials} to your Network? 
-            Once added, their profile will remain visible in all future searches without using credits.
+            {repInitials} will need to accept your connection request before you can message them. 
+            Add a personal message to introduce yourself (optional).
           </DialogDescription>
         </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="message">Personal Message (Optional)</Label>
+            <Textarea
+              id="message"
+              placeholder="Hi! I'd like to connect and discuss potential coverage opportunities in your area..."
+              value={personalMessage}
+              onChange={(e) => setPersonalMessage(e.target.value)}
+              rows={4}
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground">
+              {personalMessage.length}/500 characters
+            </p>
+          </div>
+        </div>
         
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button
@@ -82,7 +135,7 @@ const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkM
             className="flex items-center gap-2"
           >
             <Users className="h-4 w-4" />
-            {isAdding ? "Adding..." : "Add to Network"}
+            {isAdding ? "Sending..." : "Send Request"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -13,19 +13,21 @@ export const useNetworkConnections = () => {
     const fetchNetworkConnections = async () => {
       setIsLoading(true);
       try {
+        // Fetch accepted connection requests (bidirectional)
         const { data, error } = await supabase
-          .from('contact_unlocks')
-          .select('unlocked_user_id, unlocker_id')
-          .or(`unlocker_id.eq.${user.id},unlocked_user_id.eq.${user.id}`);
+          .from('connection_requests')
+          .select('sender_id, recipient_id')
+          .eq('status', 'accepted')
+          .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`);
 
         if (error) {
           console.error('Error fetching network connections:', error);
           return;
         }
 
-        // Extract connected user IDs (both unlocked and unlocker relationships)
-        const connectedUserIds = data.map(unlock => 
-          unlock.unlocker_id === user.id ? unlock.unlocked_user_id : unlock.unlocker_id
+        // Extract connected user IDs (both directions)
+        const connectedUserIds = data.map(request => 
+          request.sender_id === user.id ? request.recipient_id : request.sender_id
         );
 
         setNetworkConnections(connectedUserIds);

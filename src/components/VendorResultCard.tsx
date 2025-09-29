@@ -17,6 +17,7 @@ import ReportUserModal from "./privacy/ReportUserModal";
 interface VendorResultCardProps {
   rep: {
     id: number;
+    userId?: string; // Added for database integration
     initials: string;
     distance: string;
     platforms: string[];
@@ -238,7 +239,7 @@ const VendorResultCard = ({ rep, paidFilters }: VendorResultCardProps) => {
                   <span className="text-sm font-medium">Contact Unlocked</span>
                 </div>
                 <AddToNetworkModal 
-                  repId={rep.id}
+                  repId={rep.userId || rep.id.toString()}
                   repInitials={rep.initials}
                   onNetworkAdded={handleRefresh}
                 />
