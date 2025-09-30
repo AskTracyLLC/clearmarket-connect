@@ -78,6 +78,37 @@ const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkM
 
       if (error) throw error;
 
+      // Get recipient and sender details for email
+      const { data: recipientData } = await supabase
+        .from('users')
+        .select('email, anonymous_username')
+        .eq('id', repId)
+        .single();
+
+      const { data: senderData } = await supabase
+        .from('users')
+        .select('anonymous_username, role')
+        .eq('id', user.id)
+        .single();
+
+      // Send email notification
+      if (recipientData?.email && senderData) {
+        try {
+          await supabase.functions.invoke('send-connection-request-email', {
+            body: {
+              recipientEmail: recipientData.email,
+              recipientUsername: recipientData.anonymous_username || 'User',
+              senderUsername: senderData.anonymous_username || 'User',
+              senderRole: senderData.role,
+              personalMessage: personalMessage || undefined
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
+
       toast({
         title: "Connection Request Sent!",
         description: validation?.remaining_today 

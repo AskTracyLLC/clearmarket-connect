@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 interface ConnectionRequest {
   id: string;
   sender_id: string;
+  sender_email?: string;
   personal_message: string | null;
   expires_at: string;
   created_at: string;
@@ -52,7 +53,7 @@ export const ConnectionRequestsList = () => {
         (data || []).map(async (request) => {
           const { data: senderData } = await supabase
             .from('users')
-            .select('display_name, anonymous_username, role')
+            .select('display_name, anonymous_username, role, email')
             .eq('id', request.sender_id)
             .single();
 
@@ -61,6 +62,7 @@ export const ConnectionRequestsList = () => {
             sender_display_name: senderData?.display_name,
             sender_anonymous_username: senderData?.anonymous_username,
             sender_role: senderData?.role,
+            sender_email: senderData?.email,
           };
         })
       );
@@ -106,6 +108,9 @@ export const ConnectionRequestsList = () => {
   const handleResponse = async (requestId: string, status: 'accepted' | 'rejected') => {
     setProcessingId(requestId);
     try {
+      const request = requests.find(r => r.id === requestId);
+      if (!request) throw new Error('Request not found');
+
       const { error } = await supabase
         .from('connection_requests')
         .update({ 
@@ -115,6 +120,33 @@ export const ConnectionRequestsList = () => {
         .eq('id', requestId);
 
       if (error) throw error;
+
+      // Get current user details for email
+      if (user) {
+        const { data: responderData } = await supabase
+          .from('users')
+          .select('anonymous_username, role')
+          .eq('id', user.id)
+          .single();
+
+        // Send email notification to the sender
+        if (request.sender_email && responderData) {
+          try {
+            await supabase.functions.invoke('send-connection-response-email', {
+              body: {
+                recipientEmail: request.sender_email,
+                recipientUsername: request.sender_anonymous_username || 'User',
+                responderUsername: responderData.anonymous_username || 'User',
+                responderRole: responderData.role,
+                status
+              }
+            });
+          } catch (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            // Don't fail the response if email fails
+          }
+        }
+      }
 
       toast({
         title: status === 'accepted' ? "Connection accepted!" : "Request declined",

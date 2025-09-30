@@ -114,19 +114,46 @@ export const InviteModal: React.FC<InviteModalProps> = ({
         });
       }
 
-      // Send invitation email via edge function
-      const { error: emailError } = await supabase.functions.invoke('send-network-invitation', {
-        body: {
-          inviteType,
-          recipientEmail: inviteType === "email" ? email : null,
-          recipientUsername: inviteType === "username" ? username : null,
-          personalMessage: personalMessage.trim() || null
-        }
-      });
+      // Get sender details for email
+      const { data: senderData } = await supabase
+        .from('users')
+        .select('anonymous_username, role')
+        .eq('id', user.id)
+        .single();
 
-      if (emailError) {
-        console.warn('Email sending failed:', emailError);
-        // Don't block the invite if email fails
+      // Get recipient details for email (if username invite)
+      let recipientEmail = inviteType === "email" ? email : null;
+      let recipientUsername = inviteType === "username" ? username : null;
+
+      if (inviteType === "username" && recipientId) {
+        const { data: recipientData } = await supabase
+          .from('users')
+          .select('email, anonymous_username')
+          .eq('id', recipientId)
+          .single();
+        
+        if (recipientData) {
+          recipientEmail = recipientData.email;
+          recipientUsername = recipientData.anonymous_username;
+        }
+      }
+
+      // Send connection request email notification
+      if (recipientEmail && senderData) {
+        try {
+          await supabase.functions.invoke('send-connection-request-email', {
+            body: {
+              recipientEmail,
+              recipientUsername: recipientUsername || 'User',
+              senderUsername: senderData.anonymous_username || 'User',
+              senderRole: senderData.role,
+              personalMessage: personalMessage.trim() || undefined
+            }
+          });
+        } catch (emailError) {
+          console.warn('Email sending failed:', emailError);
+          // Don't block the invite if email fails
+        }
       }
 
       toast.success("Network invitation sent successfully!");
