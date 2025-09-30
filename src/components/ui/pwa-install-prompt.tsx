@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, X } from "lucide-react";
@@ -9,8 +11,14 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const PWAInstallPrompt = () => {
+  const location = useLocation();
+  const { user } = useAuth();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  // Hide on public profile pages for non-logged-in visitors
+  const isPublicProfilePage = location.pathname.startsWith('/vendor/public/') || location.pathname.startsWith('/fieldrep/public/');
+  const shouldHide = isPublicProfilePage && !user;
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -47,7 +55,7 @@ const PWAInstallPrompt = () => {
     setDeferredPrompt(null);
   };
 
-  if (!showInstallPrompt) return null;
+  if (!showInstallPrompt || shouldHide) return null;
 
   return (
     <Card className="fixed bottom-4 left-4 right-4 z-50 max-w-sm mx-auto border-primary">
