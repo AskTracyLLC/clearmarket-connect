@@ -51,7 +51,7 @@ const VendorPublicProfile: React.FC = () => {
 
   const vendor = mockVendorData; // Replace with actual data fetch based on id
 
-  const profileUrl = `${window.location.origin}/vendor/profile/${id}`;
+  const profileUrl = `${window.location.origin}/vendor/public/${id}`;
   const shareText = `Connect with ${vendor.anonymousUsername} on ClearMarket - Trusted vendor with ${vendor.trustScore}% trust score`;
 
   const handleMessage = () => {

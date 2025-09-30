@@ -51,7 +51,7 @@ const FieldRepPublicProfile: React.FC = () => {
 
   const fieldRep = mockFieldRepData; // Replace with actual data fetch based on id
 
-  const profileUrl = `${window.location.origin}/fieldrep/profile/${id}`;
+  const profileUrl = `${window.location.origin}/fieldrep/public/${id}`;
   const shareText = `Connect with ${fieldRep.anonymousUsername} on ClearMarket - Trusted field representative with ${fieldRep.trustScore}% trust score`;
 
   const handleMessage = () => {
