@@ -13,6 +13,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteWithNDA from "@/components/ProtectedRouteWithNDA";
 import Index from "./pages/Index";
 import VendorSearchPage from "./pages/VendorSearchPage";
+import VendorPublicProfile from "./pages/VendorPublicProfile";
 import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="/auth/verify" element={<EmailVerifyHandler />} />
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
+                <Route path="/vendor/public/:id" element={<VendorPublicProfile />} />
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
                 <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
                 <Route path="/fieldrep/public/:id" element={<FieldRepPublicProfile />} />

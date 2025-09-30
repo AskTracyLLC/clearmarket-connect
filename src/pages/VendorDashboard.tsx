@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +17,8 @@ import {
   Search,
   MessageSquare,
   Calendar,
-  Filter
+  Filter,
+  Eye
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -31,9 +33,15 @@ import { SentConnectionRequests } from '@/components/VendorDashboard/SentConnect
 import { ConnectionLimitStatus } from '@/components/ConnectionLimitStatus';
 
 const VendorDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('coverage');
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   const [creditPurchaseOpen, setCreditPurchaseOpen] = useState(false);
+
+  const handlePreviewProfile = () => {
+    // For demo purposes, using a mock ID. In production, use the actual user ID
+    navigate('/vendor/public/demo');
+  };
 
   const dashboardStats = {
     connectedReps: 12,
@@ -51,13 +59,22 @@ const VendorDashboard = () => {
       <main className="py-8">
         <div className="container mx-auto px-4">
           {/* Dashboard Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Vendor Dashboard
-            </h1>
-            <p className="text-muted-foreground">
-              Manage your Field Rep network, coverage areas, and business operations
-            </p>
+          <div className="mb-8 space-y-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                Vendor Dashboard
+              </h1>
+              <p className="text-muted-foreground">
+                Manage your Field Rep network, coverage areas, and business operations
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button variant="outline" onClick={handlePreviewProfile}>
+                <Eye className="h-4 w-4 mr-2" />
+                Preview My Public Profile
+              </Button>
+              <ConnectionLimitStatus />
+            </div>
           </div>
 
           {/* Quick Stats */}
