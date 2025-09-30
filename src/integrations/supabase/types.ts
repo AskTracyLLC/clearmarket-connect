@@ -4388,6 +4388,10 @@ export type Database = {
         Args: { role_name: string }
         Returns: undefined
       }
+      expire_old_connection_requests: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_anonymous_username: {
         Args: Record<PropertyKey, never> | { user_type_param: string }
         Returns: string

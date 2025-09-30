@@ -139,7 +139,19 @@ export const SentConnectionRequests = () => {
     fetchRequests();
   }, [user]);
 
-  const getStatusBadge = (status: string) => {
+  const isRequestExpired = (expiresAt: string) => {
+    return new Date(expiresAt) < new Date();
+  };
+
+  const getStatusBadge = (status: string, expiresAt?: string) => {
+    // Check if request is expired
+    if (status === 'pending' && expiresAt && isRequestExpired(expiresAt)) {
+      return <Badge variant="secondary" className="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+        <Clock className="h-3 w-3 mr-1" />
+        Expired
+      </Badge>;
+    }
+
     switch (status) {
       case 'pending':
         return <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
@@ -161,13 +173,23 @@ export const SentConnectionRequests = () => {
           <Ban className="h-3 w-3 mr-1" />
           Cancelled
         </Badge>;
+      case 'expired':
+        return <Badge variant="secondary" className="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200">
+          <Clock className="h-3 w-3 mr-1" />
+          Expired
+        </Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const pendingRequests = requests.filter(r => r.status === 'pending');
-  const historyRequests = requests.filter(r => r.status !== 'pending');
+  // Filter out expired requests from pending and move them to history
+  const pendingRequests = requests.filter(r => 
+    r.status === 'pending' && !isRequestExpired(r.expires_at)
+  );
+  const historyRequests = requests.filter(r => 
+    r.status !== 'pending' || isRequestExpired(r.expires_at)
+  );
 
   if (loading) {
     return (
@@ -215,21 +237,24 @@ export const SentConnectionRequests = () => {
                                      request.recipient_anonymous_username || 
                                      request.recipient_username || 
                                      'Field Rep';
+                  const isExpiringSoon = daysLeft <= 2 && daysLeft > 0;
                   
                   return (
-                    <Card key={request.id} className="border-l-4 border-l-amber-500">
+                    <Card key={request.id} className={`border-l-4 ${isExpiringSoon ? 'border-l-orange-500' : 'border-l-amber-500'}`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h4 className="font-semibold text-foreground">{displayName}</h4>
-                              {getStatusBadge(request.status)}
+                              {getStatusBadge(request.status, request.expires_at)}
                             </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                               <Clock className="h-3 w-3" />
                               <span>Sent {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}</span>
                               <span>•</span>
-                              <span>Expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>
+                              <span className={isExpiringSoon ? 'text-orange-600 dark:text-orange-400 font-medium' : ''}>
+                                Expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+                              </span>
                             </div>
                             {request.personal_message && (
                               <p className="text-sm text-muted-foreground italic mb-2">
@@ -275,6 +300,7 @@ export const SentConnectionRequests = () => {
                                      request.recipient_anonymous_username || 
                                      request.recipient_username || 
                                      'Field Rep';
+                  const wasExpired = isRequestExpired(request.expires_at);
                   
                   return (
                     <Card key={request.id}>
@@ -283,7 +309,7 @@ export const SentConnectionRequests = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h4 className="font-semibold text-foreground">{displayName}</h4>
-                              {getStatusBadge(request.status)}
+                              {getStatusBadge(wasExpired && request.status === 'pending' ? 'expired' : request.status, request.expires_at)}
                             </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                               <Clock className="h-3 w-3" />
