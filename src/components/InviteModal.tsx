@@ -138,6 +138,23 @@ export const InviteModal: React.FC<InviteModalProps> = ({
         }
       }
 
+      // Create in-app notification for existing users
+      if (recipientId && senderData) {
+        try {
+          await supabase.from('notifications').insert({
+            user_id: recipientId,
+            type: 'connection_request',
+            title: 'New Connection Request',
+            message: `${senderData.anonymous_username || 'A vendor'} wants to connect with you${personalMessage ? ': "' + personalMessage.substring(0, 100) + (personalMessage.length > 100 ? '..."' : '"') : ''}`,
+            read: false,
+            target_id: user.id,
+            target_type: 'user'
+          });
+        } catch (notifError) {
+          console.error('Failed to create in-app notification:', notifError);
+        }
+      }
+
       // Send connection request email notification
       if (recipientEmail && senderData) {
         try {

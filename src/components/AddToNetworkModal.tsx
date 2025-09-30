@@ -91,6 +91,21 @@ const AddToNetworkModal = ({ repId, repInitials, onNetworkAdded }: AddToNetworkM
         .eq('id', user.id)
         .single();
 
+      // Create in-app notification
+      try {
+        await supabase.from('notifications').insert({
+          user_id: repId,
+          type: 'connection_request',
+          title: 'New Connection Request',
+          message: `${senderData?.anonymous_username || 'A vendor'} wants to connect with you${personalMessage ? ': "' + personalMessage.substring(0, 100) + (personalMessage.length > 100 ? '..."' : '"') : ''}`,
+          read: false,
+          target_id: user.id,
+          target_type: 'user'
+        });
+      } catch (notifError) {
+        console.error('Failed to create in-app notification:', notifError);
+      }
+
       // Send email notification
       if (recipientData?.email && senderData) {
         try {

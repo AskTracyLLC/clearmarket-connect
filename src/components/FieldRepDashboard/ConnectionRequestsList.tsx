@@ -129,6 +129,21 @@ export const ConnectionRequestsList = () => {
           .eq('id', user.id)
           .single();
 
+        // Create in-app notification for the sender
+        try {
+          await supabase.from('notifications').insert({
+            user_id: request.sender_id,
+            type: status === 'accepted' ? 'connection_accepted' : 'connection_rejected',
+            title: status === 'accepted' ? 'Connection Request Accepted' : 'Connection Request Declined',
+            message: `${responderData?.anonymous_username || 'A field rep'} ${status === 'accepted' ? 'accepted' : 'declined'} your connection request`,
+            read: false,
+            target_id: user.id,
+            target_type: 'user'
+          });
+        } catch (notifError) {
+          console.error('Failed to create in-app notification:', notifError);
+        }
+
         // Send email notification to the sender
         if (request.sender_email && responderData) {
           try {
