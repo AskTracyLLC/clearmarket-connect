@@ -17,7 +17,8 @@ import {
   MessageSquare,
   UserCheck,
   CreditCard,
-  Trophy
+  Trophy,
+  Eye
 } from "lucide-react";
 import { useDualBalance } from "@/hooks/dual_balance_hook";
 import Header from "@/components/Header";
@@ -97,14 +98,23 @@ const FieldRepDashboard = () => {
     });
   };
 
+  const handlePreviewProfile = () => {
+    // For demo purposes, using a mock ID. In production, use the actual user ID
+    navigate('/fieldrep/public/demo');
+  };
+
   return (
     <>
       <Header />
       <div className="container mx-auto p-6 space-y-6">
         {/* Page Title */}
-        <div className="text-center">
+        <div className="text-center space-y-3">
           <h1 className="text-3xl font-bold text-foreground">Field Rep Dashboard</h1>
           <p className="text-muted-foreground">Track your performance and grow your network</p>
+          <Button variant="outline" onClick={handlePreviewProfile}>
+            <Eye className="h-4 w-4 mr-2" />
+            Preview My Public Profile
+          </Button>
         </div>
 
       {/* Main Content Grid */}
