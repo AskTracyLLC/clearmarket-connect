@@ -28,6 +28,7 @@ import VendorReviews from '@/components/VendorDashboard/VendorReviews';
 import AccountBilling from '@/components/VendorDashboard/AccountBilling';
 import NetworkAlertsTab from '@/components/VendorDashboard/NetworkAlertsTab';
 import { SentConnectionRequests } from '@/components/VendorDashboard/SentConnectionRequests';
+import { ConnectionLimitStatus } from '@/components/ConnectionLimitStatus';
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState('coverage');
@@ -162,6 +163,7 @@ const VendorDashboard = () => {
 
             <TabsContent value="network">
               <div className="space-y-6">
+                <ConnectionLimitStatus />
                 <SentConnectionRequests />
                 <VendorNetwork />
               </div>

@@ -14,7 +14,7 @@ interface RequestBody {
   recipientUsername: string;
   responderUsername: string;
   responderRole: string;
-  status: 'accepted' | 'rejected';
+  status: 'accepted' | 'rejected' | 'cancelled';
 }
 
 serve(async (req) => {
@@ -71,12 +71,29 @@ serve(async (req) => {
 
     const roleLabel = responderRole === "field_rep" ? "Field Rep" : "Vendor";
     const isAccepted = status === 'accepted';
+    const isCancelled = status === 'cancelled';
+    
+    let emailTitle = 'Connection Request Declined';
+    let emailSubject = `${responderUsername} declined your connection request`;
+    let emailBody = '';
+
+    if (isAccepted) {
+      emailTitle = 'Connection Request Accepted';
+      emailSubject = `${responderUsername} accepted your connection request`;
+      emailBody = '<p>You can now message each other and collaborate on ClearMarket.</p>';
+    } else if (isCancelled) {
+      emailTitle = 'Connection Request Cancelled';
+      emailSubject = `${responderUsername} cancelled their connection request`;
+      emailBody = '<p>The sender has withdrawn their connection request. You may still connect with other professionals in your area.</p>';
+    } else {
+      emailBody = '<p>You may want to reach out another time or connect with other professionals in your area.</p>';
+    }
     
     const emailHtml = `
-      <h2>Connection Request ${isAccepted ? 'Accepted' : 'Declined'}</h2>
+      <h2>${emailTitle}</h2>
       <p>Hi ${recipientUsername},</p>
-      <p><strong>${responderUsername}</strong> (${roleLabel}) has ${isAccepted ? 'accepted' : 'declined'} your connection request.</p>
-      ${isAccepted ? '<p>You can now message each other and collaborate on ClearMarket.</p>' : '<p>You may want to reach out another time or connect with other professionals in your area.</p>'}
+      <p><strong>${responderUsername}</strong> (${roleLabel}) has ${isAccepted ? 'accepted' : isCancelled ? 'cancelled' : 'declined'} ${isCancelled ? 'their' : 'your'} connection request.</p>
+      ${emailBody}
       <p><a href="https://bgqlhaqwsnfhhatxhtfx.supabase.co" style="display: inline-block; padding: 10px 20px; background-color: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Go to Dashboard</a></p>
       <p style="color: #666; font-size: 12px; margin-top: 20px;">You can manage your email notification preferences in your account settings.</p>
     `;
@@ -84,7 +101,7 @@ serve(async (req) => {
     const { error } = await resend.emails.send({
       from: "ClearMarket <onboarding@resend.dev>",
       to: [recipientEmail],
-      subject: `${responderUsername} ${isAccepted ? 'accepted' : 'declined'} your connection request`,
+      subject: emailSubject,
       html: emailHtml,
     });
 

@@ -108,6 +108,14 @@ export const SentConnectionRequests = () => {
     setCancellingId(requestId);
     
     try {
+      // Get request details before cancelling
+      const { data: requestData } = await supabase
+        .from('connection_requests')
+        .select('recipient_id, personal_message')
+        .eq('id', requestId)
+        .single();
+
+      // Update status to cancelled
       const { error } = await supabase
         .from('connection_requests')
         .update({ status: 'cancelled', updated_at: new Date().toISOString() })
@@ -116,9 +124,56 @@ export const SentConnectionRequests = () => {
 
       if (error) throw error;
 
+      // Send cancellation notification to recipient
+      if (requestData?.recipient_id) {
+        const { data: senderData } = await supabase
+          .from('users')
+          .select('anonymous_username, role')
+          .eq('id', user.id)
+          .single();
+
+        const { data: recipientData } = await supabase
+          .from('users')
+          .select('email, anonymous_username')
+          .eq('id', requestData.recipient_id)
+          .single();
+
+        // Create in-app notification
+        try {
+          await supabase.from('notifications').insert({
+            user_id: requestData.recipient_id,
+            type: 'connection_cancelled',
+            title: 'Connection Request Cancelled',
+            message: `${senderData?.anonymous_username || 'A user'} has cancelled their connection request`,
+            read: false,
+            target_id: user.id,
+            target_type: 'user'
+          });
+        } catch (notifError) {
+          console.error('Failed to create notification:', notifError);
+        }
+
+        // Send email notification
+        if (recipientData?.email && senderData) {
+          try {
+            await supabase.functions.invoke('send-connection-response-email', {
+              body: {
+                recipientEmail: recipientData.email,
+                recipientUsername: recipientData.anonymous_username || 'User',
+                responderUsername: senderData.anonymous_username || 'User',
+                responderRole: senderData.role,
+                status: 'cancelled'
+              }
+            });
+          } catch (emailError) {
+            console.warn('Failed to send cancellation email:', emailError);
+          }
+        }
+      }
+
       toast({
         title: "Request Cancelled",
-        description: "Your connection request has been cancelled.",
+        description: "Your connection request has been cancelled and the recipient has been notified.",
       });
 
       fetchRequests();
