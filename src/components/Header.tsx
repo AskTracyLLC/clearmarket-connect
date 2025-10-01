@@ -124,6 +124,12 @@ const Header = () => {
                   >
                     Messages
                   </Link>
+                  <Link 
+                    to="/support" 
+                    className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50"
+                  >
+                    Support
+                  </Link>
                 </nav>
 
                 {/* User Area */}
@@ -261,6 +267,14 @@ const Header = () => {
                       >
                         <Mail className="h-5 w-5 mr-3" />
                         Messages
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start h-12"
+                        onClick={() => handleMobileNavClick('/support')}
+                      >
+                        <HelpCircle className="h-5 w-5 mr-3" />
+                        Support
                       </Button>
                       <Button
                         variant="ghost"

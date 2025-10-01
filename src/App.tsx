@@ -23,6 +23,7 @@ import FieldRepPublicProfile from "./pages/FieldRepPublicProfile";
 import FeedbackPage from "./pages/FeedbackPage";
 import FAQPage from "./pages/FAQPage";
 import MessagesPage from "./pages/MessagesPage";
+import SupportPage from "./pages/SupportPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
@@ -81,6 +82,11 @@ const App = () => (
                 <Route path="/messages" element={
                   <ProtectedRouteWithNDA>
                     <MessagesPage />
+                  </ProtectedRouteWithNDA>
+                } />
+                <Route path="/support" element={
+                  <ProtectedRouteWithNDA>
+                    <SupportPage />
                   </ProtectedRouteWithNDA>
                 } />
                 <Route path="/calendar" element={
