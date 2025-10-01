@@ -17,6 +17,7 @@ interface SendNetworkAlertModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   networkSize: number;
+  selectedIds?: string[];
 }
 
 interface AlertFilters {
@@ -26,7 +27,8 @@ interface AlertFilters {
   orderTypes: string[];
 }
 
-const SendNetworkAlertModal = ({ open, onOpenChange, networkSize }: SendNetworkAlertModalProps) => {
+const SendNetworkAlertModal = ({ open, onOpenChange, networkSize, selectedIds = [] }: SendNetworkAlertModalProps) => {
+  const recipientCount = selectedIds.length > 0 ? selectedIds.length : networkSize;
   const [subject, setSubject] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [filters, setFilters] = useState<AlertFilters>({
@@ -72,7 +74,7 @@ const SendNetworkAlertModal = ({ open, onOpenChange, networkSize }: SendNetworkA
           subject,
           message_body: messageBody,
           filters_used: filters as any,
-          total_recipients: networkSize,
+          total_recipients: recipientCount,
           scheduled_send_date: scheduledSendDate?.toISOString(),
           status: isScheduled ? 'scheduled' : 'draft'
         })
@@ -96,7 +98,7 @@ const SendNetworkAlertModal = ({ open, onOpenChange, networkSize }: SendNetworkA
 
         toast({
           title: 'Alert Sent Successfully',
-          description: `Your network alert has been sent to ${networkSize} field reps.`
+          description: `Your network alert has been sent to ${recipientCount} field reps.`
         });
       } else {
         toast({
@@ -266,7 +268,7 @@ const SendNetworkAlertModal = ({ open, onOpenChange, networkSize }: SendNetworkA
 
           <div className="bg-muted p-4 rounded-lg">
             <div className="text-sm text-muted-foreground">
-              This alert will be sent to <strong>{networkSize}</strong> connected field reps.
+              This alert will be sent to <strong>{recipientCount}</strong> {selectedIds.length > 0 ? 'selected' : 'connected'} field reps.
               All emails are blind-copied for privacy.
             </div>
           </div>

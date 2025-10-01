@@ -1,207 +1,133 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, Calendar, MapPin, MessageCircle, Star, MoreHorizontal, Send, NotebookPen } from 'lucide-react';
+import { Users, Calendar, MapPin, MessageCircle, Star, MoreHorizontal, Send, NotebookPen, ArrowUpDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SendNetworkAlertModal from './SendNetworkAlertModal';
 import UserCommentModal from '@/components/ui/UserCommentModal';
+import { useNetworkConnections } from '@/hooks/useNetworkConnections';
 
 const VendorNetwork = () => {
   const [alertModalOpen, setAlertModalOpen] = useState(false);
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{id: string; name: string; initials: string} | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'name' | 'state'>('name');
   
-  // Mock network data
-  const networkReps = [
-    {
-      id: 1,
-      initials: "J.D.",
-      name: "John Davis",
-      location: "Los Angeles, CA",
-      platforms: ["CoreLogic", "Clear Capital"],
-      connectedDate: "2024-01-15",
-      method: "Unlocked",
-      lastActive: "2 days ago",
-      rating: 4.8,
-      completedJobs: 145
-    },
-    {
-      id: 2,
-      initials: "S.M.",
-      name: "Sarah Miller",
-      location: "Dallas, TX",
-      platforms: ["ServiceLink", "AMC"],
-      connectedDate: "2024-02-08",
-      method: "Referral",
-      lastActive: "1 week ago",
-      rating: 4.9,
-      completedJobs: 89
-    },
-    {
-      id: 3,
-      initials: "R.W.",
-      name: "Robert Wilson",
-      location: "Miami, FL",
-      platforms: ["Clear Capital", "Solidifi"],
-      connectedDate: "2024-01-22",
-      method: "Unlocked",
-      lastActive: "Yesterday",
-      rating: 4.7,
-      completedJobs: 234
-    },
-    {
-      id: 4,
-      initials: "L.C.",
-      name: "Lisa Chen",
-      location: "Brooklyn, NY",
-      platforms: ["CoreLogic", "ServiceLink", "AMC"],
-      connectedDate: "2024-03-01",
-      method: "Unlocked",
-      lastActive: "3 hours ago",
-      rating: 5.0,
-      completedJobs: 67
+  const { connections, isLoading } = useNetworkConnections();
+
+  // Sort connections
+  const sortedConnections = useMemo(() => {
+    const sorted = [...connections];
+    if (sortBy === 'name') {
+      sorted.sort((a, b) => {
+        const nameA = a.display_name || a.anonymous_username;
+        const nameB = b.display_name || b.anonymous_username;
+        return nameA.localeCompare(nameB);
+      });
+    } else if (sortBy === 'state') {
+      sorted.sort((a, b) => {
+        const stateA = a.state || '';
+        const stateB = b.state || '';
+        return stateA.localeCompare(stateB);
+      });
     }
-  ];
+    return sorted;
+  }, [connections, sortBy]);
 
   const getMethodBadgeVariant = (method: string) => {
     switch (method) {
-      case 'Unlocked':
+      case 'unlocked':
         return 'default';
-      case 'Referral':
+      case 'referral':
         return 'secondary';
       default:
         return 'outline';
     }
   };
 
-  const handleOpenComment = (rep: any) => {
+  const handleOpenComment = (connection: any) => {
+    const name = connection.display_name || connection.anonymous_username;
+    const initials = connection.display_name 
+      ? connection.display_name.split(' ').map((n: string) => n[0]).join('.')
+      : connection.anonymous_username.substring(0, 2).toUpperCase();
+    
     setSelectedUser({
-      id: rep.id.toString(),
-      name: rep.name,
-      initials: rep.initials
+      id: connection.user_id,
+      name: name,
+      initials: initials
     });
     setCommentModalOpen(true);
   };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(sortedConnections.map(c => c.user_id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSet = new Set(selectedIds);
+    if (checked) {
+      newSet.add(id);
+    } else {
+      newSet.delete(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const isAllSelected = sortedConnections.length > 0 && selectedIds.size === sortedConnections.length;
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < sortedConnections.length;
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                My Network
+                My Network ({sortedConnections.length})
               </CardTitle>
               <CardDescription>
                 Field Reps you've connected with and their details
               </CardDescription>
             </div>
-            <Button onClick={() => setAlertModalOpen(true)} className="flex items-center gap-2">
-              <Send className="h-4 w-4" />
-              Send Network Alert
-            </Button>
+            <div className="flex items-center gap-3">
+              <Select value={sortBy} onValueChange={(val) => setSortBy(val as 'name' | 'state')}>
+                <SelectTrigger className="w-[140px]">
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Sort by Name</SelectItem>
+                  <SelectItem value="state">Sort by State</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={() => setAlertModalOpen(true)} 
+                className="flex items-center gap-2"
+                disabled={selectedIds.size === 0}
+              >
+                <Send className="h-4 w-4" />
+                Send Alert ({selectedIds.size})
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {networkReps.map((rep) => (
-              <Card key={rep.id} className="border border-muted">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {rep.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="space-y-2">
-                        <div>
-                          <h3 className="font-semibold text-foreground">{rep.name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            {rep.location}
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {rep.platforms.map((platform) => (
-                            <Badge key={platform} variant="outline" className="text-xs">
-                              {platform}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Connected: {new Date(rep.connectedDate).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-current text-yellow-500" />
-                            {rep.rating} ({rep.completedJobs} jobs)
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2">
-                      <Badge variant={getMethodBadgeVariant(rep.method)}>
-                        {rep.method}
-                      </Badge>
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenComment(rep)}>
-                            <NotebookPen className="h-4 w-4 mr-2" />
-                            Private Notes
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            Send Message
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Star className="h-4 w-4 mr-2" />
-                            View Reviews
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Calendar className="h-4 w-4 mr-2" />
-                            View Availability
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-muted">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Last active: {rep.lastActive}</span>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <MessageCircle className="h-3 w-3 mr-1" />
-                          Message
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          Schedule
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          
-          {networkReps.length === 0 && (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Loading network...</p>
+            </div>
+          ) : sortedConnections.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No Field Reps Connected</h3>
@@ -212,6 +138,117 @@ const VendorNetwork = () => {
                 Find Field Reps
               </Button>
             </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox 
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Trust Score</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Connected</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedConnections.map((connection) => {
+                    const name = connection.display_name || connection.anonymous_username;
+                    const initials = connection.display_name 
+                      ? connection.display_name.split(' ').map((n: string) => n[0]).join('.')
+                      : connection.anonymous_username.substring(0, 2).toUpperCase();
+                    const location = connection.city && connection.state 
+                      ? `${connection.city}, ${connection.state}`
+                      : connection.state || connection.location || 'N/A';
+                    
+                    return (
+                      <TableRow key={connection.id}>
+                        <TableCell>
+                          <Checkbox 
+                            checked={selectedIds.has(connection.user_id)}
+                            onCheckedChange={(checked) => handleSelectOne(connection.user_id, checked as boolean)}
+                            aria-label={`Select ${name}`}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{name}</div>
+                              <div className="text-xs text-muted-foreground">{connection.role === 'field_rep' ? 'Field Rep' : 'Vendor'}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm">
+                            <MapPin className="h-3 w-3 text-muted-foreground" />
+                            {location}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {connection.trust_score ? (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3 fill-current text-yellow-500" />
+                              <span className="font-medium">{connection.trust_score.toFixed(1)}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getMethodBadgeVariant(connection.connection_method)} className="capitalize">
+                            {connection.connection_method}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(connection.connected_date).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenComment(connection)}>
+                                <NotebookPen className="h-4 w-4 mr-2" />
+                                Private Notes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <MessageCircle className="h-4 w-4 mr-2" />
+                                Send Message
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Star className="h-4 w-4 mr-2" />
+                                View Reviews
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                View Availability
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -219,7 +256,8 @@ const VendorNetwork = () => {
       <SendNetworkAlertModal 
         open={alertModalOpen}
         onOpenChange={setAlertModalOpen}
-        networkSize={networkReps.length}
+        networkSize={sortedConnections.length}
+        selectedIds={Array.from(selectedIds)}
       />
       
       <UserCommentModal
