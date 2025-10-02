@@ -4617,6 +4617,10 @@ export type Database = {
         Args: { user_email: string }
         Returns: boolean
       }
+      is_in_network_with: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       log_document_access: {
         Args: {
           access_type_param: string
