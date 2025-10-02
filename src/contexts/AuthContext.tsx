@@ -41,28 +41,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const isVerified = !!user.email_confirmed_at;
           
           // Check if user is admin - admins bypass all redirects
-          const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-          console.log('🔍 AuthContext: Checking admin status for user:', user.email);
-          if (adminEmails.includes(user.email || '')) {
-            console.log('✅ AuthContext: User is admin by email - bypassing all redirects');
-            // Admin users bypass all redirects
-            return;
-          }
-          
           try {
-            const { data: userRole, error } = await supabase
-              .rpc('get_user_role', { user_id: user.id });
+            const { data: isAdmin } = await supabase
+              .rpc('is_admin_user', { user_id_param: user.id });
             
-            if (userRole === 'admin') {
-              // Admin users bypass all redirects
+            if (isAdmin) {
+              console.log('✅ AuthContext: User is admin - bypassing all redirects');
               return;
             }
           } catch (error) {
-            console.error('Error checking user role:', error);
-            // If role check fails for admin emails, still bypass redirects
-            if (adminEmails.includes(user.email || '')) {
-              return;
-            }
+            console.error('Error checking admin role:', error);
           }
           
           // Define public routes that should not trigger redirects
@@ -100,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -111,12 +99,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isVerified = !!user.email_confirmed_at;
         
         // Check if user is admin - admins bypass all redirects
-        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-        console.log('🔍 AuthContext (existing session): Checking admin status for user:', user.email);
-        if (adminEmails.includes(user.email || '')) {
-          console.log('✅ AuthContext (existing session): User is admin by email - bypassing all redirects');
-          // Admin users bypass all redirects - RETURN EARLY to prevent any redirects
-          return;
+        try {
+          const { data: isAdmin } = await supabase
+            .rpc('is_admin_user', { user_id_param: user.id });
+          
+          if (isAdmin) {
+            console.log('✅ AuthContext (existing session): User is admin - bypassing all redirects');
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking admin role:', error);
         }
         
         // Define public routes that should not trigger redirects

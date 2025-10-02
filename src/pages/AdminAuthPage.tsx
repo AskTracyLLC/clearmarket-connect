@@ -97,19 +97,7 @@ const AdminAuthPage = () => {
       if (data.user) {
         console.log('Admin sign in successful:', data);
         
-        // Check if user is admin by email first (fastest check)
-        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-        if (adminEmails.includes(data.user.email || '')) {
-          console.log('User is admin by email, navigating to admin dashboard');
-          navigate('/admin');
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully signed in.",
-          });
-          return;
-        }
-
-        // Fallback: Check database role for other users
+        // Check database role for all users
         try {
           const { data: userData, error: userError } = await supabase
             .from('users')

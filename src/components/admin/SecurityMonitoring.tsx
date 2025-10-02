@@ -216,8 +216,8 @@ export const SecurityMonitoring = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {[
-                      { user: "admin@clearmarket.com", location: "New York, US", duration: "2h 15m", device: "Chrome/Desktop" },
+                     {[
+                      { user: "admin@example.com", location: "New York, US", duration: "2h 15m", device: "Chrome/Desktop" },
                       { user: "john.doe@email.com", location: "Dallas, TX", duration: "45m", device: "Safari/Mobile" },
                       { user: "jane.smith@email.com", location: "Miami, FL", duration: "1h 30m", device: "Firefox/Desktop" }
                     ].map((session, index) => (

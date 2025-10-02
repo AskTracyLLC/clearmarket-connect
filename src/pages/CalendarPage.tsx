@@ -24,12 +24,6 @@ const CalendarPage = () => {
         }
         
         if (user) {
-          const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app'];
-          if (adminEmails.includes(user.email || '')) {
-            setUserRole("field_rep");
-            return;
-          }
-          
           const { data: userData, error } = await supabase
             .from("users")
             .select("role")

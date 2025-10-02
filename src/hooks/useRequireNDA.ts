@@ -79,30 +79,11 @@ export const useRequireNDA = () => {
     // Check if user is admin - admins bypass all restrictions
     const checkAdminStatus = async () => {
       try {
-        // Check if email is admin email (primary check - same as ProtectedRouteWithNDA)
-        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-        console.log('🔍 useRequireNDA: Checking admin status for user:', user.email);
-        if (adminEmails.includes(user.email || '')) {
-          console.log('✅ useRequireNDA: User is admin by email:', user.email, '- bypassing all restrictions');
-          return;
-        }
-
-        // Fallback: Check database role
-        const { data: userRole, error } = await supabase
-          .rpc('get_user_role', { user_id: user.id });
+        const { data: isAdmin } = await supabase
+          .rpc('is_admin_user', { user_id_param: user.id });
         
-        if (error) {
-          console.error('Error checking user role:', error);
-          // If role check fails for admin emails, still bypass restrictions
-          if (adminEmails.includes(user.email || '')) {
-            console.log('✅ Admin email detected despite role check error - bypassing restrictions');
-            return;
-          }
-        }
-        
-        // If user is admin by database role, don't redirect anywhere
-        if (userRole === 'admin') {
-          console.log('✅ User is admin by database role - bypassing all restrictions');
+        if (isAdmin) {
+          console.log('✅ useRequireNDA: User is admin - bypassing all restrictions');
           return;
         }
 
@@ -121,12 +102,6 @@ export const useRequireNDA = () => {
         }
       } catch (error) {
         console.error('Error in useRequireNDA:', error);
-        // If anything fails for admin emails, still bypass restrictions
-        const adminEmails = ['admin@clearmarket.com', 'admin@lovable.app', 'tracy@asktracyllc.com'];
-        if (adminEmails.includes(user.email || '')) {
-          console.log('✅ Admin email detected despite error - bypassing restrictions');
-          return;
-        }
       }
     };
 
