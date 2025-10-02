@@ -3629,6 +3629,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          notes: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          notes?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          notes?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_tokens: {
         Row: {
           cooldown_expires_at: string | null
@@ -4542,6 +4569,13 @@ export type Database = {
           title: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_signed_nda: {
         Args: { target_user_id: string }
         Returns: boolean
@@ -4610,7 +4644,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin_user: {
-        Args: { user_id_param?: string }
+        Args: { user_id_param: string }
         Returns: boolean
       }
       is_beta_tester: {
@@ -4747,12 +4781,17 @@ export type Database = {
         Args: { target_review_id: string; target_user_id: string }
         Returns: boolean
       }
+      user_can_view_bulk_message: {
+        Args: { _message_id: string; _user_id: string }
+        Returns: boolean
+      }
       validate_tag_length: {
         Args: { tags: string[] }
         Returns: boolean
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "field_rep" | "vendor"
       flag_status: "pending" | "reviewed" | "dismissed"
       flag_target_type: "profile" | "post" | "comment"
       prize_type: "gift_card" | "boost_token" | "bad_day_token" | "bundle"
@@ -4902,6 +4941,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "field_rep", "vendor"],
       flag_status: ["pending", "reviewed", "dismissed"],
       flag_target_type: ["profile", "post", "comment"],
       prize_type: ["gift_card", "boost_token", "bad_day_token", "bundle"],
