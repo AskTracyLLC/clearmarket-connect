@@ -36,28 +36,100 @@ export const generateAndSaveNDA = async ({
 
     // Header
     drawText("ClearMarket Beta Tester Non-Disclosure Agreement", 72, height - 72, 16);
-    drawText(`Effective Date: ${new Date().toLocaleDateString()}`, 72, height - 96);
+    drawText(`Effective Date: ${new Date().toLocaleDateString()}`, 72, height - 96, 10);
+    
+    let yPos = height - 132;
+    const lineHeight = 14;
+    const smallLineHeight = 12;
 
-    // Body summary
+    // Signer Information
     const signerName = `${firstName || ""} ${lastName || ""}`.trim() || username || "[Unknown]";
-    drawText(`Signed by: ${signerName}`, 72, height - 132);
-    if (email) drawText(`Email: ${email}`, 72, height - 150);
-    if (username) drawText(`Username: ${username}`, 72, height - 168);
+    drawText(`Signed by: ${signerName}`, 72, yPos, 12);
+    yPos -= smallLineHeight;
+    if (email) {
+      drawText(`Email: ${email}`, 72, yPos, 10);
+      yPos -= smallLineHeight;
+    }
+    if (username) {
+      drawText(`Username: ${username}`, 72, yPos, 10);
+      yPos -= smallLineHeight;
+    }
+    yPos -= lineHeight;
 
-    drawText(
-      "This is a digitally generated confirmation of your NDA acceptance.",
-      72,
-      height - 204
-    );
-    drawText(
-      "By signing, you agree to keep ClearMarket confidential information private.",
-      72,
-      height - 220
-    );
+    // Agreement Body
+    drawText("1. CONFIDENTIAL INFORMATION", 72, yPos, 12);
+    yPos -= lineHeight;
+    
+    const wrapText = (text: string, maxWidth: number) => {
+      const words = text.split(' ');
+      const lines: string[] = [];
+      let currentLine = '';
+      
+      words.forEach(word => {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const testWidth = testLine.length * 5; // Approximate character width
+        if (testWidth > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      });
+      if (currentLine) lines.push(currentLine);
+      return lines;
+    };
 
-    // Footer
-    drawText(`Signed at: ${new Date().toISOString()}`, 72, 120);
-    drawText("Document generated automatically by ClearMarket", 72, 100, 10);
+    const para1 = "As a beta tester for ClearMarket, you will have access to confidential and proprietary information including but not limited to: product features, business strategies, user data, technical specifications, and future development plans.";
+    wrapText(para1, 450).forEach(line => {
+      drawText(line, 72, yPos, 9);
+      yPos -= smallLineHeight;
+    });
+    yPos -= lineHeight;
+
+    drawText("2. NON-DISCLOSURE OBLIGATIONS", 72, yPos, 12);
+    yPos -= lineHeight;
+    
+    const para2 = "You agree to keep all confidential information strictly private and not disclose it to any third party without prior written consent from ClearMarket. You will use this information solely for beta testing purposes.";
+    wrapText(para2, 450).forEach(line => {
+      drawText(line, 72, yPos, 9);
+      yPos -= smallLineHeight;
+    });
+    yPos -= lineHeight;
+
+    drawText("3. DURATION", 72, yPos, 12);
+    yPos -= lineHeight;
+    
+    const para3 = "This agreement remains in effect for the duration of the beta testing period and for two (2) years following the public launch of ClearMarket or termination of your beta access, whichever comes first.";
+    wrapText(para3, 450).forEach(line => {
+      drawText(line, 72, yPos, 9);
+      yPos -= smallLineHeight;
+    });
+    yPos -= lineHeight;
+
+    drawText("4. PERMITTED DISCLOSURES", 72, yPos, 12);
+    yPos -= lineHeight;
+    
+    const para4 = "You may share feedback and bug reports with ClearMarket staff through official channels. You may not publicly post, tweet, blog, or otherwise share screenshots, features, or details about ClearMarket.";
+    wrapText(para4, 450).forEach(line => {
+      drawText(line, 72, yPos, 9);
+      yPos -= smallLineHeight;
+    });
+    yPos -= lineHeight;
+
+    drawText("5. ACKNOWLEDGMENT", 72, yPos, 12);
+    yPos -= lineHeight;
+    
+    const para5 = "By signing this agreement, you acknowledge that you understand these obligations and agree to be bound by them. Breach of this agreement may result in immediate termination of beta access and potential legal action.";
+    wrapText(para5, 450).forEach(line => {
+      drawText(line, 72, yPos, 9);
+      yPos -= smallLineHeight;
+    });
+
+    // Footer/Signature
+    drawText(`Digital Signature: ${signerName}`, 72, 140, 10);
+    drawText(`Signed at: ${new Date().toISOString()}`, 72, 125, 9);
+    drawText("Document generated automatically by ClearMarket", 72, 110, 8);
+    drawText("This is a legally binding agreement.", 72, 95, 8);
 
     const pdfBytes = await pdfDoc.save();
     console.log("✅ PDF generated successfully, size:", pdfBytes.byteLength, "bytes");
