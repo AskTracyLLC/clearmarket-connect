@@ -126,15 +126,26 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         console.log('🔄 NDA signed but document missing. Auto-generating...');
         
         try {
-          // Fetch user details for NDA generation
+          // Fetch user details for NDA generation including signature data
           const { data: userData } = await supabase
             .from('users')
             .select('anonymous_username, role')
             .eq('id', user.id)
             .single();
           
+          // Fetch signature data to get first and last name
+          const { data: signatureData } = await supabase
+            .from('nda_signatures')
+            .select('first_name, last_name, signature_text')
+            .eq('user_id', user.id)
+            .order('signed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
           const result = await generateAndSaveNDA({
             userId: user.id,
+            firstName: signatureData?.first_name || undefined,
+            lastName: signatureData?.last_name || undefined,
             email: user.email,
             username: userData?.anonymous_username
           });
