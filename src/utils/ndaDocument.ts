@@ -170,15 +170,36 @@ export const generateAndSaveNDA = async ({
       },
     };
 
-    console.log("🔄 Inserting document record:", documentRecord);
+    console.log("🔄 Upserting document record:", documentRecord);
 
-    const { error: docError } = await supabase
+    const { data: existingDoc } = await supabase
       .from("user_documents")
-      .insert([documentRecord]);
+      .select("id, file_path")
+      .eq("user_id", userId)
+      .eq("document_type", "nda")
+      .maybeSingle();
+
+    const { data: upsertedDoc, error: docError } = await supabase
+      .from("user_documents")
+      .upsert([documentRecord], { onConflict: "user_id, document_type" })
+      .select("id, file_path")
+      .single();
 
     if (docError) {
-      console.error("❌ Database insert failed:", docError);
+      console.error("❌ Database upsert failed:", docError);
       throw docError;
+    }
+
+    // Clean up previous file if path changed
+    try {
+      if (existingDoc?.file_path && existingDoc.file_path !== uploadData.path) {
+        await supabase.storage
+          .from("user-documents")
+          .remove([existingDoc.file_path]);
+        console.log("🧹 Removed old NDA file:", existingDoc.file_path);
+      }
+    } catch (cleanupErr) {
+      console.warn("⚠️ Could not remove old NDA file:", cleanupErr);
     }
 
     console.log("✅ NDA document successfully stored in user profile");

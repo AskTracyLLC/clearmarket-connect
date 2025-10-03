@@ -105,6 +105,7 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
   const [selectedVisibility, setSelectedVisibility] = useState<'private' | 'public' | 'network_shared'>('private');
   const [selectedFolderCategory, setSelectedFolderCategory] = useState<'legal' | 'profile' | 'credentials' | 'identity' | 'general'>('general');
   const [activeFolder, setActiveFolder] = useState<string>('all');
+  const [regeneratingNDA, setRegeneratingNDA] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -427,6 +428,36 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         description: error.message,
         variant: "destructive"
       });
+    }
+  };
+
+  const handleRegenerateNDA = async () => {
+    if (!user) return;
+    try {
+      setRegeneratingNDA(true);
+      const { data: userData } = await supabase
+        .from('users')
+        .select('anonymous_username, display_name')
+        .eq('id', user.id)
+        .single();
+
+      const path = await generateAndSaveNDA({
+        userId: user.id,
+        email: user.email,
+        username: userData?.anonymous_username || profile?.anonymous_username,
+        firstName: userData?.display_name || profile?.display_name || undefined,
+      });
+
+      if (path) {
+        toast({ title: 'NDA regenerated', description: 'Your NDA has been refreshed with the full legal text.' });
+        await loadDocuments();
+      } else {
+        toast({ title: 'NDA regeneration failed', description: 'Please try again.', variant: 'destructive' });
+      }
+    } catch (error: any) {
+      toast({ title: 'NDA regeneration failed', description: error.message || 'Unexpected error', variant: 'destructive' });
+    } finally {
+      setRegeneratingNDA(false);
     }
   };
 
@@ -864,6 +895,16 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
                           >
                             <Download className="h-3 w-3" />
                           </Button>
+                          {doc.document_type === 'nda' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleRegenerateNDA}
+                              disabled={regeneratingNDA}
+                            >
+                              {regeneratingNDA ? 'Regenerating...' : 'Regenerate'}
+                            </Button>
+                          )}
                           {!doc.verified_by && (
                             <Button
                               variant="outline"
