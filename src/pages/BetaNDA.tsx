@@ -205,7 +205,7 @@ const BetaNDA = () => {
     setErrors(validateSignature(value));
   };
 
-  const canSubmit = hasScrolledToBottom && hasAgreed && signature.length >= 6 && errors.length === 0;
+  const canSubmit = hasScrolledToBottom && hasAgreed && signature.length >= 6 && errors.length === 0 && firstName.trim().length > 0 && lastName.trim().length > 0;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -347,23 +347,31 @@ const BetaNDA = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName" className="flex items-center gap-1">
+                  First Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="firstName"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="Enter your first name"
+                  required
                 />
+                <p className="text-xs text-muted-foreground">Will appear on your NDA document</p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName" className="flex items-center gap-1">
+                  Last Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="lastName"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Enter your last name"
+                  required
                 />
+                <p className="text-xs text-muted-foreground">Will appear on your NDA document</p>
               </div>
               
               <div className="space-y-2">
@@ -413,7 +421,8 @@ const BetaNDA = () => {
                     <h1 className="text-2xl font-bold text-foreground mb-4">ClearMarket User Non-Disclosure Agreement</h1>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p><strong>Effective Date:</strong> {getCurrentDate()}</p>
-                      <p><strong>User:</strong> {firstName || lastName ? `${firstName} ${lastName}`.trim() : '[To be completed above]'}</p>
+                      <p><strong>First Name:</strong> {firstName || '[To be completed above]'}</p>
+                      <p><strong>Last Name:</strong> {lastName || '[To be completed above]'}</p>
                       <p><strong>Email:</strong> {userEmail || '[Email not available]'}</p>
                       <p><strong>Username:</strong> {anonymousUsername || '[Username not available]'}</p>
                       <p><strong>Company/Organization:</strong> [If Applicable]</p>

@@ -43,9 +43,17 @@ export const generateAndSaveNDA = async ({
     const smallLineHeight = 12;
 
     // Signer Information
-    const signerName = `${firstName || ""} ${lastName || ""}`.trim() || username || "[Unknown]";
-    drawText(`Signed by: ${signerName}`, 72, yPos, 12);
-    yPos -= smallLineHeight;
+    drawText("SIGNER INFORMATION", 72, yPos, 12);
+    yPos -= lineHeight;
+    
+    if (firstName) {
+      drawText(`First Name: ${firstName}`, 72, yPos, 10);
+      yPos -= smallLineHeight;
+    }
+    if (lastName) {
+      drawText(`Last Name: ${lastName}`, 72, yPos, 10);
+      yPos -= smallLineHeight;
+    }
     if (email) {
       drawText(`Email: ${email}`, 72, yPos, 10);
       yPos -= smallLineHeight;
@@ -126,6 +134,7 @@ export const generateAndSaveNDA = async ({
     });
 
     // Footer/Signature
+    const signerName = `${firstName || ""} ${lastName || ""}`.trim() || username || "[Unknown]";
     drawText(`Digital Signature: ${signerName}`, 72, 140, 10);
     drawText(`Signed at: ${new Date().toISOString()}`, 72, 125, 9);
     drawText("Document generated automatically by ClearMarket", 72, 110, 8);
