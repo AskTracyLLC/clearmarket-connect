@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           // Define public routes that should not trigger redirects
-          const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/beta-nda'];
+          const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
           const isOnPublicRoute = publicRoutes.includes(window.location.pathname);
           
           // Special handling for prelaunch - authenticated users should be redirected away from it
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log('🔍 AuthContext (SIGNED_IN): Authenticated user on prelaunch page, checking redirect');
             if (isVerified) {
               console.log('📍 AuthContext (SIGNED_IN): Redirecting verified user from prelaunch to NDA page');
-              window.location.href = '/beta-nda';
+              window.location.href = '/nda';
               return;
             } else {
               console.log('📍 AuthContext (SIGNED_IN): Redirecting unverified user from prelaunch to verify email');
@@ -79,9 +79,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // If not verified and not already on verification page, redirect
           if (!isVerified && !window.location.pathname.includes('verify-email')) {
             window.location.href = '/verify-email';
-          } else if (isVerified && !window.location.pathname.includes('beta-nda')) {
+          } else if (isVerified && !window.location.pathname.includes('nda')) {
             // Only redirect to NDA if verified and not already on NDA page
-            window.location.href = '/beta-nda';
+            window.location.href = '/nda';
           }
         }
       }
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         // Define public routes that should not trigger redirects
-        const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/beta-nda'];
+        const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
         const isOnPublicRoute = publicRoutes.includes(window.location.pathname);
         
         // Special handling for prelaunch - authenticated users should be redirected away from it
@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('🔍 AuthContext: Authenticated user on prelaunch page, checking redirect');
           if (isVerified) {
             console.log('📍 AuthContext: Redirecting verified user from prelaunch to NDA page');
-            window.location.href = '/beta-nda';
+            window.location.href = '/nda';
             return;
           } else {
             console.log('📍 AuthContext: Redirecting unverified user from prelaunch to verify email');
@@ -137,9 +137,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // If not verified and not already on verification page, redirect
         if (!isVerified && !window.location.pathname.includes('verify-email')) {
           window.location.href = '/verify-email';
-        } else if (isVerified && !window.location.pathname.includes('beta-nda')) {
+        } else if (isVerified && !window.location.pathname.includes('nda')) {
           // Only redirect to NDA if verified and not already on NDA page
-          window.location.href = '/beta-nda';
+          window.location.href = '/nda';
         }
       }
     });
@@ -156,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/beta-nda`;
+    const redirectUrl = `${window.location.origin}/nda`;
     
     const { error } = await supabase.auth.signUp({
       email,

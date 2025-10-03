@@ -132,6 +132,8 @@ const App = () => (
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/verify-email" element={<EmailVerificationPage />} />
                 <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                <Route path="/nda" element={<BetaNDA />} />
+                {/* Legacy routes - redirect to new flow */}
                 <Route path="/beta-register" element={<BetaRegister />} />
                 <Route path="/beta-nda" element={<BetaNDA />} />
                 <Route path="/prelaunch" element={<Prelaunch />} />

@@ -118,7 +118,7 @@ const BetaRegister = () => {
         email: tokenData.email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/beta-nda`
+          emailRedirectTo: `${window.location.origin}/nda`
         }
       });
 
@@ -189,9 +189,9 @@ const BetaRegister = () => {
             <div className="flex items-center justify-center mx-auto mb-4">
               <ClearMarketLogo size={48} />
             </div>
-            <h1 className="text-2xl font-bold">Complete Beta Registration</h1>
+            <h1 className="text-2xl font-bold">Complete Registration</h1>
             <p className="text-muted-foreground">
-              Create your password to join ClearMarket Beta
+              Create your password to join ClearMarket
             </p>
           </div>
 
@@ -219,7 +219,7 @@ const BetaRegister = () => {
                   <div>
                     <span className="text-sm font-medium">Account Type:</span>
                     <p className="text-sm text-muted-foreground">
-                      {tokenData.user_type === 'field-rep' ? 'Field Representative' : 'Vendor'} (Beta Tester)
+                      {tokenData.user_type === 'field-rep' ? 'Field Representative' : 'Vendor'}
                     </p>
                   </div>
                 </div>
@@ -260,7 +260,7 @@ const BetaRegister = () => {
               </form>
 
               <div className="text-xs text-muted-foreground text-center">
-                After creating your account, you'll need to verify your email and sign the Beta NDA before accessing your profile.
+                After creating your account, you'll need to verify your email and sign the User Agreement before accessing your profile.
               </div>
             </CardContent>
           </Card>

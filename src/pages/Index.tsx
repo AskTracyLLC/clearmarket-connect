@@ -4,70 +4,81 @@ import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 /**
- * Index Page Component
- * 
- * This is the main landing page that automatically redirects users to the pre-launch page.
- * The redirect is implemented client-side using React Router to ensure users visiting
- * the root URL (/) are automatically taken to /prelaunch where all the pre-launch
- * functionality is located.
- * 
- * Post-launch, this page can be updated to contain the main application content
- * while keeping the pre-launch functionality separate and accessible.
+ * Index Page Component - Main Landing Page
+ * Direct signup flow for all users
  */
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Redirect to prelaunch page immediately when component mounts
-  // unless there's a bypass parameter or email verification tokens
   useEffect(() => {
-    const bypass = searchParams.get('bypass');
     const token = searchParams.get('token');
     const type = searchParams.get('type');
-    const currentPath = window.location.pathname;
     
-    // Don't redirect if on admin routes
-    if (currentPath.startsWith('/admin')) {
-      console.log('✅ Index: Admin route detected, not redirecting to prelaunch');
-      return;
-    }
-    
-    // Don't redirect if this is an email verification scenario
+    // Handle email verification
     if (token && type === 'signup') {
-      console.log('✅ Index: Email verification detected, redirecting to verify handler');
       navigate('/auth/verify', { replace: true });
       return;
     }
-    
-    // Check if user came from /auth or is trying to access authentication
-    const referrer = document.referrer;
-    const fromAuth = referrer.includes('/auth') || bypass === 'auth' || bypass === 'beta';
-    
-    if (bypass === 'admin') {
-      // Bypass the redirect for admin access
-      navigate('/auth', { replace: true });
-    } else if (bypass === 'beta') {
-      // Beta users can access auth directly
-      navigate('/auth', { replace: true });
-    } else if (fromAuth) {
-      // If coming from auth page, don't redirect to prelaunch
-      console.log('✅ Index: User coming from auth, staying on index');
-      return;
-    } else {
-      navigate('/prelaunch', { replace: true });
-    }
   }, [navigate, searchParams]);
 
-  // Show loading state while redirecting
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
-      <Card className="p-8 max-w-md mx-auto text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">ClearMarket</h2>
-        <p className="text-muted-foreground text-sm">
-          Redirecting to the pre-launch page...
-        </p>
-      </Card>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Hero Section */}
+          <div className="mb-12">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Welcome to <span className="text-primary">ClearMarket</span>
+            </h1>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              The professional network connecting field representatives with vendors in the property inspection industry.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Card className="p-8 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/auth')}>
+                <h3 className="text-2xl font-semibold mb-2">Get Started</h3>
+                <p className="text-muted-foreground mb-4">Create your account and join the network</p>
+                <button className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity">
+                  Sign Up Now
+                </button>
+              </Card>
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <Card className="p-6">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold mb-2">Find Work</h3>
+              <p className="text-muted-foreground">Connect with vendors seeking field representatives in your area</p>
+            </Card>
+            
+            <Card className="p-6">
+              <div className="text-4xl mb-4">🤝</div>
+              <h3 className="text-xl font-semibold mb-2">Build Trust</h3>
+              <p className="text-muted-foreground">Establish your reputation through verified reviews and ratings</p>
+            </Card>
+            
+            <Card className="p-6">
+              <div className="text-4xl mb-4">💼</div>
+              <h3 className="text-xl font-semibold mb-2">Grow Network</h3>
+              <p className="text-muted-foreground">Expand your professional connections nationwide</p>
+            </Card>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <p className="text-muted-foreground mb-4">Already have an account?</p>
+            <button 
+              onClick={() => navigate('/auth')}
+              className="text-primary hover:underline font-medium"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -226,7 +226,7 @@ const BetaNDA = () => {
       
       toast({
         title: "NDA Successfully Signed",
-        description: "Welcome to ClearMarket Beta! You now have full access to the platform.",
+        description: "Welcome to ClearMarket! You now have full access to the platform.",
       });
       
       // Small delay to ensure database trigger completes
@@ -286,7 +286,7 @@ const BetaNDA = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold mb-2">Checking Agreement Status...</h2>
           <p className="text-muted-foreground text-sm">
-            Please wait while we verify your legal agreement status.
+            Please wait while we verify your agreement status.
           </p>
         </Card>
       </div>
@@ -301,7 +301,7 @@ const BetaNDA = () => {
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Agreement Already Signed</h2>
           <p className="text-muted-foreground text-sm">
-            You have already signed the Beta Tester Agreement. Redirecting to platform...
+            You have already signed the User Agreement. Redirecting to platform...
           </p>
         </Card>
       </div>
@@ -312,30 +312,30 @@ const BetaNDA = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <ClearMarketLogo size={64} />
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <ClearMarketLogo size={64} />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">User Agreement</h1>
+            <p className="text-muted-foreground">Required step before accessing ClearMarket</p>
+            {userDisplayName && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Welcome, <span className="font-medium text-foreground">{userDisplayName}</span>
+              </p>
+            )}
+            {/* Progress indicator */}
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <Badge variant="secondary" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Legal Agreement
+              </Badge>
+              <div className="h-px bg-border flex-1 max-w-20"></div>
+              <Badge variant="outline" className="flex items-center gap-2">
+                <PenTool className="h-4 w-4" />
+                Digital Signature
+              </Badge>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Beta Tester Agreement</h1>
-          <p className="text-muted-foreground">Required step before accessing ClearMarket Beta</p>
-          {userDisplayName && (
-            <p className="text-sm text-muted-foreground mt-2">
-              Welcome, <span className="font-medium text-foreground">{userDisplayName}</span>
-            </p>
-          )}
-          {/* Progress indicator */}
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <Badge variant="secondary" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Legal Agreement
-            </Badge>
-            <div className="h-px bg-border flex-1 max-w-20"></div>
-            <Badge variant="outline" className="flex items-center gap-2">
-              <PenTool className="h-4 w-4" />
-              Digital Signature
-            </Badge>
-          </div>
-        </div>
 
         <Card className="p-8">
           {/* User Information Form */}
@@ -410,10 +410,10 @@ const BetaNDA = () => {
             >
               <div className="prose prose-slate max-w-none dark:prose-invert space-y-6">
                   <div className="text-center border-b pb-4 mb-6">
-                    <h1 className="text-2xl font-bold text-foreground mb-4">ClearMarket Beta Tester Non-Disclosure Agreement</h1>
+                    <h1 className="text-2xl font-bold text-foreground mb-4">ClearMarket User Non-Disclosure Agreement</h1>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p><strong>Effective Date:</strong> {getCurrentDate()}</p>
-                      <p><strong>Beta Tester:</strong> {firstName || lastName ? `${firstName} ${lastName}`.trim() : '[To be completed above]'}</p>
+                      <p><strong>User:</strong> {firstName || lastName ? `${firstName} ${lastName}`.trim() : '[To be completed above]'}</p>
                       <p><strong>Email:</strong> {userEmail || '[Email not available]'}</p>
                       <p><strong>Username:</strong> {anonymousUsername || '[Username not available]'}</p>
                       <p><strong>Company/Organization:</strong> [If Applicable]</p>
@@ -423,7 +423,7 @@ const BetaNDA = () => {
                 <section>
                   <h2 className="text-xl font-semibold text-foreground mb-3">Agreement Overview</h2>
                   <p className="text-foreground leading-relaxed">
-                    Thank you for your interest in participating as a beta tester for <strong>ClearMarket</strong>, a professional networking platform connecting field representatives and vendors in the property inspection industry. This Non-Disclosure Agreement ("NDA") protects confidential information you may access during the beta testing period.
+                    Thank you for your interest in joining <strong>ClearMarket</strong>, a professional networking platform connecting field representatives and vendors in the property inspection industry. This Non-Disclosure Agreement ("NDA") protects confidential information you may access while using the platform.
                   </p>
                 </section>
 

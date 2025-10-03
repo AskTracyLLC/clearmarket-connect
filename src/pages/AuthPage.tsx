@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import SecureFormField from '@/components/ui/secure-form-field';
 import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { useSecureAuth, useSecureRateLimit } from '@/hooks/useSecureAuth';
@@ -18,6 +20,7 @@ import { isValidPassword, checkAdminRole } from '@/utils/security';
 const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userRole, setUserRole] = useState<'field-rep' | 'vendor'>('field-rep');
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
@@ -33,8 +36,8 @@ const AuthPage = () => {
           console.log('✅ AuthPage: Admin user detected - staying on auth page for manual redirect');
           return;
         }
-        // Redirect to beta-nda page instead of index to avoid redirect loop
-        navigate('/beta-nda');
+        // Redirect to NDA page instead of index to avoid redirect loop
+        navigate('/nda');
       }
     };
 
@@ -101,10 +104,10 @@ const AuthPage = () => {
 
           // If user hasn't completed NDA process, redirect to NDA page
           if (!ndaCompleted) {
-            navigate('/beta-nda');
+            navigate('/nda');
             toast({
               title: "Welcome back!",
-              description: "Please review and sign the beta agreement to continue.",
+              description: "Please review and sign the agreement to continue.",
             });
             return;
           }
@@ -134,7 +137,7 @@ const AuthPage = () => {
         } catch (roleError) {
           console.error('Error fetching user role or NDA status:', roleError);
           // Fallback to NDA page if anything fails for non-admin users
-          navigate('/beta-nda');
+          navigate('/nda');
           toast({
             title: "Welcome back!",
             description: "Please complete your account setup.",
@@ -159,7 +162,10 @@ const AuthPage = () => {
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: {
+            role: userRole
+          }
         }
       });
 
@@ -312,6 +318,18 @@ const AuthPage = () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="user-role">I am a</Label>
+                      <Select value={userRole} onValueChange={(value: 'field-rep' | 'vendor') => setUserRole(value)}>
+                        <SelectTrigger id="user-role">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="field-rep">Field Representative</SelectItem>
+                          <SelectItem value="vendor">Vendor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
                       <Input
