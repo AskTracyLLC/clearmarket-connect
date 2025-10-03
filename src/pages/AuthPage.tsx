@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,8 @@ import { useSecureAuth, useSecureRateLimit } from '@/hooks/useSecureAuth';
 import { isValidPassword, checkAdminRole } from '@/utils/security';
 
 const AuthPage = () => {
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState<'field-rep' | 'vendor'>('field-rep');
@@ -171,7 +173,7 @@ const AuthPage = () => {
             <p className="text-muted-foreground">Sign in to access your account</p>
           </div>
 
-          <Tabs defaultValue="signin" className="space-y-4">
+          <Tabs defaultValue={defaultTab} className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>

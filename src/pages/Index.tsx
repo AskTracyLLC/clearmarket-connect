@@ -36,10 +36,13 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Card className="p-8 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/auth')}>
+              <Card className="p-8 hover:shadow-lg transition-shadow">
                 <h3 className="text-2xl font-semibold mb-2">Get Started</h3>
                 <p className="text-muted-foreground mb-4">Create your account and join the network</p>
-                <button className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity">
+                <button 
+                  onClick={() => navigate('/auth?tab=signup')}
+                  className="w-full bg-primary text-primary-foreground px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity"
+                >
                   Sign Up Now
                 </button>
               </Card>
