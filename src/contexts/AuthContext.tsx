@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Define public routes that should not trigger redirects
-      const publicRoutes = ['/', '/auth', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
+      const publicRoutes = ['/', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
       const pathname = window.location.pathname;
       const isOnPublicRoute = publicRoutes.includes(pathname);
 
