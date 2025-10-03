@@ -106,6 +106,7 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
   const [selectedFolderCategory, setSelectedFolderCategory] = useState<'legal' | 'profile' | 'credentials' | 'identity' | 'general'>('general');
   const [activeFolder, setActiveFolder] = useState<string>('all');
   const [regeneratingNDA, setRegeneratingNDA] = useState(false);
+  const [removingDocId, setRemovingDocId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -462,8 +463,8 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
           toast({ title: 'NDA regeneration failed', description: 'Upload succeeded but saving failed. Please try again.', variant: 'destructive' });
         } else {
           const sorted = [...list].sort((a, b) => {
-            const aTime = new Date((a as any).updated_at || (a as any).created_at || 0).getTime();
-            const bTime = new Date((b as any).updated_at || (b as any).created_at || 0).getTime();
+            const aTime = new Date((a as any).updated_at || (a as any).created_at || Date.now()).getTime();
+            const bTime = new Date((b as any).updated_at || (b as any).created_at || Date.now()).getTime();
             return bTime - aTime;
           });
           const latest = sorted[0];
@@ -505,6 +506,34 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       toast({ title: 'NDA regeneration failed', description: error.message || 'Unexpected error', variant: 'destructive' });
     } finally {
       setRegeneratingNDA(false);
+    }
+  };
+
+  const handleRemoveNDADoc = async (document: UserDocument) => {
+    if (!user) return;
+    const confirmed = window.confirm('Remove your current NDA PDF? You can regenerate it after.');
+    if (!confirmed) return;
+    try {
+      setRemovingDocId(document.id);
+      // Remove file from storage
+      const { error: storageError } = await supabase.storage
+        .from('user-documents')
+        .remove([document.file_path]);
+      if (storageError) throw storageError;
+
+      // Delete DB record (override verified lock)
+      const { error: dbError } = await supabase
+        .from('user_documents')
+        .delete()
+        .eq('id', document.id);
+      if (dbError) throw dbError;
+
+      toast({ title: 'NDA removed', description: 'Refresh the page, then regenerate to create a fresh NDA.' });
+      await loadDocuments();
+    } catch (err: any) {
+      toast({ title: 'Failed to remove NDA', description: err.message || 'Unexpected error', variant: 'destructive' });
+    } finally {
+      setRemovingDocId(null);
     }
   };
 
@@ -943,14 +972,24 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
                             <Download className="h-3 w-3" />
                           </Button>
                           {doc.document_type === 'nda' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleRegenerateNDA}
-                              disabled={regeneratingNDA}
-                            >
-                              {regeneratingNDA ? 'Regenerating...' : 'Regenerate'}
-                            </Button>
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRegenerateNDA}
+                                disabled={regeneratingNDA}
+                              >
+                                {regeneratingNDA ? 'Regenerating...' : 'Regenerate'}
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleRemoveNDADoc(doc)}
+                                disabled={removingDocId === doc.id}
+                              >
+                                {removingDocId === doc.id ? 'Removing...' : 'Remove'}
+                              </Button>
+                            </>
                           )}
                           {!doc.verified_by && (
                             <Button
