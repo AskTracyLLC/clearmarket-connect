@@ -442,7 +442,6 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       // First try the current file_path
       let success = await downloadByPath(document.file_path);
 
-      // If the file was removed/rotated (e.g., NDA regenerated), fetch latest path and retry
       if (!success && document.document_type === 'nda' && user?.id) {
         console.log('🔁 Original path missing. Fetching latest NDA path and retrying...');
         const { data: latest, error: latestErr } = await supabase
@@ -454,11 +453,37 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
           .limit(1)
           .maybeSingle();
 
-        if (latest?.file_path && latest.file_path !== document.file_path) {
-          // Update ext if mime_type indicates a different type (unlikely for NDA)
-          success = await downloadByPath(latest.file_path);
-          // Refresh list so UI reflects the latest file
-          loadDocuments();
+        if (latest?.file_path) {
+          // Try latest DB path first
+          if (latest.file_path !== document.file_path) {
+            success = await downloadByPath(latest.file_path);
+          } else {
+            success = await downloadByPath(latest.file_path);
+          }
+
+          // If still not successful, list storage folder directly and try the most recent file
+          if (!success) {
+            const prefix = `${user.id}/nda`;
+            const { data: files, error: listErr } = await supabase.storage
+              .from('user-documents')
+              .list(prefix, { limit: 10, sortBy: { column: 'updated_at', order: 'desc' } });
+
+            if (listErr) {
+              console.error('❌ Failed to list NDA folder in storage:', listErr);
+            }
+
+            const latestFile = files?.[0]?.name;
+            if (latestFile) {
+              const latestPath = `${prefix}/${latestFile}`;
+              console.log('🔎 Trying latest storage file:', latestPath);
+              success = await downloadByPath(latestPath);
+            }
+          }
+
+          if (success) {
+            // Refresh list so UI reflects the latest file
+            loadDocuments();
+          }
         } else if (latestErr) {
           console.error('❌ Failed to fetch latest NDA record:', latestErr);
         }
