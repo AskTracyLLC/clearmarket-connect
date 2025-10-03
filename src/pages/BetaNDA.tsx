@@ -213,7 +213,7 @@ const BetaNDA = () => {
     setIsSubmitting(true);
     
     try {
-      await signNDA(signature);
+      await signNDA(signature, firstName, lastName);
       
       // Generate and store NDA document (non-blocking if it fails)
       await generateAndSaveNDA({

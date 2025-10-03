@@ -45,7 +45,7 @@ export const useNDAStatus = () => {
     }
   };
 
-  const signNDA = async (signatureName: string) => {
+  const signNDA = async (signatureName: string, firstName?: string, lastName?: string) => {
     if (!user) {
       throw new Error('User must be authenticated to sign NDA');
     }
@@ -57,6 +57,8 @@ export const useNDAStatus = () => {
         attempt_status: 'attempt',
         additional_metadata: {
           signature_name: signatureName,
+          first_name: firstName,
+          last_name: lastName,
           user_agent: navigator.userAgent,
           timestamp: new Date().toISOString()
         }
@@ -67,6 +69,8 @@ export const useNDAStatus = () => {
         .insert({
           user_id: user.id,
           signature_name: signatureName,
+          first_name: firstName,
+          last_name: lastName,
           signature_version: 'v1'
         })
         .select()
