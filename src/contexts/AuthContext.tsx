@@ -33,6 +33,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!currentSession?.user) return;
       const user = currentSession.user;
       const isVerified = !!user.email_confirmed_at;
+      const pathname = window.location.pathname;
+
+      // If user is on any /auth page, force redirect based on verification state
+      if (pathname.startsWith('/auth')) {
+        if (isVerified) {
+          window.location.href = '/nda';
+        } else {
+          window.location.href = '/verify-email';
+        }
+        return;
+      }
 
       // Check if user is admin - admins bypass all redirects
       try {
@@ -52,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Define public routes that should not trigger redirects
       const publicRoutes = ['/', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
-      const pathname = window.location.pathname;
+      // reuse pathname declared above
       const isOnPublicRoute = publicRoutes.includes(pathname);
 
       // Special handling for prelaunch - authenticated users should be redirected away from it

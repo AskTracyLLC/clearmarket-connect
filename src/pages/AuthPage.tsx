@@ -32,20 +32,10 @@ const AuthPage = () => {
   const { count: userCount } = useUserCount();
 
   useEffect(() => {
-    const handleUserRedirect = async () => {
-      if (user) {
-        // SECURITY: Use secure database role checking instead of hardcoded emails
-        const isAdmin = await checkAdminRole(user.id);
-        if (isAdmin) {
-          console.log('✅ AuthPage: Admin user detected - staying on auth page for manual redirect');
-          return;
-        }
-        // Redirect to NDA page instead of index to avoid redirect loop
-        navigate('/nda');
-      }
-    };
-
-    handleUserRedirect();
+    if (user) {
+      // Immediately send authenticated users to NDA to avoid getting stuck on /auth
+      navigate('/nda');
+    }
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
