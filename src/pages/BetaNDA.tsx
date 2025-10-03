@@ -645,7 +645,7 @@ const BetaNDA = () => {
                       <h3 className="font-semibold text-foreground mb-2">Contact Information</h3>
                       <p className="text-foreground">For questions about this agreement or beta testing program:</p>
                       <ul className="list-disc list-inside space-y-1 text-foreground ml-4 mt-2">
-                        <li><strong>Email:</strong> beta@useclearmarket.io</li>
+                        <li><strong>Email:</strong> hello@useclearmarket.io</li>
                         <li><strong>Platform:</strong> ClearMarket Beta Testing Portal</li>
                       </ul>
                     </div>
