@@ -16,13 +16,13 @@ import SecureFormField from '@/components/ui/secure-form-field';
 import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { useSecureAuth, useSecureRateLimit } from '@/hooks/useSecureAuth';
 import { isValidPassword, checkAdminRole } from '@/utils/security';
+import { ComprehensiveSignupForm, SignupFormData } from '@/components/ComprehensiveSignupForm';
 
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'signin';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userRole, setUserRole] = useState<'field-rep' | 'vendor'>('field-rep');
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
@@ -69,8 +69,7 @@ const AuthPage = () => {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignUp = async (formData: SignupFormData) => {
     setLoading(true);
 
     try {
@@ -78,12 +77,17 @@ const AuthPage = () => {
       const redirectUrl = `${window.location.origin}/auth/verify`;
       
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: formData.email,
+        password: formData.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            role: userRole
+            role: formData.userRole,
+            experience_level: formData.experienceLevel,
+            primary_state: formData.primaryState,
+            work_types: formData.workTypes,
+            current_challenges: formData.currentChallenges,
+            interested_features: formData.interestedFeatures
           }
         }
       });
@@ -228,52 +232,20 @@ const AuthPage = () => {
             </TabsContent>
 
             <TabsContent value="signup">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create Account</CardTitle>
+              <Card className="border-border">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl">Join ClearMarket - Help Shape Our Platform</CardTitle>
                   <CardDescription>
-                    Sign up to join the ClearMarket community
+                    Sign up to join the professional network for field inspections
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSignUp} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="user-role">I am a</Label>
-                      <Select value={userRole} onValueChange={(value: 'field-rep' | 'vendor') => setUserRole(value)}>
-                        <SelectTrigger id="user-role">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="field-rep">Field Representative</SelectItem>
-                          <SelectItem value="vendor">Vendor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
+                  <ComprehensiveSignupForm onSubmit={handleSignUp} loading={loading} />
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Join 174+ professionals already signed up
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
