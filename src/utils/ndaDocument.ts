@@ -158,10 +158,14 @@ export const generateAndSaveNDA = async ({
     
     console.log("✅ File uploaded successfully to:", uploadData.path);
 
+    const displaySigner = username || `${firstName || ''} ${lastName || ''}`.trim() || 'User';
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const computedDocName = `NDA - ${displaySigner} - ${dateStr}`;
+
     const documentRecord = {
       user_id: userId,
       document_type: "nda",
-      document_name: "Beta Tester NDA",
+      document_name: computedDocName,
       file_path: uploadData.path,
       file_size: pdfBytes.byteLength,
       mime_type: "application/pdf",
@@ -173,7 +177,7 @@ export const generateAndSaveNDA = async ({
       metadata: {
         auto_generated: true,
         signed_at: new Date().toISOString(),
-        signer_name: signerName,
+        signer_name: `${firstName || ''} ${lastName || ''}`.trim() || username || '[Unknown]',
         signer_email: email || null,
         username: username || null,
       },

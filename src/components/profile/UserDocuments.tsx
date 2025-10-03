@@ -371,10 +371,18 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         document_type: document.document_type
       });
 
+      // Build a friendly filename including Anonymous Username when available
+      const metaUsername = (document as any)?.metadata?.username as string | undefined;
+      const name = document.document_name || 'NDA';
+      const includesUser = !!(metaUsername && name.includes(metaUsername));
+      const baseNameUnsafe = includesUser ? name : `${metaUsername ? `${metaUsername}_` : ''}${name}`;
+      const baseName = baseNameUnsafe.replace(/[\\/:*?"<>|]+/g, '_');
+      const ext = (document as any)?.mime_type?.includes('pdf') || document.file_path.endsWith('.pdf') ? 'pdf' : 'bin';
+
       // Prefer a short-lived signed URL to avoid policy issues
       const { data: signed, error: signError } = await supabase.storage
         .from('user-documents')
-        .createSignedUrl(document.file_path, 60);
+        .createSignedUrl(document.file_path, 120);
 
       if (signError || !signed?.signedUrl) {
         console.error('❌ Failed to create signed URL, falling back to direct download:', signError);
@@ -386,30 +394,42 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         const blobUrl = URL.createObjectURL(data);
         const a = window.document.createElement('a');
         a.href = blobUrl;
-        a.download = `${document.document_name || 'document'}.pdf`;
+        a.download = `${baseName}.${ext}`;
         window.document.body.appendChild(a);
         a.click();
         window.document.body.removeChild(a);
         URL.revokeObjectURL(blobUrl);
       } else {
-        // Fetch the signed URL to get a Blob so we can control filename
-        const res = await fetch(signed.signedUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status} while downloading file`);
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = window.document.createElement('a');
-        a.href = blobUrl;
-        const ext = (document.mime_type?.includes('pdf') || document.file_path.endsWith('.pdf')) ? 'pdf' : 'bin';
-        a.download = `${document.document_name || 'document'}.${ext}`;
-        window.document.body.appendChild(a);
-        a.click();
-        window.document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
+        try {
+          // Fetch the signed URL to get a Blob so we can control filename
+          const res = await fetch(signed.signedUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status} while downloading file`);
+          const blob = await res.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = window.document.createElement('a');
+          a.href = blobUrl;
+          a.download = `${baseName}.${ext}`;
+          window.document.body.appendChild(a);
+          a.click();
+          window.document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        } catch (fetchErr) {
+          console.warn('⚠️ Blob fetch failed, opening signed URL directly as fallback', fetchErr);
+          const a = window.document.createElement('a');
+          a.href = signed.signedUrl;
+          a.rel = 'noopener';
+          a.target = '_blank';
+          // Some browsers honor download attribute even with cross-origin signed URLs
+          a.setAttribute('download', `${baseName}.${ext}`);
+          window.document.body.appendChild(a);
+          a.click();
+          window.document.body.removeChild(a);
+        }
       }
 
       toast({
         title: 'Download successful',
-        description: `${document.document_name} downloaded successfully`
+        description: `${baseName}.${ext} downloaded successfully`
       });
     } catch (error: any) {
       console.error('❌ Download failed:', error);
