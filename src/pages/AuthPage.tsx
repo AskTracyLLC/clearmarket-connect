@@ -56,98 +56,15 @@ const AuthPage = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
     } else {
-      // SECURITY: Use secure database role checking instead of hardcoded emails
-      const user = (await supabase.auth.getUser()).data.user;
-      
-      if (user) {
-        const isAdmin = await checkAdminRole(user.id);
-        
-        if (isAdmin) {
-          // Admin user - redirect directly to admin dashboard
-          navigate('/admin');
-          toast({
-            title: "Welcome back, Admin!",
-            description: "You have successfully signed in.",
-          });
-        } else {
-        // For non-admin users, check NDA status first
-        try {
-          // Check both nda_signatures table AND users.nda_signed field
-          const [ndaSignatureResponse, userDataResponse] = await Promise.all([
-            supabase
-              .from('nda_signatures')
-              .select('*')
-              .eq('user_id', user?.id)
-              .eq('is_active', true)
-              .maybeSingle(),
-            supabase
-              .from('users')
-              .select('role, nda_signed')
-              .eq('id', user?.id)
-              .single()
-          ]);
-
-          const { data: ndaSignature, error: ndaError } = ndaSignatureResponse;
-          const { data: userData, error: userError } = userDataResponse;
-
-          if (ndaError) {
-            console.error('Error checking NDA status:', ndaError);
-          }
-          
-          if (userError) {
-            console.error('Error fetching user data:', userError);
-          }
-
-          // Check if NDA process is complete (both signature exists AND users.nda_signed is true)
-          const ndaCompleted = ndaSignature && userData?.nda_signed;
-
-          // If user hasn't completed NDA process, redirect to NDA page
-          if (!ndaCompleted) {
-            navigate('/nda');
-            toast({
-              title: "Welcome back!",
-              description: "Please review and sign the agreement to continue.",
-            });
-            return;
-          }
-
-          // User has completed NDA, redirect to appropriate dashboard based on role
-          switch (userData?.role) {
-            case 'admin':
-              navigate('/admin');
-              break;
-            case 'moderator':
-              navigate('/moderator');
-              break;
-            case 'vendor':
-              navigate('/vendor/dashboard');
-              break;
-            case 'field_rep':
-              navigate('/fieldrep/dashboard');
-              break;
-            default:
-              navigate('/');
-          }
-
-          toast({
-            title: "Welcome back!",
-            description: "You have successfully signed in.",
-          });
-        } catch (roleError) {
-          console.error('Error fetching user role or NDA status:', roleError);
-          // Fallback to NDA page if anything fails for non-admin users
-          navigate('/nda');
-          toast({
-            title: "Welcome back!",
-            description: "Please complete your account setup.",
-          });
-        }
-        }
-      }
+      toast({
+        title: "Signing in...",
+        description: "Please wait while we redirect you.",
+      });
+      // Don't set loading to false - let AuthContext handle the redirect
+      // The loading state will be cleared when the page changes
     }
-
-    setLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
