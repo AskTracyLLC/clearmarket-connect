@@ -371,11 +371,12 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         document_type: document.document_type
       });
 
-      // Build a friendly filename including Anonymous Username when available
-      const metaUsername = (document as any)?.metadata?.username as string | undefined;
-      const name = document.document_name || 'NDA';
-      const includesUser = !!(metaUsername && name.includes(metaUsername));
-      const baseNameUnsafe = includesUser ? name : `${metaUsername ? `${metaUsername}_` : ''}${name}`;
+      // Build a friendly filename that always includes Anonymous Username and date
+      const meta = (document as any)?.metadata || {};
+      const anonUser = (meta.username as string | undefined) || '';
+      const signedAt: string = (meta.signed_at as string | undefined) || new Date().toISOString();
+      const datePart = new Date(signedAt).toISOString().slice(0, 10);
+      const baseNameUnsafe = `${anonUser ? `${anonUser}_` : ''}NDA_${datePart}`;
       const baseName = baseNameUnsafe.replace(/[\\/:*?"<>|]+/g, '_');
       const ext = (document as any)?.mime_type?.includes('pdf') || document.file_path.endsWith('.pdf') ? 'pdf' : 'bin';
 
