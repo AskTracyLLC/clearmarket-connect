@@ -4420,7 +4420,7 @@ export type Database = {
         Returns: undefined
       }
       generate_anonymous_username: {
-        Args: Record<PropertyKey, never> | { user_type_param: string }
+        Args: { user_type_param?: string }
         Returns: string
       }
       generate_beta_registration_token: {
