@@ -365,24 +365,43 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
 
   const handleDownload = async (document: UserDocument) => {
     try {
+      console.log('🔽 Attempting to download document:', {
+        file_path: document.file_path,
+        document_name: document.document_name,
+        document_type: document.document_type
+      });
+
       const { data, error } = await supabase.storage
         .from('user-documents')
         .download(document.file_path);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Storage download error:', error);
+        throw error;
+      }
+
+      console.log('✅ File downloaded successfully, size:', data.size);
 
       // Create download link
       const url = URL.createObjectURL(data);
       const a = window.document.createElement('a');
       a.href = url;
-      a.download = document.document_name;
+      a.download = document.document_name + '.pdf';
+      window.document.body.appendChild(a);
       a.click();
+      window.document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      toast({
+        title: "Download successful",
+        description: `${document.document_name} downloaded successfully`
+      });
+
     } catch (error: any) {
+      console.error('❌ Download failed:', error);
       toast({
         title: "Download failed",
-        description: error.message,
+        description: error.message || "Unable to download file. Please try again.",
         variant: "destructive"
       });
     }
