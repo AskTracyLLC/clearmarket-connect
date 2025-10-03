@@ -450,7 +450,7 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
           .select('file_path, mime_type, metadata')
           .eq('user_id', user.id)
           .eq('document_type', 'nda')
-          .order('updated_at', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
