@@ -380,29 +380,39 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       const baseName = baseNameUnsafe.replace(/[\\/:*?"<>|]+/g, '_');
       const ext = (document as any)?.mime_type?.includes('pdf') || document.file_path.endsWith('.pdf') ? 'pdf' : 'bin';
 
-      // Prefer a short-lived signed URL to avoid policy issues
-      const { data: signed, error: signError } = await supabase.storage
-        .from('user-documents')
-        .createSignedUrl(document.file_path, 120);
-
-      if (signError || !signed?.signedUrl) {
-        console.error('❌ Failed to create signed URL, falling back to direct download:', signError);
-        const { data, error } = await supabase.storage
+      // Helper to attempt a download for a given path; returns true on success
+      const downloadByPath = async (path: string): Promise<boolean> => {
+        const { data: signed, error: signError } = await supabase.storage
           .from('user-documents')
-          .download(document.file_path);
-        if (error) throw error;
+          .createSignedUrl(path, 120);
 
-        const blobUrl = URL.createObjectURL(data);
-        const a = window.document.createElement('a');
-        a.href = blobUrl;
-        a.download = `${baseName}.${ext}`;
-        window.document.body.appendChild(a);
-        a.click();
-        window.document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-      } else {
+        if (signError || !signed?.signedUrl) {
+          // If the object is missing, signal caller to try a fresh path
+          if ((signError as any)?.message?.includes('Object not found')) {
+            console.error('❌ Signed URL failed: object not found for', path);
+            return false;
+          }
+          console.warn('⚠️ Signed URL failed, attempting direct download as fallback:', signError);
+          const { data, error } = await supabase.storage
+            .from('user-documents')
+            .download(path);
+          if (error) {
+            console.error('❌ Direct download also failed for', path, error);
+            return false;
+          }
+          const blobUrl = URL.createObjectURL(data);
+          const a = window.document.createElement('a');
+          a.href = blobUrl;
+          a.download = `${baseName}.${ext}`;
+          window.document.body.appendChild(a);
+          a.click();
+          window.document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+          return true;
+        }
+
+        // Use the signed URL to fetch a Blob so we can control the filename
         try {
-          // Fetch the signed URL to get a Blob so we can control filename
           const res = await fetch(signed.signedUrl);
           if (!res.ok) throw new Error(`HTTP ${res.status} while downloading file`);
           const blob = await res.blob();
@@ -414,18 +424,48 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
           a.click();
           window.document.body.removeChild(a);
           URL.revokeObjectURL(blobUrl);
+          return true;
         } catch (fetchErr) {
           console.warn('⚠️ Blob fetch failed, opening signed URL directly as fallback', fetchErr);
           const a = window.document.createElement('a');
           a.href = signed.signedUrl;
           a.rel = 'noopener';
           a.target = '_blank';
-          // Some browsers honor download attribute even with cross-origin signed URLs
           a.setAttribute('download', `${baseName}.${ext}`);
           window.document.body.appendChild(a);
           a.click();
           window.document.body.removeChild(a);
+          return true;
         }
+      };
+
+      // First try the current file_path
+      let success = await downloadByPath(document.file_path);
+
+      // If the file was removed/rotated (e.g., NDA regenerated), fetch latest path and retry
+      if (!success && document.document_type === 'nda' && user?.id) {
+        console.log('🔁 Original path missing. Fetching latest NDA path and retrying...');
+        const { data: latest, error: latestErr } = await supabase
+          .from('user_documents')
+          .select('file_path, mime_type, metadata')
+          .eq('user_id', user.id)
+          .eq('document_type', 'nda')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latest?.file_path && latest.file_path !== document.file_path) {
+          // Update ext if mime_type indicates a different type (unlikely for NDA)
+          success = await downloadByPath(latest.file_path);
+          // Refresh list so UI reflects the latest file
+          loadDocuments();
+        } else if (latestErr) {
+          console.error('❌ Failed to fetch latest NDA record:', latestErr);
+        }
+      }
+
+      if (!success) {
+        throw new Error('File not found or could not be downloaded. Please try again.');
       }
 
       toast({
