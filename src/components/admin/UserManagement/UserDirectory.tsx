@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Users, Save, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface UserProfile {
   id: string;
@@ -70,6 +71,18 @@ export const UserDirectory = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Subscribe to realtime changes on user_profiles
+  useRealtimeSubscription('user_profiles', (payload) => {
+    console.log('User profiles changed:', payload);
+    fetchUsers();
+  });
+
+  // Subscribe to realtime changes on users table (for role updates)
+  useRealtimeSubscription('users', (payload) => {
+    console.log('Users changed:', payload);
+    fetchUsers();
+  });
 
   const handleToggleActive = (userId: string, currentStatus: boolean) => {
     setPendingChanges(prev => ({
