@@ -101,6 +101,9 @@ const Header = () => {
                   <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
                     <ClearMarketLogo size={32} />
                     <span className="font-bold text-xl text-foreground">ClearMarket</span>
+                    <span className="ml-2 px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary rounded-md border border-primary/20">
+                      BETA
+                    </span>
                   </Link>
                 </div>
 
@@ -323,6 +326,9 @@ const Header = () => {
                 <Link to="/" className="flex items-center space-x-2">
                   <ClearMarketLogo size={28} />
                   <span className="font-bold text-lg text-foreground">ClearMarket</span>
+                  <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold bg-primary/10 text-primary rounded border border-primary/20">
+                    BETA
+                  </span>
                 </Link>
 
                 {/* Mobile Notifications */}
