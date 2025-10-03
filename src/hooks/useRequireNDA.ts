@@ -17,6 +17,7 @@ const PUBLIC_ROUTES = [
   '/faq',
   '/feedback',
   '/beta-nda',
+  '/nda',
   '/verify-email',
   '/payment-success'
 ];
@@ -71,7 +72,7 @@ export const useRequireNDA = () => {
     }
 
     // Don't redirect if already on NDA page
-    if (location.pathname === '/beta-nda') {
+    if (location.pathname === '/beta-nda' || location.pathname === '/nda') {
       console.log('✅ Already on NDA page');
       return;
     }

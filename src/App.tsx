@@ -65,7 +65,11 @@ const App = () => (
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/vendor/public/:id" element={<VendorPublicProfile />} />
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
-                <Route path="/fieldrep/profile" element={<FieldRepProfilePage />} />
+                <Route path="/fieldrep/profile" element={
+                  <ProtectedRouteWithNDA>
+                    <FieldRepProfilePage />
+                  </ProtectedRouteWithNDA>
+                } />
                 <Route path="/fieldrep/public/:id" element={<FieldRepPublicProfile />} />
                 <Route path="/fieldrep/dashboard" element={
                   <ProtectedRouteWithNDA>
