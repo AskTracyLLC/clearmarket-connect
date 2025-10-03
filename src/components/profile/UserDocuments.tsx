@@ -452,7 +452,54 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         toast({ title: 'NDA regenerated', description: 'Your NDA has been refreshed with the full legal text.' });
         await loadDocuments();
       } else {
-        toast({ title: 'NDA regeneration failed', description: 'Please try again.', variant: 'destructive' });
+        // Fallback: if DB upsert failed but file uploaded, create record manually
+        const { data: list, error: listError } = await supabase
+          .storage
+          .from('user-documents')
+          .list(`${user.id}/nda`, { limit: 100 });
+
+        if (listError || !list || list.length === 0) {
+          toast({ title: 'NDA regeneration failed', description: 'Upload succeeded but saving failed. Please try again.', variant: 'destructive' });
+        } else {
+          const sorted = [...list].sort((a, b) => {
+            const aTime = new Date((a as any).updated_at || (a as any).created_at || 0).getTime();
+            const bTime = new Date((b as any).updated_at || (b as any).created_at || 0).getTime();
+            return bTime - aTime;
+          });
+          const latest = sorted[0];
+          const latestPath = `${user.id}/nda/${latest.name}`;
+          const signerName = userData?.display_name || profile?.display_name || userData?.anonymous_username || profile?.anonymous_username || 'Unknown';
+
+          const { error: insertError } = await supabase
+            .from('user_documents')
+            .insert([{
+              user_id: user.id,
+              document_type: 'nda',
+              document_name: 'Beta Tester NDA',
+              file_path: latestPath,
+              file_size: (latest as any).metadata?.size ?? 0,
+              mime_type: 'application/pdf',
+              status: 'active',
+              visibility: 'private',
+              folder_category: 'legal',
+              verified_by: user.id,
+              verified_at: new Date().toISOString(),
+              metadata: {
+                auto_generated: true,
+                signed_at: new Date().toISOString(),
+                signer_name: signerName,
+                signer_email: user.email,
+                username: userData?.anonymous_username || profile?.anonymous_username || null,
+              },
+            }]);
+
+          if (insertError) {
+            toast({ title: 'NDA regeneration failed', description: insertError.message || 'Please try again.', variant: 'destructive' });
+          } else {
+            toast({ title: 'NDA regenerated', description: 'Your NDA has been refreshed with the full legal text.' });
+            await loadDocuments();
+          }
+        }
       }
     } catch (error: any) {
       toast({ title: 'NDA regeneration failed', description: error.message || 'Unexpected error', variant: 'destructive' });

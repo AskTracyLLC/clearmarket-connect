@@ -170,7 +170,7 @@ export const generateAndSaveNDA = async ({
       },
     };
 
-    console.log("🔄 Upserting document record:", documentRecord);
+    console.log("🔄 Saving document record:", documentRecord);
 
     const { data: existingDoc } = await supabase
       .from("user_documents")
@@ -179,15 +179,25 @@ export const generateAndSaveNDA = async ({
       .eq("document_type", "nda")
       .maybeSingle();
 
-    const { data: upsertedDoc, error: docError } = await supabase
-      .from("user_documents")
-      .upsert([documentRecord], { onConflict: "user_id, document_type" })
-      .select("id, file_path")
-      .single();
+    if (existingDoc?.id) {
+      const { error: updateError } = await supabase
+        .from("user_documents")
+        .update({ ...documentRecord, file_path: uploadData.path })
+        .eq("id", existingDoc.id);
 
-    if (docError) {
-      console.error("❌ Database upsert failed:", docError);
-      throw docError;
+      if (updateError) {
+        console.error("❌ Database update failed:", updateError);
+        throw updateError;
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from("user_documents")
+        .insert([documentRecord]);
+
+      if (insertError) {
+        console.error("❌ Database insert failed:", insertError);
+        throw insertError;
+      }
     }
 
     // Clean up previous file if path changed
