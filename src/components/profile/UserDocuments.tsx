@@ -105,8 +105,6 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
   const [selectedVisibility, setSelectedVisibility] = useState<'private' | 'public' | 'network_shared'>('private');
   const [selectedFolderCategory, setSelectedFolderCategory] = useState<'legal' | 'profile' | 'credentials' | 'identity' | 'general'>('general');
   const [activeFolder, setActiveFolder] = useState<string>('all');
-  const [regeneratingNDA, setRegeneratingNDA] = useState(false);
-  const [removingDocId, setRemovingDocId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -432,110 +430,6 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
     }
   };
 
-  const handleRegenerateNDA = async () => {
-    if (!user) return;
-    try {
-      setRegeneratingNDA(true);
-      const { data: userData } = await supabase
-        .from('users')
-        .select('anonymous_username, display_name')
-        .eq('id', user.id)
-        .single();
-
-      const path = await generateAndSaveNDA({
-        userId: user.id,
-        email: user.email,
-        username: userData?.anonymous_username || profile?.anonymous_username,
-        firstName: userData?.display_name || profile?.display_name || undefined,
-      });
-
-      if (path) {
-        toast({ title: 'NDA regenerated', description: 'Your NDA has been refreshed with the full legal text.' });
-        await loadDocuments();
-      } else {
-        // Fallback: if DB upsert failed but file uploaded, create record manually
-        const { data: list, error: listError } = await supabase
-          .storage
-          .from('user-documents')
-          .list(`${user.id}/nda`, { limit: 100 });
-
-        if (listError || !list || list.length === 0) {
-          toast({ title: 'NDA regeneration failed', description: 'Upload succeeded but saving failed. Please try again.', variant: 'destructive' });
-        } else {
-          const sorted = [...list].sort((a, b) => {
-            const aTime = new Date((a as any).updated_at || (a as any).created_at || Date.now()).getTime();
-            const bTime = new Date((b as any).updated_at || (b as any).created_at || Date.now()).getTime();
-            return bTime - aTime;
-          });
-          const latest = sorted[0];
-          const latestPath = `${user.id}/nda/${latest.name}`;
-          const signerName = userData?.display_name || profile?.display_name || userData?.anonymous_username || profile?.anonymous_username || 'Unknown';
-
-          const { error: insertError } = await supabase
-            .from('user_documents')
-            .insert([{
-              user_id: user.id,
-              document_type: 'nda',
-              document_name: 'Beta Tester NDA',
-              file_path: latestPath,
-              file_size: (latest as any).metadata?.size ?? 0,
-              mime_type: 'application/pdf',
-              status: 'active',
-              visibility: 'private',
-              folder_category: 'legal',
-              verified_by: user.id,
-              verified_at: new Date().toISOString(),
-              metadata: {
-                auto_generated: true,
-                signed_at: new Date().toISOString(),
-                signer_name: signerName,
-                signer_email: user.email,
-                username: userData?.anonymous_username || profile?.anonymous_username || null,
-              },
-            }]);
-
-          if (insertError) {
-            toast({ title: 'NDA regeneration failed', description: insertError.message || 'Please try again.', variant: 'destructive' });
-          } else {
-            toast({ title: 'NDA regenerated', description: 'Your NDA has been refreshed with the full legal text.' });
-            await loadDocuments();
-          }
-        }
-      }
-    } catch (error: any) {
-      toast({ title: 'NDA regeneration failed', description: error.message || 'Unexpected error', variant: 'destructive' });
-    } finally {
-      setRegeneratingNDA(false);
-    }
-  };
-
-  const handleRemoveNDADoc = async (document: UserDocument) => {
-    if (!user) return;
-    const confirmed = window.confirm('Remove your current NDA PDF? You can regenerate it after.');
-    if (!confirmed) return;
-    try {
-      setRemovingDocId(document.id);
-      // Remove file from storage
-      const { error: storageError } = await supabase.storage
-        .from('user-documents')
-        .remove([document.file_path]);
-      if (storageError) throw storageError;
-
-      // Delete DB record (override verified lock)
-      const { error: dbError } = await supabase
-        .from('user_documents')
-        .delete()
-        .eq('id', document.id);
-      if (dbError) throw dbError;
-
-      toast({ title: 'NDA removed', description: 'Refresh the page, then regenerate to create a fresh NDA.' });
-      await loadDocuments();
-    } catch (err: any) {
-      toast({ title: 'Failed to remove NDA', description: err.message || 'Unexpected error', variant: 'destructive' });
-    } finally {
-      setRemovingDocId(null);
-    }
-  };
 
   const getStatusIcon = (status: string, verifiedBy?: string) => {
     switch (status) {
@@ -971,26 +865,6 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
                           >
                             <Download className="h-3 w-3" />
                           </Button>
-                          {doc.document_type === 'nda' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleRegenerateNDA}
-                                disabled={regeneratingNDA}
-                              >
-                                {regeneratingNDA ? 'Regenerating...' : 'Regenerate'}
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleRemoveNDADoc(doc)}
-                                disabled={removingDocId === doc.id}
-                              >
-                                {removingDocId === doc.id ? 'Removing...' : 'Remove'}
-                              </Button>
-                            </>
-                          )}
                           {!doc.verified_by && (
                             <Button
                               variant="outline"
