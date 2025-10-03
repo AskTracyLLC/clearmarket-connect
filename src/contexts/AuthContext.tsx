@@ -36,8 +36,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Check if user is admin - admins bypass all redirects
       try {
-        const { data: isAdmin } = await supabase.rpc('is_admin_user', { user_id_param: user.id });
+        const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_id_param: user.id });
+        const isAdmin = isAdminData === true || (typeof isAdminData === 'object' && isAdminData !== null && (isAdminData as Record<string, unknown>)['is_admin'] === true);
         if (isAdmin) {
+          // Redirect admins away from the auth page
+          if (window.location.pathname === '/auth') {
+            window.location.href = '/admin-auth';
+            return;
+          }
           return;
         }
       } catch (error) {
