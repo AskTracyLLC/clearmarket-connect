@@ -669,9 +669,6 @@ const BetaNDA = () => {
                     <p className="text-sm text-foreground font-medium mb-2">
                       <strong>Important Notice:</strong> This agreement is legally binding. Please review carefully and contact us with any questions before signing. Your participation in beta testing constitutes acceptance of these terms.
                     </p>
-                    <p className="text-xs text-muted-foreground italic">
-                      This NDA is governed by Delaware state law and any disputes will be resolved in Delaware courts.
-                    </p>
                   </div>
                 </section>
               </div>
@@ -705,7 +702,7 @@ const BetaNDA = () => {
                 Digital Signature <span className="text-destructive">*</span>
               </label>
               <p className="text-xs text-muted-foreground">
-                Your signature: <span className="font-medium text-foreground">{userDisplayName}</span> (from your profile)
+                Your signature: <span className="font-medium text-foreground">{anonymousUsername}</span> (from your profile)
               </p>
               <p className="text-xs text-muted-foreground">
                 Confirm or edit your full legal name below as your digital signature. This serves as your electronic signature on this agreement.
