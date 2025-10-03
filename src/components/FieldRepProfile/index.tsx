@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useFieldRepProfile } from "@/hooks/useFieldRepProfile";
 import { useCoverageAreas } from "@/hooks/useCoverageAreas";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
 import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
 import CreditExplainerModal from "@/components/CreditExplainerModal";
@@ -27,6 +29,7 @@ import { AspenGroveVerification } from "./AspenGroveVerification";
 
 const FieldRepProfile = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { profile } = useUserProfile();
   const { saveProfile, loading: profileLoading } = useFieldRepProfile();
   const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
@@ -72,12 +75,45 @@ const FieldRepProfile = () => {
     },
   });
 
-  // Update form when profile loads
+  // Update form when profile loads and fetch NDA data
   useEffect(() => {
-    if (profile?.anonymous_username) {
-      form.setValue('displayUsername', profile.anonymous_username);
-    }
-  }, [profile, form]);
+    const loadProfileData = async () => {
+      if (profile?.anonymous_username) {
+        form.setValue('displayUsername', profile.anonymous_username);
+      }
+      
+      // Auto-fill email from auth user
+      if (user?.email) {
+        form.setValue('email', user.email);
+      }
+      
+      // Fetch NDA signature data to auto-fill first and last name
+      if (user?.id) {
+        try {
+          const { data: ndaData } = await supabase
+            .from('nda_signatures')
+            .select('first_name, last_name')
+            .eq('user_id', user.id)
+            .order('signed_date', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          if (ndaData) {
+            if (ndaData.first_name) {
+              form.setValue('firstName', ndaData.first_name);
+            }
+            if (ndaData.last_name) {
+              form.setValue('lastName', ndaData.last_name);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load NDA data:', error);
+        }
+      }
+    };
+    
+    loadProfileData();
+  }, [profile, user, form]);
 
   // Load existing coverage areas on component mount
   useEffect(() => {
