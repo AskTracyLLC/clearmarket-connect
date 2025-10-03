@@ -87,7 +87,7 @@ export const generateAndSaveNDA = async ({
       status: "active",
       visibility: "private",
       folder_category: "legal",
-      verified_by: "system",
+      verified_by: userId,
       verified_at: new Date().toISOString(),
       metadata: {
         auto_generated: true,
