@@ -17,6 +17,7 @@ import RecaptchaWrapper from '@/components/ui/recaptcha-wrapper';
 import { useSecureAuth, useSecureRateLimit } from '@/hooks/useSecureAuth';
 import { isValidPassword, checkAdminRole } from '@/utils/security';
 import { ComprehensiveSignupForm, SignupFormData } from '@/components/ComprehensiveSignupForm';
+import { useUserCount } from '@/hooks/useUserCount';
 
 const AuthPage = () => {
   const [searchParams] = useSearchParams();
@@ -28,6 +29,7 @@ const AuthPage = () => {
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { count: userCount } = useUserCount();
 
   useEffect(() => {
     const handleUserRedirect = async () => {
@@ -243,7 +245,7 @@ const AuthPage = () => {
                   <ComprehensiveSignupForm onSubmit={handleSignUp} loading={loading} />
                   <div className="mt-6 text-center">
                     <p className="text-sm text-muted-foreground">
-                      Join 174+ professionals already signed up
+                      {userCount !== null && `Join ${userCount}+ professionals already signed up`}
                     </p>
                   </div>
                 </CardContent>
