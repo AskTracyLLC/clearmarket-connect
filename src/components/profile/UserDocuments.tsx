@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { generateAndSaveNDA } from "@/utils/ndaDocument";
+import { useNDAStatus } from "@/hooks/useNDAStatus";
 import { 
   Upload, 
   FileText, 
@@ -84,6 +86,7 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
+  const { hasSignedNDA } = useNDAStatus();
   
   const [documents, setDocuments] = useState<UserDocument[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentTypeConfig[]>([]);
@@ -110,6 +113,49 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
       loadStorageInfo();
     }
   }, [user]);
+
+  // Auto-generate NDA if signed but document is missing
+  useEffect(() => {
+    const generateMissingNDA = async () => {
+      if (!user || !hasSignedNDA || !documents || loading) return;
+      
+      // Check if user has NDA document
+      const hasNDADoc = documents.some(doc => doc.document_type === 'nda' || doc.folder_category === 'legal');
+      
+      if (!hasNDADoc) {
+        console.log('🔄 NDA signed but document missing. Auto-generating...');
+        
+        try {
+          // Fetch user details for NDA generation
+          const { data: userData } = await supabase
+            .from('users')
+            .select('anonymous_username, role')
+            .eq('id', user.id)
+            .single();
+          
+          const result = await generateAndSaveNDA({
+            userId: user.id,
+            email: user.email,
+            username: userData?.anonymous_username
+          });
+          
+          if (result) {
+            console.log('✅ NDA document auto-generated successfully');
+            toast({
+              title: "NDA Document Generated",
+              description: "Your signed NDA has been added to your documents.",
+            });
+            // Reload documents to show the new NDA
+            loadDocuments();
+          }
+        } catch (error) {
+          console.error('❌ Failed to auto-generate NDA:', error);
+        }
+      }
+    };
+
+    generateMissingNDA();
+  }, [user, hasSignedNDA, documents, loading]);
 
   const loadStorageInfo = async () => {
     try {
