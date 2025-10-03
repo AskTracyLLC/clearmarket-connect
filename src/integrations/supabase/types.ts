@@ -4433,6 +4433,15 @@ export type Database = {
         Args: { user_email: string; user_type_param: string; username: string }
         Returns: string
       }
+      get_active_hidden_reviews: {
+        Args: { target_user_id?: string }
+        Returns: {
+          admin_override: boolean
+          expires_at: string
+          review_id: string
+          user_id: string
+        }[]
+      }
       get_beta_testers_with_nda_status: {
         Args: Record<PropertyKey, never>
         Returns: {
