@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Sheet, 
   SheetContent, 
@@ -47,11 +48,39 @@ import {
 const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { profile, loading } = useUserProfile();
   const { balance, isLoading } = useDualBalance();
   const isMobile = useIsMobile();
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
+
+  // Fetch NDA signature data for user initials
+  useEffect(() => {
+    const fetchNDAData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data } = await supabase
+          .from('nda_signatures')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .order('signed_date', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (data) {
+          setFirstName(data.first_name);
+          setLastName(data.last_name);
+        }
+      } catch (error) {
+        console.error('Failed to load NDA data for avatar:', error);
+      }
+    };
+    
+    fetchNDAData();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -169,6 +198,8 @@ const Header = () => {
                   {/* User Profile */}
                   <ProfileDropdown
                     profile={profile}
+                    firstName={firstName}
+                    lastName={lastName}
                     onSignOut={handleSignOut}
                   />
                 </div>
@@ -194,7 +225,10 @@ const Header = () => {
                         <Avatar className="h-10 w-10">
                           <AvatarImage src="" />
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {profile?.display_name?.[0] || profile?.anonymous_username?.[0] || 'U'}
+                            {firstName && lastName 
+                              ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+                              : profile?.display_name?.[0] || profile?.anonymous_username?.[0] || 'U'
+                            }
                           </AvatarFallback>
                         </Avatar>
                         <div>
