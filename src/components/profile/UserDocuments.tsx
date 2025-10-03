@@ -371,38 +371,52 @@ const UserDocuments = ({ onDocumentAdded }: DocumentUploadProps) => {
         document_type: document.document_type
       });
 
-      const { data, error } = await supabase.storage
+      // Prefer a short-lived signed URL to avoid policy issues
+      const { data: signed, error: signError } = await supabase.storage
         .from('user-documents')
-        .download(document.file_path);
+        .createSignedUrl(document.file_path, 60);
 
-      if (error) {
-        console.error('❌ Storage download error:', error);
-        throw error;
+      if (signError || !signed?.signedUrl) {
+        console.error('❌ Failed to create signed URL, falling back to direct download:', signError);
+        const { data, error } = await supabase.storage
+          .from('user-documents')
+          .download(document.file_path);
+        if (error) throw error;
+
+        const blobUrl = URL.createObjectURL(data);
+        const a = window.document.createElement('a');
+        a.href = blobUrl;
+        a.download = `${document.document_name || 'document'}.pdf`;
+        window.document.body.appendChild(a);
+        a.click();
+        window.document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+      } else {
+        // Fetch the signed URL to get a Blob so we can control filename
+        const res = await fetch(signed.signedUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status} while downloading file`);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = window.document.createElement('a');
+        a.href = blobUrl;
+        const ext = (document.mime_type?.includes('pdf') || document.file_path.endsWith('.pdf')) ? 'pdf' : 'bin';
+        a.download = `${document.document_name || 'document'}.${ext}`;
+        window.document.body.appendChild(a);
+        a.click();
+        window.document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
       }
 
-      console.log('✅ File downloaded successfully, size:', data.size);
-
-      // Create download link
-      const url = URL.createObjectURL(data);
-      const a = window.document.createElement('a');
-      a.href = url;
-      a.download = document.document_name + '.pdf';
-      window.document.body.appendChild(a);
-      a.click();
-      window.document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
       toast({
-        title: "Download successful",
+        title: 'Download successful',
         description: `${document.document_name} downloaded successfully`
       });
-
     } catch (error: any) {
       console.error('❌ Download failed:', error);
       toast({
-        title: "Download failed",
-        description: error.message || "Unable to download file. Please try again.",
-        variant: "destructive"
+        title: 'Download failed',
+        description: error.message || 'Unable to download file. Please try again.',
+        variant: 'destructive'
       });
     }
   };
