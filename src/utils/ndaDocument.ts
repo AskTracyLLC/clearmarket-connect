@@ -114,12 +114,25 @@ export const generateAndSaveNDA = async ({
   } catch (error) {
     console.error("❌ NDA PDF generation/storage failed:", error);
     
-    // Log additional context for debugging
-    console.error("Error context:", {
-      userId,
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined
-    });
+    // Log detailed error information
+    if (error && typeof error === 'object') {
+      const err = error as any;
+      console.error("Detailed error:", {
+        userId,
+        message: err.message || 'Unknown error',
+        code: err.code,
+        details: err.details,
+        hint: err.hint,
+        statusCode: err.statusCode,
+        stack: err.stack
+      });
+      
+      // Log specific storage errors
+      if (err.message?.includes('bucket') || err.message?.includes('storage')) {
+        console.error("⚠️ Storage bucket 'user-documents' may not exist or policies are not configured");
+        console.error("Please create the bucket in Supabase dashboard: Storage > Create bucket");
+      }
+    }
     
     return null; // Silent fail - do not block user flow
   }
