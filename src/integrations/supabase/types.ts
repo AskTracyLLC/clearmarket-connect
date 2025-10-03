@@ -4584,6 +4584,16 @@ export type Database = {
           title: string
         }[]
       }
+      get_users_with_display_names: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          anonymous_username: string
+          display_name: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
