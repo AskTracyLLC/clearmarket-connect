@@ -2213,8 +2213,10 @@ export type Database = {
       nda_signatures: {
         Row: {
           created_at: string
+          first_name: string | null
           id: string
           is_active: boolean
+          last_name: string | null
           signature_name: string
           signature_version: string
           signed_date: string
@@ -2223,8 +2225,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          first_name?: string | null
           id?: string
           is_active?: boolean
+          last_name?: string | null
           signature_name: string
           signature_version?: string
           signed_date?: string
@@ -2233,8 +2237,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          first_name?: string | null
           id?: string
           is_active?: boolean
+          last_name?: string | null
           signature_name?: string
           signature_version?: string
           signed_date?: string
