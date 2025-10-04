@@ -480,7 +480,7 @@ const Prelaunch = () => {
                   </Label>
                   <Textarea
                     id="challenges"
-                    placeholder="What are your biggest challenges in finding work/coverage? (e.g., finding reliable professionals, inconsistent work, payment delays, etc.)"
+                    placeholder="e.g., finding reliable professionals, payment delays..."
                     value={formState.challenges}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'challenges', value: e.target.value })}
                     className="mt-1 resize-none"
@@ -495,7 +495,7 @@ const Prelaunch = () => {
                   </Label>
                   <Textarea
                     id="interestedFeatures"
-                    placeholder="Which features are you most excited about? (e.g., trust scores, coverage mapping, direct messaging, credit system, etc.)"
+                    placeholder="e.g., trust scores, coverage mapping, messaging..."
                     value={formState.interestedFeatures}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'interestedFeatures', value: e.target.value })}
                     className="mt-1 resize-none"

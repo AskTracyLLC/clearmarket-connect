@@ -154,7 +154,7 @@ export const ComprehensiveSignupForm = ({
       {/* Current Challenges */}
       <div className="space-y-2">
         <Label htmlFor="challenges">Current Challenges</Label>
-        <Textarea id="challenges" placeholder="What are your biggest challenges in finding work/coverage? (e.g., finding reliable professionals, inconsistent work, payment delays, etc.)" value={formData.currentChallenges} onChange={e => setFormData(prev => ({
+        <Textarea id="challenges" placeholder="e.g., finding reliable professionals, payment delays..." value={formData.currentChallenges} onChange={e => setFormData(prev => ({
         ...prev,
         currentChallenges: e.target.value
       }))} className="min-h-[80px] bg-background resize-none" />
@@ -163,7 +163,7 @@ export const ComprehensiveSignupForm = ({
       {/* Most Interested Features */}
       <div className="space-y-2">
         <Label htmlFor="features">Most Interested Features</Label>
-        <Textarea id="features" placeholder="Which features are you most excited about? (e.g., trust scores, coverage mapping, direct messaging, credit system, etc.)" value={formData.interestedFeatures} onChange={e => setFormData(prev => ({
+        <Textarea id="features" placeholder="e.g., trust scores, coverage mapping, messaging..." value={formData.interestedFeatures} onChange={e => setFormData(prev => ({
         ...prev,
         interestedFeatures: e.target.value
       }))} className="min-h-[80px] bg-background resize-none" />
