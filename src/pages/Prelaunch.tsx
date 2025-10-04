@@ -25,8 +25,6 @@ interface FormState {
   primaryState: string;
   workType: string[];
   otherWorkType: string;
-  challenges: string;
-  interestedFeatures: string;
   betaTesting: boolean;
   privacyConsent: boolean;
 }
@@ -38,8 +36,6 @@ const initialState: FormState = {
   primaryState: '',
   workType: [],
   otherWorkType: '',
-  challenges: '',
-  interestedFeatures: '',
   betaTesting: false,
   privacyConsent: false,
 };
@@ -180,7 +176,6 @@ const Prelaunch = () => {
             work === "Other" ? `Other: ${formState.otherWorkType}` : work
           ),
           betaTesting: formState.betaTesting,
-          interestedFeatures: formState.interestedFeatures,
         },
         'prelaunch'
       );
@@ -471,36 +466,6 @@ const Prelaunch = () => {
                   {formState.workType.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one work type</p>
                   )}
-                </div>
-
-                {/* Current Challenges */}
-                <div>
-                  <Label htmlFor="challenges" className="text-sm font-medium">
-                    Current Challenges
-                  </Label>
-                  <Textarea
-                    id="challenges"
-                    placeholder="e.g., finding reliable professionals, payment delays..."
-                    value={formState.challenges}
-                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'challenges', value: e.target.value })}
-                    className="mt-1 resize-none"
-                    rows={3}
-                  />
-                </div>
-
-                {/* Most Interested Features */}
-                <div>
-                  <Label htmlFor="interestedFeatures" className="text-sm font-medium">
-                    Most Interested Features
-                  </Label>
-                  <Textarea
-                    id="interestedFeatures"
-                    placeholder="e.g., trust scores, coverage mapping, messaging..."
-                    value={formState.interestedFeatures}
-                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'interestedFeatures', value: e.target.value })}
-                    className="mt-1 resize-none"
-                    rows={3}
-                  />
                 </div>
 
                 {/* Beta Testing */}

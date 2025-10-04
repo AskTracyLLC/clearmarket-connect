@@ -77,9 +77,7 @@ const AuthPage = () => {
             role: formData.userRole,
             experience_level: formData.experienceLevel,
             primary_state: formData.primaryState,
-            work_types: formData.workTypes,
-            current_challenges: formData.currentChallenges,
-            interested_features: formData.interestedFeatures
+            work_types: formData.workTypes
           }
         }
       });

@@ -18,8 +18,6 @@ export interface SignupFormData {
   experienceLevel?: string;
   primaryState?: string;
   workTypes?: string[];
-  currentChallenges?: string;
-  interestedFeatures?: string;
 }
 const EXPERIENCE_LEVELS = ['Less than 1 year', '1-3 years', '3-5 years', '5-10 years', '10+ years'];
 const STATES = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'];
@@ -34,9 +32,7 @@ export const ComprehensiveSignupForm = ({
     userRole: 'field-rep',
     experienceLevel: '',
     primaryState: '',
-    workTypes: [],
-    currentChallenges: '',
-    interestedFeatures: ''
+    workTypes: []
   });
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,24 +145,6 @@ export const ComprehensiveSignupForm = ({
           </div>
           {formData.workTypes && formData.workTypes.length === 0 && <p className="text-sm text-muted-foreground mt-2">Please select at least one work type</p>}
         </div>
-      </div>
-
-      {/* Current Challenges */}
-      <div className="space-y-2">
-        <Label htmlFor="challenges">Current Challenges</Label>
-        <Textarea id="challenges" placeholder="e.g., finding reliable professionals, payment delays..." value={formData.currentChallenges} onChange={e => setFormData(prev => ({
-        ...prev,
-        currentChallenges: e.target.value
-      }))} className="min-h-[80px] bg-background resize-none" />
-      </div>
-
-      {/* Most Interested Features */}
-      <div className="space-y-2">
-        <Label htmlFor="features">Most Interested Features</Label>
-        <Textarea id="features" placeholder="e.g., trust scores, coverage mapping, messaging..." value={formData.interestedFeatures} onChange={e => setFormData(prev => ({
-        ...prev,
-        interestedFeatures: e.target.value
-      }))} className="min-h-[80px] bg-background resize-none" />
       </div>
 
       {/* Submit Button */}
