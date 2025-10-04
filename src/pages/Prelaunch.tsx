@@ -25,7 +25,6 @@ interface FormState {
   primaryState: string;
   workType: string[];
   otherWorkType: string;
-  betaTesting: boolean;
   privacyConsent: boolean;
 }
 
@@ -36,7 +35,6 @@ const initialState: FormState = {
   primaryState: '',
   workType: [],
   otherWorkType: '',
-  betaTesting: false,
   privacyConsent: false,
 };
 
@@ -175,7 +173,6 @@ const Prelaunch = () => {
           workTypes: formState.workType.map((work) =>
             work === "Other" ? `Other: ${formState.otherWorkType}` : work
           ),
-          betaTesting: formState.betaTesting,
         },
         'prelaunch'
       );
@@ -466,18 +463,6 @@ const Prelaunch = () => {
                   {formState.workType.length === 0 && (
                     <p className="text-sm text-muted-foreground">Please select at least one work type</p>
                   )}
-                </div>
-
-                {/* Beta Testing */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="beta"
-                    checked={formState.betaTesting}
-                    onCheckedChange={(checked) => dispatch({ type: 'SET_FIELD', field: 'betaTesting', value: checked })}
-                  />
-                  <Label htmlFor="beta" className="text-sm">
-                    I'm interested in beta testing before the official launch
-                  </Label>
                 </div>
 
                 {/* Privacy Consent */}
