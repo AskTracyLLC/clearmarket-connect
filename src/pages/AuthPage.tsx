@@ -65,12 +65,15 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
+      // Generate a random password since we removed the password field
+      const tempPassword = `Cm!${Math.random().toString(36).slice(-6)}9A`;
+      
       // Use dedicated verification handler route
       const redirectUrl = `${window.location.origin}/auth/verify`;
       
       const { error } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password,
+        password: tempPassword,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
@@ -90,8 +93,8 @@ const AuthPage = () => {
         });
       } else {
         toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
+          title: "Welcome to ClearMarket!",
+          description: "An email has been sent with your login credentials. Check your inbox to complete the process.",
         });
       }
     } catch (error) {

@@ -13,7 +13,6 @@ interface ComprehensiveSignupFormProps {
 }
 export interface SignupFormData {
   email: string;
-  password: string;
   userRole: 'field_rep' | 'vendor';
   experienceLevel?: string;
   primaryState?: string;
@@ -28,7 +27,6 @@ export const ComprehensiveSignupForm = ({
 }: ComprehensiveSignupFormProps) => {
   const [formData, setFormData] = useState<SignupFormData>({
     email: '',
-    password: '',
     userRole: 'field_rep',
     experienceLevel: '',
     primaryState: '',
@@ -82,15 +80,6 @@ export const ComprehensiveSignupForm = ({
         ...prev,
         email: e.target.value
       }))} required className="bg-background" />
-      </div>
-
-      {/* Password */}
-      <div className="space-y-2">
-        <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
-        <Input id="password" type="password" placeholder="Create a secure password" value={formData.password} onChange={e => setFormData(prev => ({
-        ...prev,
-        password: e.target.value
-      }))} required minLength={6} className="bg-background" />
       </div>
 
       {/* Experience Level */}

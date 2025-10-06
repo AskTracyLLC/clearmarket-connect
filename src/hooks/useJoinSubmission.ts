@@ -48,6 +48,7 @@ export const useJoinSubmission = () => {
     anonymous_username: string;
     registration_link?: string;
     beta_tester?: boolean;
+    temp_password?: string;
   }) => {
     try {
       await supabase.functions.invoke("send-signup-email", {
@@ -57,6 +58,7 @@ export const useJoinSubmission = () => {
           anonymous_username: payload.anonymous_username,
           beta_tester: payload.beta_tester ?? false,
           registration_link: payload.registration_link || "#",
+          temp_password: payload.temp_password,
         },
       });
     } catch (_) {
@@ -165,6 +167,7 @@ export const useJoinSubmission = () => {
               anonymous_username: result.anonymous_username,
               registration_link: `${window.location.origin}/beta-register?token=${token}`,
               beta_tester: true,
+              temp_password: tempPassword,
             });
           } else {
             await sendAsyncEmail({
@@ -172,6 +175,7 @@ export const useJoinSubmission = () => {
               email: result.email,
               anonymous_username: result.anonymous_username,
               beta_tester: true,
+              temp_password: tempPassword,
             });
           }
         } catch (_) {

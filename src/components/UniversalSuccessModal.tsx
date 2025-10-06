@@ -18,11 +18,7 @@ export const UniversalSuccessModal: React.FC<UniversalSuccessModalProps> = ({
   signupType = "prelaunch",
 }) => {
   const roleDisplay = userType === "field_rep" ? "Field Representative" : userType === "vendor" ? "Vendor" : "User";
-  const nextSteps = signupType === "prelaunch"
-    ? "Check your email for beta access when we launch!"
-    : signupType === "beta-register"
-    ? "Check your email for your login credentials and complete your registration."
-    : "Check your email for access instructions and next steps.";
+  const nextSteps = "We've sent an email with your username and password. Use these to log in and complete your profile.";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

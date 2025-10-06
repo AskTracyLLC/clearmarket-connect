@@ -14,6 +14,7 @@ interface SignupEmailRequest {
   email: string;
   anonymous_username: string;
   beta_tester?: boolean;
+  temp_password?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,9 +24,9 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { signupType, email, anonymous_username, beta_tester = false }: SignupEmailRequest = await req.json();
+    const { signupType, email, anonymous_username, beta_tester = false, temp_password }: SignupEmailRequest = await req.json();
 
-    console.log('Sending signup email:', { signupType, email, anonymous_username, beta_tester });
+    console.log('Sending signup email:', { signupType, email, anonymous_username, beta_tester, has_password: !!temp_password });
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -60,7 +61,8 @@ const handler = async (req: Request): Promise<Response> => {
       '{{anonymous_username}}': anonymous_username,
       '{{email}}': email,
       '{{user_type}}': normalizedSignupType === 'field_rep' ? 'Field Rep' : 'Vendor',
-      '{{registration_link}}': req.json().registration_link || '#'
+      '{{registration_link}}': req.json().registration_link || '#',
+      '{{temp_password}}': temp_password || 'N/A'
     };
 
     let subject = template.subject;
