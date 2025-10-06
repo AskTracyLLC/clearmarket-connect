@@ -17,7 +17,7 @@ export const UniversalSuccessModal: React.FC<UniversalSuccessModalProps> = ({
   userType,
   signupType = "prelaunch",
 }) => {
-  const roleDisplay = userType === "field-rep" ? "Field Representative" : userType === "vendor" ? "Vendor" : "User";
+  const roleDisplay = userType === "field_rep" ? "Field Representative" : userType === "vendor" ? "Vendor" : "User";
   const nextSteps = signupType === "prelaunch"
     ? "Check your email for beta access when we launch!"
     : signupType === "beta-register"

@@ -14,7 +14,7 @@ interface ComprehensiveSignupFormProps {
 export interface SignupFormData {
   email: string;
   password: string;
-  userRole: 'field-rep' | 'vendor';
+  userRole: 'field_rep' | 'vendor';
   experienceLevel?: string;
   primaryState?: string;
   workTypes?: string[];
@@ -29,7 +29,7 @@ export const ComprehensiveSignupForm = ({
   const [formData, setFormData] = useState<SignupFormData>({
     email: '',
     password: '',
-    userRole: 'field-rep',
+    userRole: 'field_rep',
     experienceLevel: '',
     primaryState: '',
     workTypes: []
@@ -57,8 +57,8 @@ export const ComprehensiveSignupForm = ({
         <div className="grid grid-cols-2 gap-4">
           <button type="button" onClick={() => setFormData(prev => ({
           ...prev,
-          userRole: 'field-rep'
-        }))} className={cn("relative p-6 rounded-lg border-2 transition-all text-center", formData.userRole === 'field-rep' ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50")}>
+          userRole: 'field_rep'
+        }))} className={cn("relative p-6 rounded-lg border-2 transition-all text-center", formData.userRole === 'field_rep' ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50")}>
             <UserCheck className="h-8 w-8 mx-auto mb-2" />
             <div className="font-semibold">Field Rep</div>
             <div className="text-sm text-muted-foreground">Looking for work</div>
