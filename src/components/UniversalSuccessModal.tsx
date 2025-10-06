@@ -6,7 +6,7 @@ interface UniversalSuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   username: string;
-  userType: "field-rep" | "vendor" | string;
+  userType: "field_rep" | "vendor" | string;
   signupType?: "prelaunch" | "field-rep-direct" | "vendor-direct" | "beta-register";
 }
 

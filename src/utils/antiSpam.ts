@@ -199,7 +199,7 @@ export const logSignupAttempt = async ({
   isDisposableEmail = false
 }: {
   email: string;
-  userType: 'field-rep' | 'vendor';
+  userType: 'field_rep' | 'vendor';
   ipAddress?: string;
   userAgent?: string;
   success: boolean;
