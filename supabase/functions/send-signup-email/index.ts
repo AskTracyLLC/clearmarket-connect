@@ -24,7 +24,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { signupType, email, anonymous_username, beta_tester = false, temp_password }: SignupEmailRequest = await req.json();
+    const requestBody = await req.json();
+    const { signupType, email, anonymous_username, beta_tester = false, temp_password } = requestBody as SignupEmailRequest;
 
     console.log('Sending signup email:', { signupType, email, anonymous_username, beta_tester, has_password: !!temp_password });
 
@@ -61,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
       '{{anonymous_username}}': anonymous_username,
       '{{email}}': email,
       '{{user_type}}': normalizedSignupType === 'field_rep' ? 'Field Rep' : 'Vendor',
-      '{{registration_link}}': req.json().registration_link || '#',
+      '{{registration_link}}': requestBody.registration_link || '#',
       '{{temp_password}}': temp_password || 'N/A'
     };
 
