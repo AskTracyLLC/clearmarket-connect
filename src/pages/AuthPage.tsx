@@ -26,7 +26,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, resetPassword } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { count: userCount } = useUserCount();
@@ -122,9 +122,7 @@ const AuthPage = () => {
     setResetLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
-      });
+      const { error } = await resetPassword(email);
 
       if (error) {
         toast({
