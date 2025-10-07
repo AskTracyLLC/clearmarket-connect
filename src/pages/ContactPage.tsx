@@ -9,13 +9,55 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, MapPin, Shield, TrendingUp } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
 const ContactPage = () => {
   const [contactReason, setContactReason] = useState("");
   const [subject, setSubject] = useState("");
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // For now, just show an alert - can be connected to backend later
-    alert("Thank you for your message. We'll get back to you within 24 hours!");
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      email: formData.get("email") as string,
+      reason: contactReason,
+      subject: subject,
+      message: formData.get("message") as string,
+    };
+
+    try {
+      const { error } = await supabase.functions.invoke("send-contact-form", {
+        body: data,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Message sent!",
+        description: "Thank you for contacting us. We'll get back to you within 24-48 hours.",
+      });
+
+      // Reset form
+      e.currentTarget.reset();
+      setContactReason("");
+      setSubject("");
+    } catch (error) {
+      console.error("Error sending contact form:", error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again or email us directly at hello@useclearmarket.io",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return <div className="min-h-screen bg-background">
       <Header />
@@ -93,8 +135,8 @@ const ContactPage = () => {
                     <Textarea id="message" placeholder="Tell us more about your question or concern..." rows={6} required />
                   </div>
 
-                  <Button type="submit" className="w-full">
-                    Send Message
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </CardContent>
