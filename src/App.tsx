@@ -22,6 +22,7 @@ import FieldRepDashboard from "./pages/FieldRepDashboard";
 import FieldRepPublicProfile from "./pages/FieldRepPublicProfile";
 import FeedbackPage from "./pages/FeedbackPage";
 import FAQPage from "./pages/FAQPage";
+import HelpPage from "./pages/HelpPage";
 import MessagesPage from "./pages/MessagesPage";
 import SupportPage from "./pages/SupportPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -78,6 +79,7 @@ const App = () => (
                 } />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/feedback" element={<FeedbackPage />} />
+                <Route path="/help" element={<HelpPage />} />
                 <Route path="/community" element={
                   <ProtectedRouteWithNDA>
                     <CommunityBoard />
