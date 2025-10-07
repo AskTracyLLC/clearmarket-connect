@@ -176,9 +176,7 @@ const FAQSection = () => {
           </Card>
 
           <div className="text-center mt-8">
-            <p className="text-muted-foreground">
-              Still have questions? Use the contact form below!
-            </p>
+            
           </div>
         </div>
       </div>
