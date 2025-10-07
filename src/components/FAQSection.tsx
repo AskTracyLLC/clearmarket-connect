@@ -113,7 +113,7 @@ const faqs = [{
 }, {
   id: "fees",
   question: "Is there a fee to join?",
-  answer: "Joining ClearMarket is completely free for Field Reps. Vendors pay a small fee only when they successfully connect with and hire a Field Rep through our platform. No upfront costs, no monthly subscriptions."
+  answer: "While ClearMarket is in beta, access is free for both Field Reps and Vendors. When we transition out of beta, profile creation will remain free. Certain premium capabilities will be available through a monthly subscription. Free plans will continue to include core features; subscriptions unlock additional tools to help Vendors and Field Reps."
 }, {
   id: "unlock-contact",
   question: "What do I get when I unlock contact details?",
