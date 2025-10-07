@@ -171,20 +171,21 @@ const AdminAuthPage = () => {
     setResetLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/admin-auth?reset=true`,
+      const { error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email }
       });
 
       if (error) {
+        console.error('Password reset error:', error);
         toast({
           title: "Error",
-          description: error.message,
+          description: "Failed to send password reset email. Please try again.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Password reset email sent",
-          description: "Check your email for instructions to reset your password.",
+          title: "Reset email sent",
+          description: "Check your email for password reset instructions.",
         });
       }
     } catch (error) {
