@@ -149,7 +149,7 @@ export const generateAndSaveNDA = async ({
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("user-documents")
-      .upload(filePath, new Blob([pdfBytes], { type: "application/pdf" }));
+      .upload(filePath, new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" }));
 
     if (uploadError) {
       console.error("❌ Storage upload failed:", uploadError);

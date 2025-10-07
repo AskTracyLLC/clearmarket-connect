@@ -118,7 +118,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (emailOrUsername: string, password: string) => {
+    // Check if input is an email or username
+    const isEmail = emailOrUsername.includes('@');
+    let email = emailOrUsername;
+
+    // If it's a username, look up the email
+    if (!isEmail) {
+      const { data: userData, error: lookupError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('anonymous_username', emailOrUsername)
+        .single();
+
+      if (lookupError || !userData) {
+        return { error: { message: 'Username not found' } };
+      }
+      email = userData.email;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
