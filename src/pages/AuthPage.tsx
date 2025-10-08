@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,14 +29,19 @@ const AuthPage = () => {
   const { signIn, signUp, user, resetPassword } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { count: userCount } = useUserCount();
 
   useEffect(() => {
     if (user) {
-      // Immediately send authenticated users to NDA to avoid getting stuck on /auth
-      navigate('/nda');
+      const from = (location.state as any)?.from;
+      if (from && from !== '/auth') {
+        navigate(from, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.state]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
