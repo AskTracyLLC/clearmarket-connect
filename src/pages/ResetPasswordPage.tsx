@@ -19,25 +19,57 @@ const ResetPasswordPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Verify the reset token on mount
+  // Verify tokens/session on mount and hydrate session if needed
   useEffect(() => {
-    const verifyToken = async () => {
+    const initFromUrl = async () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
+      const queryParams = new URLSearchParams(window.location.search);
 
-      if (type !== 'recovery' || !accessToken) {
+      const type = hashParams.get('type') || queryParams.get('type');
+      const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+      const errorCode = hashParams.get('error_code') || queryParams.get('error_code');
+      const errorDescription = hashParams.get('error_description') || queryParams.get('error_description');
+
+      if (errorCode) {
         toast({
-          title: "Invalid Reset Link",
-          description: "This password reset link is invalid or has expired. Please request a new one.",
-          variant: "destructive",
+          title: 'Invalid Reset Link',
+          description: errorDescription || 'This password reset link is invalid or has expired. Please request a new one.',
+          variant: 'destructive',
         });
-        setTimeout(() => navigate('/auth'), 3000);
+        return;
+      }
+
+      // If tokens are present, explicitly set the session to ensure updateUser works
+      if (accessToken && refreshToken) {
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (setSessionError) {
+          console.error('setSession error:', setSessionError);
+          toast({
+            title: 'Invalid Reset Link',
+            description: 'This password reset link is invalid or has expired. Please request a new one.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
+      // As a final guard, ensure we have a user session before allowing password change
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user && type !== 'recovery') {
+        toast({
+          title: 'Invalid Reset Link',
+          description: 'This password reset link is invalid or has expired. Please request a new one.',
+          variant: 'destructive',
+        });
       }
     };
 
-    verifyToken();
-  }, [navigate, toast]);
+    initFromUrl();
+  }, [toast]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
