@@ -138,6 +138,8 @@ const FieldRepProfile = () => {
   // Load existing coverage areas on component mount
   useEffect(() => {
     const loadCoverageAreas = async () => {
+      if (!user?.id) return;
+      
       try {
         const areas = await fetchCoverageAreas();
         setCoverageAreas(areas);
@@ -147,7 +149,7 @@ const FieldRepProfile = () => {
     };
     
     loadCoverageAreas();
-  }, [fetchCoverageAreas]);
+  }, [user?.id]);
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
