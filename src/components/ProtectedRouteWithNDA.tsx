@@ -19,6 +19,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
   const { profile, loading: profileLoading } = useUserProfile();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [hasPersonalInfo, setHasPersonalInfo] = useState<boolean | null>(null);
 
   // Check if user is admin using secure database role check
   useEffect(() => {
@@ -46,10 +47,39 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
     checkAdmin();
   }, [user?.id]);
 
-  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'profileLoading:', profileLoading, 'isAdmin:', isAdmin, 'hasSignedNDA:', hasSignedNDA, 'userNdaSigned:', userNdaSigned, 'profile:', profile);
+  // Check if personal info is complete for field reps
+  useEffect(() => {
+    const checkPersonalInfo = async () => {
+      if (!user || profile?.role !== 'field_rep') {
+        setHasPersonalInfo(true); // Not a field rep, so not applicable
+        return;
+      }
+      
+      try {
+        const { data } = await supabase
+          .from('field_rep_profiles')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        const isComplete = !!(data?.first_name && data?.last_name);
+        console.log('🔍 Personal Info complete:', isComplete, data);
+        setHasPersonalInfo(isComplete);
+      } catch (error) {
+        console.error('Error checking personal info:', error);
+        setHasPersonalInfo(false);
+      }
+    };
+    
+    if (!authLoading && !profileLoading) {
+      checkPersonalInfo();
+    }
+  }, [user?.id, profile?.role, authLoading, profileLoading]);
 
-  // Show loading state while checking auth, NDA status, profile, and admin status
-  if (authLoading || ndaLoading || profileLoading || isAdmin === null) {
+  console.log('🔍 ProtectedRouteWithNDA render - authLoading:', authLoading, 'ndaLoading:', ndaLoading, 'profileLoading:', profileLoading, 'isAdmin:', isAdmin, 'hasPersonalInfo:', hasPersonalInfo, 'hasSignedNDA:', hasSignedNDA, 'userNdaSigned:', userNdaSigned, 'profile:', profile);
+
+  // Show loading state while checking auth, NDA status, profile, admin status, and personal info
+  if (authLoading || ndaLoading || profileLoading || isAdmin === null || hasPersonalInfo === null) {
     console.log('⏳ Showing loading state...');
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/40 to-background flex items-center justify-center">
@@ -78,7 +108,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
 
   // Field Rep specific routing logic
   if (profile?.role === 'field_rep') {
-    console.log('🔍 Field Rep detected, checking NDA and profile completion...');
+    console.log('🔍 Field Rep detected, checking NDA and personal info...');
     
     // If NDA not signed, redirect to NDA page
     if (!userNdaSigned) {
@@ -86,11 +116,11 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
       return <Navigate to="/beta-nda" state={{ from: location.pathname }} replace />;
     }
     
-    // If NDA signed but profile incomplete (less than 80%), redirect to profile page (but not if already there)
-    if (userNdaSigned && (profile.profile_complete === null || profile.profile_complete < 80)) {
+    // If NDA signed but personal info incomplete, redirect to profile page (but not if already there)
+    if (userNdaSigned && !hasPersonalInfo) {
       // Only redirect if not already on the profile page (prevent redirect loop)
       if (location.pathname !== '/fieldrep/profile') {
-        console.log('❌ Field Rep profile incomplete, redirecting to profile page. Completion:', profile.profile_complete);
+        console.log('❌ Field Rep personal info incomplete, redirecting to profile page');
         return <Navigate to="/fieldrep/profile" state={{ from: location.pathname }} replace />;
       }
       // If already on profile page, allow access so they can complete it
@@ -98,7 +128,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
       return <>{children}</>;
     }
     
-    console.log('✅ Field Rep NDA signed and profile sufficiently complete, allowing access');
+    console.log('✅ Field Rep NDA signed and personal info complete, allowing access');
     return <>{children}</>;
   }
 
