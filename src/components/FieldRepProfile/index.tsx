@@ -131,14 +131,22 @@ const FieldRepProfile = () => {
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
-    const personalFields = ['firstName', 'lastName', 'displayUsername', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
+    // Don't require displayUsername since it's auto-populated and disabled
+    const personalFields = ['firstName', 'lastName', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
     const values = form.getValues();
-    const isComplete = personalFields.every(field => {
+    
+    console.log('Form values:', values); // Debug log
+    
+    const missingFields = personalFields.filter(field => {
       const value = values[field as keyof FieldRepFormData];
-      return value && value.toString().trim() !== '';
+      const isEmpty = !value || value.toString().trim() === '';
+      if (isEmpty) {
+        console.log(`Missing field: ${field}`); // Debug which field is missing
+      }
+      return isEmpty;
     });
     
-    if (isComplete) {
+    if (missingFields.length === 0) {
       try {
         await saveProfile({
           first_name: values.firstName,
@@ -166,7 +174,7 @@ const FieldRepProfile = () => {
     } else {
       toast({
         title: "Incomplete Information",
-        description: "Please fill out all required fields in the Personal Info tab.",
+        description: `Please fill out the following required fields: ${missingFields.join(', ')}`,
         variant: "destructive",
       });
     }
