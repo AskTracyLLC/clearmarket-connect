@@ -36,13 +36,13 @@ const FieldRepProfile = () => {
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   
-  // Track completion status for each tab
   const [tabCompletionStatus, setTabCompletionStatus] = useState({
     personalInfoComplete: false,
     verificationComplete: false,
     coverageSetupComplete: false,
     creditsReviewed: false
   });
+  const [activeTab, setActiveTab] = useState('personal');
   
   // Mock data for demonstration - in real app this would come from database
   const mockUserData = {
@@ -171,6 +171,15 @@ const FieldRepProfile = () => {
         title: 'Personal Info Saved',
         description: 'Your personal information has been saved successfully!',
       });
+      
+      // Move to next incomplete tab
+      if (!tabCompletionStatus.verificationComplete) {
+        setActiveTab('verification');
+      } else if (!tabCompletionStatus.coverageSetupComplete) {
+        setActiveTab('coverage');
+      } else if (!tabCompletionStatus.creditsReviewed) {
+        setActiveTab('credits');
+      }
     } catch (error: any) {
       console.error('Save personal info error:', error);
       const msg = typeof error?.message === 'string' ? error.message : 'Failed to save personal information. Please try again.';
@@ -200,6 +209,13 @@ const FieldRepProfile = () => {
         title: "Verification Saved",
         description: "Your verification information has been saved successfully!",
       });
+      
+      // Move to next incomplete tab
+      if (!tabCompletionStatus.coverageSetupComplete) {
+        setActiveTab('coverage');
+      } else if (!tabCompletionStatus.creditsReviewed) {
+        setActiveTab('credits');
+      }
     } catch (error: any) {
       console.error('Save verification error:', error);
       const msg = typeof error?.message === 'string' ? error.message : 'Failed to save verification information. Please try again.';
@@ -248,6 +264,11 @@ const FieldRepProfile = () => {
         title: "Coverage Setup Saved",
         description: "Your coverage setup and pricing have been saved successfully!",
       });
+      
+      // Move to next incomplete tab
+      if (!tabCompletionStatus.creditsReviewed) {
+        setActiveTab('credits');
+      }
     } catch (error: any) {
       console.error('Save coverage setup error:', error);
       const msg = typeof error?.message === 'string' ? error.message : 'Failed to save coverage setup. Please try again.';
@@ -308,7 +329,7 @@ const FieldRepProfile = () => {
         <CardContent>
           <Form {...form}>
             <div className="space-y-6">
-              <Tabs defaultValue="personal" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="personal">Personal Info</TabsTrigger>
                   <TabsTrigger value="verification">Verification</TabsTrigger>
