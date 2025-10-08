@@ -14,9 +14,10 @@ interface CoverageAreasProps {
   coverageAreas: CoverageArea[];
   setCoverageAreas: React.Dispatch<React.SetStateAction<CoverageArea[]>>;
   selectedInspectionTypes?: string[];
+  onSaveCoverageAreas: (areas: CoverageArea[]) => Promise<void>;
 }
 
-export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [] }: CoverageAreasProps) => {
+export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [], onSaveCoverageAreas }: CoverageAreasProps) => {
   const { toast } = useToast();
   const { states, loading: statesLoading } = useStates();
   const [selectedState, setSelectedState] = useState<State | null>(null);
@@ -98,7 +99,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
     setInspectionTypes(prev => prev.filter(item => item.id !== id));
   };
 
-  const addCoverageArea = () => {
+  const addCoverageArea = async () => {
     if (!selectedState || selectedCounties.length === 0 || !standardPrice || !rushPrice) {
       toast({
         title: "Missing Information",
@@ -122,26 +123,53 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       inspectionTypes: inspectionTypes.filter(item => item.inspectionType && item.price),
     };
 
-    setCoverageAreas(prev => [...prev, newCoverage]);
-    setSelectedState(null);
-    setSelectedCounties([]);
-    setSelectAllCounties(false);
-    setStandardPrice("");
-    setRushPrice("");
-    setInspectionTypes([]);
+    const updatedAreas = [...coverageAreas, newCoverage];
+    setCoverageAreas(updatedAreas);
     
-    toast({
-      title: "Coverage Added",
-      description: "Coverage area and pricing have been saved.",
-    });
+    try {
+      await onSaveCoverageAreas(updatedAreas);
+      
+      setSelectedState(null);
+      setSelectedCounties([]);
+      setSelectAllCounties(false);
+      setStandardPrice("");
+      setRushPrice("");
+      setInspectionTypes([]);
+      
+      toast({
+        title: "Coverage Saved",
+        description: "Coverage area and pricing have been saved to the database.",
+      });
+    } catch (error) {
+      // Rollback on error
+      setCoverageAreas(coverageAreas);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save coverage area. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const removeCoverageArea = (id: string) => {
-    setCoverageAreas(prev => prev.filter(area => area.id !== id));
-    toast({
-      title: "Coverage Removed",
-      description: "Coverage area has been removed.",
-    });
+  const removeCoverageArea = async (id: string) => {
+    const updatedAreas = coverageAreas.filter(area => area.id !== id);
+    setCoverageAreas(updatedAreas);
+    
+    try {
+      await onSaveCoverageAreas(updatedAreas);
+      toast({
+        title: "Coverage Removed",
+        description: "Coverage area has been removed from the database.",
+      });
+    } catch (error) {
+      // Rollback on error
+      setCoverageAreas(coverageAreas);
+      toast({
+        title: "Remove Failed",
+        description: "Failed to remove coverage area. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const exportToCSV = () => {

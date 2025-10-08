@@ -397,6 +397,9 @@ const FieldRepProfile = () => {
                     coverageAreas={coverageAreas}
                     setCoverageAreas={setCoverageAreas}
                     selectedInspectionTypes={form.watch("inspectionTypes")}
+                    onSaveCoverageAreas={async (areas) => {
+                      await saveCoverageAreas(areas);
+                    }}
                   />
                   <PlatformsUsed form={form} />
                   <InspectionTypes form={form} />
