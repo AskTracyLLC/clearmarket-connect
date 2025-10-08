@@ -35,9 +35,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const user = currentSession.user;
       const isVerified = !!user.email_confirmed_at;
       const pathname = window.location.pathname;
+      const url = window.location;
+      const isRecoveryFlow = url.hash.includes('type=recovery') || url.search.includes('type=recovery');
 
       // Do not redirect during password recovery or on reset-password page
-      if (eventType === 'PASSWORD_RECOVERY' || pathname === '/reset-password') {
+      if (eventType === 'PASSWORD_RECOVERY' || pathname === '/reset-password' || isRecoveryFlow) {
         return;
       }
 

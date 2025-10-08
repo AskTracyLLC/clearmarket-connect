@@ -30,6 +30,7 @@ const ResetPasswordPage = () => {
       const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
       const errorCode = hashParams.get('error_code') || queryParams.get('error_code');
       const errorDescription = hashParams.get('error_description') || queryParams.get('error_description');
+      const tokenHash = hashParams.get('token_hash') || queryParams.get('token_hash') || hashParams.get('token') || queryParams.get('token');
 
       if (errorCode) {
         toast({
@@ -38,6 +39,23 @@ const ResetPasswordPage = () => {
           variant: 'destructive',
         });
         return;
+      }
+
+      // If we don't have session tokens but do have a token hash, verify it to establish a session
+      if (!accessToken && tokenHash) {
+        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+          type: 'recovery',
+          token_hash: tokenHash,
+        });
+        if (verifyError) {
+          console.error('verifyOtp error:', verifyError);
+          toast({
+            title: 'Invalid Reset Link',
+            description: 'This password reset link is invalid or has expired. Please request a new one.',
+            variant: 'destructive',
+          });
+          return;
+        }
       }
 
       // If tokens are present, explicitly set the session to ensure updateUser works
