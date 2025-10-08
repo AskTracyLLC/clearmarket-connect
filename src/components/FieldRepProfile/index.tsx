@@ -133,7 +133,7 @@ const FieldRepProfile = () => {
   const savePersonalInfo = async () => {
     // Validate only the fields we require for this section
     const requiredFields: (keyof FieldRepFormData)[] = [
-      'firstName','lastName','phone','email','city','state','zipCode','bio'
+      'firstName','lastName','email','city','state','zipCode','bio'
     ];
 
     const isValid = await form.trigger(requiredFields as any, { shouldFocus: true });

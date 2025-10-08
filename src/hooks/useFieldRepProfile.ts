@@ -108,7 +108,6 @@ export const useFieldRepProfile = () => {
     const requiredFields: (keyof FieldRepDbProfile)[] = [
       "first_name",
       "last_name",
-      "phone",
       "city",
       "state",
       "zip_code",
