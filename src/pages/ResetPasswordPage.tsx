@@ -127,9 +127,14 @@ const ResetPasswordPage = () => {
       } else {
         toast({
           title: "Password Updated!",
-          description: "Your password has been successfully updated. Redirecting to login...",
+          description: "Your password has been successfully updated. Please log in with your new password.",
         });
-        setTimeout(() => navigate('/auth'), 2000);
+        
+        // Sign out the user and redirect to login
+        await supabase.auth.signOut();
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 2000);
       }
     } catch (error: any) {
       console.error('Unexpected error:', error);
