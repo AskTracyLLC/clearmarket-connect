@@ -30,7 +30,6 @@ interface ConnectionRequest {
   created_at: string;
   updated_at: string;
   expires_at: string;
-  recipient_display_name?: string;
   recipient_anonymous_username?: string;
 }
 
@@ -71,7 +70,7 @@ export const SentConnectionRequests = () => {
         if (recipientIds.length > 0) {
           const { data: recipientData } = await supabase
             .from('users')
-            .select('id, display_name, anonymous_username')
+            .select('id, anonymous_username')
             .in('id', recipientIds);
 
           const recipientMap = new Map(
@@ -81,7 +80,6 @@ export const SentConnectionRequests = () => {
           const enrichedData = data.map(request => ({
             ...request,
             status: request.status as ConnectionRequest['status'],
-            recipient_display_name: recipientMap.get(request.recipient_id)?.display_name,
             recipient_anonymous_username: recipientMap.get(request.recipient_id)?.anonymous_username,
           })) as ConnectionRequest[];
 
@@ -288,8 +286,7 @@ export const SentConnectionRequests = () => {
               ) : (
                 pendingRequests.map((request) => {
                   const daysLeft = differenceInDays(new Date(request.expires_at), new Date());
-                  const displayName = request.recipient_display_name || 
-                                     request.recipient_anonymous_username || 
+                  const displayName = request.recipient_anonymous_username || 
                                      request.recipient_username || 
                                      'Field Rep';
                   const isExpiringSoon = daysLeft <= 2 && daysLeft > 0;
@@ -351,8 +348,7 @@ export const SentConnectionRequests = () => {
                 </div>
               ) : (
                 historyRequests.map((request) => {
-                  const displayName = request.recipient_display_name || 
-                                     request.recipient_anonymous_username || 
+                  const displayName = request.recipient_anonymous_username || 
                                      request.recipient_username || 
                                      'Field Rep';
                   const wasExpired = isRequestExpired(request.expires_at);

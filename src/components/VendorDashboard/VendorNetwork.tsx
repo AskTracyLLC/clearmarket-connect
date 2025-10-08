@@ -26,8 +26,8 @@ const VendorNetwork = () => {
     const sorted = [...connections];
     if (sortBy === 'name') {
       sorted.sort((a, b) => {
-        const nameA = a.display_name || a.anonymous_username;
-        const nameB = b.display_name || b.anonymous_username;
+        const nameA = a.anonymous_username;
+        const nameB = b.anonymous_username;
         return nameA.localeCompare(nameB);
       });
     } else if (sortBy === 'state') {
@@ -52,10 +52,8 @@ const VendorNetwork = () => {
   };
 
   const handleOpenComment = (connection: any) => {
-    const name = connection.display_name || connection.anonymous_username;
-    const initials = connection.display_name 
-      ? connection.display_name.split(' ').map((n: string) => n[0]).join('.')
-      : connection.anonymous_username.substring(0, 2).toUpperCase();
+    const name = connection.anonymous_username;
+    const initials = connection.anonymous_username.substring(0, 2).toUpperCase();
     
     setSelectedUser({
       id: connection.user_id,
@@ -160,10 +158,8 @@ const VendorNetwork = () => {
                 </TableHeader>
                 <TableBody>
                   {sortedConnections.map((connection) => {
-                    const name = connection.display_name || connection.anonymous_username;
-                    const initials = connection.display_name 
-                      ? connection.display_name.split(' ').map((n: string) => n[0]).join('.')
-                      : connection.anonymous_username.substring(0, 2).toUpperCase();
+                    const name = connection.anonymous_username;
+                    const initials = connection.anonymous_username.substring(0, 2).toUpperCase();
                     const location = connection.city && connection.state 
                       ? `${connection.city}, ${connection.state}`
                       : connection.state || connection.location || 'N/A';

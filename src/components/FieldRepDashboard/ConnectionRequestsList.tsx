@@ -16,7 +16,6 @@ interface ConnectionRequest {
   personal_message: string | null;
   expires_at: string;
   created_at: string;
-  sender_display_name?: string;
   sender_anonymous_username?: string;
   sender_role?: string;
 }
@@ -53,13 +52,12 @@ export const ConnectionRequestsList = () => {
         (data || []).map(async (request) => {
           const { data: senderData } = await supabase
             .from('users')
-            .select('display_name, anonymous_username, role, email')
+            .select('anonymous_username, role, email')
             .eq('id', request.sender_id)
             .single();
 
           return {
             ...request,
-            sender_display_name: senderData?.display_name,
             sender_anonymous_username: senderData?.anonymous_username,
             sender_role: senderData?.role,
             sender_email: senderData?.email,
@@ -232,7 +230,7 @@ export const ConnectionRequestsList = () => {
         </Alert>
 
         {requests.map((request) => {
-          const displayName = request.sender_display_name || request.sender_anonymous_username || 'Unknown User';
+          const displayName = request.sender_anonymous_username || 'Unknown User';
           const isProcessing = processingId === request.id;
           const daysLeft = Math.ceil((new Date(request.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
