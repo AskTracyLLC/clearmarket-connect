@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarIcon, Send, X } from 'lucide-react';
+import { CalendarIcon, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -141,20 +141,10 @@ const SendFieldRepNetworkAlert = ({ open, onOpenChange, networkSize }: SendField
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5" />
-              Send Network Alert
-            </DialogTitle>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => onOpenChange(false)}
-              className="h-6 w-6"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5" />
+            Send Network Alert
+          </DialogTitle>
           <p className="text-sm text-muted-foreground">
             Send a message to your vendor network. Messages are sent individually (blind copy).
           </p>
