@@ -36,6 +36,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isVerified = !!user.email_confirmed_at;
       const pathname = window.location.pathname;
 
+      // Do not redirect during password recovery or on reset-password page
+      if (eventType === 'PASSWORD_RECOVERY' || pathname === '/reset-password') {
+        return;
+      }
+
       // If user is on any /auth page, force redirect based on verification state
       if (pathname.startsWith('/auth')) {
         if (isVerified) {
@@ -63,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Define public routes that should not trigger redirects
-      const publicRoutes = ['/', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
+      const publicRoutes = ['/', '/reset-password', '/admin-auth', '/terms', '/privacy', '/refund-policy', '/contact', '/faq', '/feedback', '/verify-email', '/payment-success', '/beta-register', '/nda', '/beta-nda'];
       // reuse pathname declared above
       const isOnPublicRoute = publicRoutes.includes(pathname);
 
