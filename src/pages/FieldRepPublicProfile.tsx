@@ -161,7 +161,6 @@ const FieldRepPublicProfile: React.FC = () => {
                 
                 <div className="text-center md:text-left">
                   <h1 className="text-2xl font-bold mb-1">{getDisplayName()}</h1>
-                  <p className="text-sm text-muted-foreground mb-2">{fieldRep.anonymousUsername}</p>
                   <div className="flex items-center gap-1 text-muted-foreground mb-4">
                     <MapPin className="h-4 w-4" />
                     <span>{getLocation()}</span>
