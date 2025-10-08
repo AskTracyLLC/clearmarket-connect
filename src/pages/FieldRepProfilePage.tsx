@@ -6,15 +6,25 @@ import TrustScoreDisplay from "@/components/TrustScore/TrustScoreDisplay";
 import TrustScoreReviewList from "@/components/TrustScore/TrustScoreReviewList";
 import { useTrustScore } from "@/hooks/useTrustScore";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 const FieldRepProfilePage = () => {
+  const { user } = useAuth();
   const { profile } = useUserProfile();
   const { trustScore, reviews, hideReviewWithCredits, disputeReview, featureReview } = useTrustScore();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handlePreviewProfile = () => {
+    if (user?.id) {
+      navigate(`/fieldrep/public/${user.id}`);
+    }
+  };
 
   useEffect(() => {
     if (profile?.profile_complete && profile.profile_complete >= 100) {
@@ -30,6 +40,12 @@ const FieldRepProfilePage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="py-8">
+        <div className="container mx-auto px-4 mb-6 flex justify-end">
+          <Button variant="outline" onClick={handlePreviewProfile}>
+            <Eye className="h-4 w-4 mr-2" />
+            Preview My Public Profile
+          </Button>
+        </div>
         <FieldRepProfile />
         
         {/* Trust Score Section */}

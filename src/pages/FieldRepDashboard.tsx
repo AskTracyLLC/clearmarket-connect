@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   TrendingUp, 
   Users, 
@@ -35,6 +36,7 @@ interface DashboardStats {
 }
 
 const FieldRepDashboard = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { balance, isLoading: balanceLoading } = useDualBalance();
@@ -99,8 +101,9 @@ const FieldRepDashboard = () => {
   };
 
   const handlePreviewProfile = () => {
-    // For demo purposes, using a mock ID. In production, use the actual user ID
-    navigate('/fieldrep/public/demo');
+    if (user?.id) {
+      navigate(`/fieldrep/public/${user.id}`);
+    }
   };
 
   return (
