@@ -11,11 +11,17 @@ const toDbDate = (d?: Date | string) => {
 };
 
 const mapToDb = (p: Partial<FieldRepDbProfile>) => {
-  const { aspen_grove_expiration, ...rest } = p;
+  const { aspen_grove_expiration, hasAspenGrove, hasHudKeys, ...rest } = p;
   return {
     ...rest,
     ...(aspen_grove_expiration !== undefined
       ? { aspen_grove_expiration: toDbDate(aspen_grove_expiration) }
+      : {}),
+    ...(hasAspenGrove !== undefined
+      ? { has_aspen_grove: hasAspenGrove }
+      : {}),
+    ...(hasHudKeys !== undefined
+      ? { has_hud_keys: hasHudKeys }
       : {}),
   } as Record<string, unknown>;
 };
@@ -25,6 +31,8 @@ const mapFromDb = (p: any): FieldRepDbProfile => ({
   aspen_grove_expiration: p?.aspen_grove_expiration
     ? new Date(p.aspen_grove_expiration as string)
     : undefined,
+  hasAspenGrove: p?.has_aspen_grove,
+  hasHudKeys: p?.has_hud_keys,
 });
 
 export const useFieldRepProfile = () => {
