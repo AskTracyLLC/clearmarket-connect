@@ -131,7 +131,7 @@ const FieldRepProfile = () => {
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
-    const personalFields = ['firstName', 'lastName', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
+    const personalFields = ['firstName', 'lastName', 'displayUsername', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
     const values = form.getValues();
     const isComplete = personalFields.every(field => {
       const value = values[field as keyof FieldRepFormData];
