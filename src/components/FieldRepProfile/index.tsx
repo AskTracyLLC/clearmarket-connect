@@ -30,7 +30,7 @@ const FieldRepProfile = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useUserProfile();
-  const { saveProfile, loading: profileLoading } = useFieldRepProfile();
+  const { saveProfile, fetchProfile, loading: profileLoading } = useFieldRepProfile();
   const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
@@ -86,33 +86,54 @@ const FieldRepProfile = () => {
         form.setValue('email', user.email);
       }
       
-      // Fetch NDA signature data to auto-fill first and last name
+      // Fetch saved field rep profile data from database
       if (user?.id) {
         try {
-          const { data: ndaData } = await supabase
-            .from('nda_signatures')
-            .select('first_name, last_name')
-            .eq('user_id', user.id)
-            .order('signed_date', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+          const savedProfile = await fetchProfile();
           
-          if (ndaData) {
-            if (ndaData.first_name) {
-              form.setValue('firstName', ndaData.first_name);
+          if (savedProfile) {
+            // Populate all saved fields
+            if (savedProfile.first_name) form.setValue('firstName', savedProfile.first_name);
+            if (savedProfile.last_name) form.setValue('lastName', savedProfile.last_name);
+            if (savedProfile.phone) form.setValue('phone', savedProfile.phone);
+            if (savedProfile.city) form.setValue('city', savedProfile.city);
+            if (savedProfile.state) form.setValue('state', savedProfile.state);
+            if (savedProfile.zip_code) form.setValue('zipCode', savedProfile.zip_code);
+            if (savedProfile.bio) form.setValue('bio', savedProfile.bio);
+            if (savedProfile.aspen_grove_id) form.setValue('aspenGroveId', savedProfile.aspen_grove_id);
+            if (savedProfile.aspen_grove_expiration) form.setValue('aspenGroveExpiration', savedProfile.aspen_grove_expiration);
+            if (savedProfile.aspen_grove_image) form.setValue('aspenGroveImage', savedProfile.aspen_grove_image);
+            if (savedProfile.platforms) form.setValue('platforms', savedProfile.platforms);
+            if (savedProfile.other_platform) form.setValue('otherPlatform', savedProfile.other_platform);
+            if (savedProfile.inspection_types) form.setValue('inspectionTypes', savedProfile.inspection_types);
+            if (savedProfile.hud_keys) form.setValue('hudKeys', savedProfile.hud_keys);
+            if (savedProfile.other_hud_key) form.setValue('otherHudKey', savedProfile.other_hud_key);
+            if (typeof savedProfile.interested_in_beta === 'boolean') {
+              form.setValue('interestedInBeta', savedProfile.interested_in_beta);
             }
-            if (ndaData.last_name) {
-              form.setValue('lastName', ndaData.last_name);
+          } else {
+            // If no saved profile, try to load from NDA signature
+            const { data: ndaData } = await supabase
+              .from('nda_signatures')
+              .select('first_name, last_name')
+              .eq('user_id', user.id)
+              .order('signed_date', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (ndaData) {
+              if (ndaData.first_name) form.setValue('firstName', ndaData.first_name);
+              if (ndaData.last_name) form.setValue('lastName', ndaData.last_name);
             }
           }
         } catch (error) {
-          console.error('Failed to load NDA data:', error);
+          console.error('Failed to load profile data:', error);
         }
       }
     };
     
     loadProfileData();
-  }, [profile, user, form]);
+  }, [profile, user, form, fetchProfile]);
 
   // Load existing coverage areas on component mount
   useEffect(() => {
