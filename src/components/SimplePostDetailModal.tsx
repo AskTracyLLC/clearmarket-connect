@@ -2,7 +2,7 @@ import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, Flag, X, Laugh, Bookmark, Camera, MessageCircle } from "lucide-react";
+import { ThumbsUp, Flag, Laugh, Bookmark, Camera, MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CommunityPost } from "@/hooks/useCommunityPosts";
 import { useSavedPosts } from "@/hooks/useSavedPosts";
@@ -35,19 +35,14 @@ const SimplePostDetailModal = ({ post, onVote, onFlag, onFunnyVote, onClose }: S
   return (
     <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge 
-              variant="outline" 
-              className={`${getPostTypeColor(post.post_type)} text-xs`}
-            >
-              {post.post_type.replace('-', ' ')}
-            </Badge>
-            {post.title && <span>{post.title}</span>}
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+        <DialogTitle className="flex items-center gap-2">
+          <Badge 
+            variant="outline" 
+            className={`${getPostTypeColor(post.post_type)} text-xs`}
+          >
+            {post.post_type.replace('-', ' ')}
+          </Badge>
+          {post.title && <span>{post.title}</span>}
         </DialogTitle>
       </DialogHeader>
 
