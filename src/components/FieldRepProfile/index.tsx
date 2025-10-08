@@ -18,7 +18,6 @@ import { fieldRepSchema, type FieldRepFormData, type CoverageArea } from "./type
 import { PersonalInfo } from "./PersonalInfo";
 import { LocationInfo } from "./LocationInfo";
 import { ContactVerification } from "./ContactVerification";
-import { BackgroundCheck } from "./BackgroundCheck";
 import { CoverageAreas } from "./CoverageAreas";
 import { PlatformsUsed } from "./PlatformsUsed";
 import { InspectionTypes } from "./InspectionTypes";
@@ -400,7 +399,6 @@ const FieldRepProfile = () => {
 
                 <TabsContent value="verification" className="space-y-6 mt-6">
                   <AspenGroveVerification form={form} />
-                  <BackgroundCheck form={form} />
                   <HudKeys form={form} />
                   
                   <div className="pt-4">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarIcon, Upload, X } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
@@ -20,7 +21,19 @@ interface AspenGroveVerificationProps {
 export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [hasNone, setHasNone] = useState(false);
   const { toast } = useToast();
+
+  const handleNoneToggle = (checked: boolean) => {
+    setHasNone(checked);
+    if (checked) {
+      // Clear all AspenGrove fields when "None" is selected
+      form.setValue('aspenGroveId', '');
+      form.setValue('aspenGroveExpiration', undefined);
+      form.setValue('aspenGroveImage', '');
+      setPreviewUrl(null);
+    }
+  };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -103,9 +116,23 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <h3 className="text-lg font-semibold">AspenGrove Verification</h3>
-        <div className="text-xs bg-muted px-2 py-1 rounded">Optional</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">AspenGrove Verification</h3>
+          <div className="text-xs bg-muted px-2 py-1 rounded">Optional - Unlocks More Work (if available)</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="aspengrove-none"
+            checked={hasNone}
+            onChange={(e) => handleNoneToggle(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          <label htmlFor="aspengrove-none" className="text-sm">
+            None
+          </label>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -117,7 +144,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
             <FormItem>
               <FormLabel>AspenGrove ID</FormLabel>
               <FormControl>
-                <Input placeholder="AG123456" {...field} />
+                <Input placeholder="AG123456" {...field} disabled={hasNone} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -136,6 +163,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
                   <FormControl>
                     <Button
                       variant="outline"
+                      disabled={hasNone}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
@@ -182,7 +210,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
                         onChange={handleImageUpload}
                         className="hidden"
                         id="aspengrove-upload"
-                        disabled={uploading}
+                        disabled={uploading || hasNone}
                       />
                       <label 
                         htmlFor="aspengrove-upload" 
