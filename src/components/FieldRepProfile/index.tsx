@@ -75,8 +75,9 @@ const FieldRepProfile = () => {
   });
 
   // Update form when profile loads and fetch NDA data
+  // Combined effect to load all profile data and calculate completion
   useEffect(() => {
-    const loadProfileData = async () => {
+    const loadAllProfileData = async () => {
       if (profile?.anonymous_username) {
         form.setValue('displayUsername', profile.anonymous_username);
       }
@@ -89,7 +90,10 @@ const FieldRepProfile = () => {
       // Fetch saved field rep profile data from database
       if (user?.id) {
         try {
-          const savedProfile = await fetchProfile();
+          const [savedProfile, areas] = await Promise.all([
+            fetchProfile(),
+            fetchCoverageAreas()
+          ]);
           
           if (savedProfile) {
             // Populate all saved fields
@@ -112,7 +116,10 @@ const FieldRepProfile = () => {
               form.setValue('interestedInBeta', savedProfile.interested_in_beta);
             }
 
-            // Check if Personal Info section is complete (all required fields filled)
+            // Set coverage areas
+            setCoverageAreas(areas);
+
+            // Calculate completion status for all sections
             const personalInfoComplete = Boolean(
               savedProfile.first_name && 
               savedProfile.last_name && 
@@ -122,18 +129,24 @@ const FieldRepProfile = () => {
               savedProfile.bio
             );
 
-            // Check if any Verification fields are filled
             const verificationComplete = Boolean(
               savedProfile.aspen_grove_id || 
               savedProfile.hud_keys?.length
             );
 
-            // Update completion status based on saved data
-            setTabCompletionStatus(prev => ({
-              ...prev,
+            const coverageSetupComplete = Boolean(
+              areas.length > 0 &&
+              savedProfile.platforms?.length &&
+              savedProfile.inspection_types?.length
+            );
+
+            // Update all completion status at once
+            setTabCompletionStatus({
               personalInfoComplete,
               verificationComplete,
-            }));
+              coverageSetupComplete,
+              creditsReviewed: false // This gets set when user views the credits tab
+            });
           } else {
             // If no saved profile, try to load from NDA signature
             const { data: ndaData } = await supabase
@@ -155,37 +168,9 @@ const FieldRepProfile = () => {
       }
     };
     
-    loadProfileData();
-  }, [profile, user, form, fetchProfile]);
+    loadAllProfileData();
+  }, [profile, user, form, fetchProfile, fetchCoverageAreas]);
 
-  // Load existing coverage areas on component mount and check completion status
-  useEffect(() => {
-    const loadCoverageAreas = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const areas = await fetchCoverageAreas();
-        setCoverageAreas(areas);
-
-        // Check if Coverage Setup section is complete after loading coverage areas
-        const savedProfile = await fetchProfile();
-        const coverageSetupComplete = Boolean(
-          areas.length > 0 &&
-          savedProfile?.platforms?.length &&
-          savedProfile?.inspection_types?.length
-        );
-
-        setTabCompletionStatus(prev => ({
-          ...prev,
-          coverageSetupComplete,
-        }));
-      } catch (error) {
-        console.error('Failed to load coverage areas:', error);
-      }
-    };
-    
-    loadCoverageAreas();
-  }, [user?.id]);
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
