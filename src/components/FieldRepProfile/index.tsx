@@ -180,6 +180,7 @@ const FieldRepProfile = () => {
   };
 
   const saveVerification = async () => {
+    // Verification fields are optional - just save whatever user has filled out
     try {
       const values = form.getValues();
       await saveProfile({
@@ -196,10 +197,12 @@ const FieldRepProfile = () => {
         title: "Verification Saved",
         description: "Your verification information has been saved successfully!",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Save verification error:', error);
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save verification information. Please try again.';
       toast({
         title: "Save Failed",
-        description: "Failed to save verification information. Please try again.",
+        description: msg,
         variant: "destructive",
       });
     }
@@ -207,44 +210,54 @@ const FieldRepProfile = () => {
 
   const saveCoverageSetup = async () => {
     const values = form.getValues();
-    const platforms = values.platforms;
-    const inspectionTypes = values.inspectionTypes;
+    const platforms = values.platforms || [];
+    const inspectionTypes = values.inspectionTypes || [];
     
-    if (coverageAreas.length > 0 && platforms.length > 0 && inspectionTypes.length > 0) {
-      try {
-        // Save both profile data and coverage areas
-        await Promise.all([
-          saveProfile({
-            platforms: platforms,
-            other_platform: values.otherPlatform,
-            inspection_types: inspectionTypes,
-            interested_in_beta: values.interestedInBeta
-          }),
-          saveCoverageAreas(coverageAreas)
-        ]);
-        
-        setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
-        toast({
-          title: "Coverage Setup Saved",
-          description: "Your coverage setup and pricing have been saved successfully!",
-        });
-      } catch (error) {
-        toast({
-          title: "Save Failed",
-          description: "Failed to save coverage setup. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } else {
+    // Build list of missing requirements
+    const missing: string[] = [];
+    if (coverageAreas.length === 0) missing.push('at least one coverage area');
+    if (platforms.length === 0) missing.push('platforms');
+    if (inspectionTypes.length === 0) missing.push('inspection types');
+    
+    if (missing.length > 0) {
       toast({
         title: "Incomplete Setup",
-        description: "Please add coverage areas, select platforms, and choose inspection types.",
+        description: `Please add: ${missing.join(', ')}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Save both profile data and coverage areas
+      await Promise.all([
+        saveProfile({
+          platforms: platforms,
+          other_platform: values.otherPlatform,
+          inspection_types: inspectionTypes,
+          interested_in_beta: values.interestedInBeta
+        }),
+        saveCoverageAreas(coverageAreas)
+      ]);
+      
+      setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
+      toast({
+        title: "Coverage Setup Saved",
+        description: "Your coverage setup and pricing have been saved successfully!",
+      });
+    } catch (error: any) {
+      console.error('Save coverage setup error:', error);
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save coverage setup. Please try again.';
+      toast({
+        title: "Save Failed",
+        description: msg,
         variant: "destructive",
       });
     }
   };
 
   const saveCredits = async () => {
+    // No validation needed - this is just acknowledging they reviewed the credits tab
     try {
       const values = form.getValues();
       await saveProfile({
@@ -256,10 +269,12 @@ const FieldRepProfile = () => {
         title: "Profile Saved",
         description: "Your profile has been saved successfully!",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Save credits error:', error);
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save profile. Please try again.';
       toast({
         title: "Save Failed", 
-        description: "Failed to save profile. Please try again.",
+        description: msg,
         variant: "destructive",
       });
     }

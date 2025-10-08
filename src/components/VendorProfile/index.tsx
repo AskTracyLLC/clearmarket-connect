@@ -40,7 +40,8 @@ const VendorProfile = () => {
     },
   });
 
-  const onSubmit = (values: VendorFormData) => {
+  const onSubmit = async (values: VendorFormData) => {
+    // Check for coverage areas first
     if (coverageAreas.length === 0) {
       toast({
         title: "No Coverage Areas",
@@ -50,11 +51,21 @@ const VendorProfile = () => {
       return;
     }
 
-    console.log("Form submitted:", { ...values, coverageAreas });
-    toast({
-      title: "Profile Created",
-      description: "Your vendor profile has been created successfully!",
-    });
+    try {
+      console.log("Form submitted:", { ...values, coverageAreas });
+      toast({
+        title: "Profile Created",
+        description: "Your vendor profile has been created successfully!",
+      });
+    } catch (error: any) {
+      console.error('Save vendor profile error:', error);
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save vendor profile. Please try again.';
+      toast({
+        title: "Save Failed",
+        description: msg,
+        variant: "destructive",
+      });
+    }
   };
 
   const profileSteps = getVendorProfileSteps({
