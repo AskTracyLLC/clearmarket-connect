@@ -4,20 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, MessageSquare, Send } from "lucide-react";
+import { Search, MessageSquare, Send, Bell } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useDirectMessages, type Conversation } from "@/hooks/useDirectMessages";
 import { ResponseTimeDisplay } from "@/components/ui/ResponseTimeDisplay";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import SendFieldRepNetworkAlert from "@/components/FieldRepDashboard/SendFieldRepNetworkAlert";
 
 const MessageInbox = () => {
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const { conversations, loading, sendMessage, markConversationAsRead } = useDirectMessages();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sending, setSending] = useState(false);
+  const [showNetworkAlert, setShowNetworkAlert] = useState(false);
 
   const filteredConversations = conversations.filter(conv =>
     conv.other_user_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -87,6 +91,19 @@ const MessageInbox = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      {/* Alert Vendors Button for Field Reps */}
+      {profile?.role === 'field_rep' && (
+        <div className="mb-6">
+          <Button 
+            onClick={() => setShowNetworkAlert(true)}
+            className="flex items-center gap-2"
+          >
+            <Bell className="h-4 w-4" />
+            Alert Vendors
+          </Button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Conversations List */}
         <div className="lg:col-span-1">
@@ -253,6 +270,13 @@ const MessageInbox = () => {
           </Card>
         </div>
       </div>
+
+      {/* Network Alert Modal */}
+      <SendFieldRepNetworkAlert 
+        open={showNetworkAlert}
+        onOpenChange={setShowNetworkAlert}
+        networkSize={0}
+      />
     </div>
   );
 };
