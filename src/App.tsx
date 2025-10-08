@@ -38,6 +38,7 @@ import ContactPage from "./pages/ContactPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import EmailVerifyHandler from "./pages/EmailVerifyHandler";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import BetaRegister from "./pages/BetaRegister";
 import BetaNDA from "./pages/BetaNDA";
 import Prelaunch from "./pages/Prelaunch";
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/auth/verify" element={<EmailVerifyHandler />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/vendor/public/:id" element={<VendorPublicProfile />} />
