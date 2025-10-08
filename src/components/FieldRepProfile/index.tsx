@@ -24,7 +24,6 @@ import { PlatformsUsed } from "./PlatformsUsed";
 import { InspectionTypes } from "./InspectionTypes";
 import { ProfessionalBio } from "./ProfessionalBio";
 import { HudKeys } from "./HudKeys";
-import { BetaTesting } from "./BetaTesting";
 import { AspenGroveVerification } from "./AspenGroveVerification";
 
 const FieldRepProfile = () => {
@@ -359,7 +358,6 @@ const FieldRepProfile = () => {
                   <AspenGroveVerification form={form} />
                   <BackgroundCheck form={form} />
                   <HudKeys form={form} />
-                  <BetaTesting form={form} />
                   
                   <div className="pt-4">
                     <Button 
