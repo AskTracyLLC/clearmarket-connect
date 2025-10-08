@@ -31,17 +31,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Post-auth redirect logic (deferred to avoid deadlocks)
     const handlePostAuthRedirect = async (eventType: string | null, currentSession: Session | null) => {
+      const pathname = window.location.pathname;
+      
+      // CRITICAL: Never redirect from reset-password page - it must be completely isolated
+      if (pathname === '/reset-password') {
+        return;
+      }
+      
       if (!currentSession?.user) return;
       const user = currentSession.user;
       const isVerified = !!user.email_confirmed_at;
-      const pathname = window.location.pathname;
-      const url = window.location;
-      const isRecoveryFlow = url.hash.includes('type=recovery') || url.search.includes('type=recovery');
-
-      // Do not redirect during password recovery or on reset-password page
-      if (eventType === 'PASSWORD_RECOVERY' || pathname === '/reset-password' || isRecoveryFlow) {
-        return;
-      }
 
       // If user is on any /auth page, force redirect based on verification state
       if (pathname.startsWith('/auth')) {
