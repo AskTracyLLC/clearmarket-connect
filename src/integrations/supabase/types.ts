@@ -1488,6 +1488,8 @@ export type Database = {
           city: string | null
           created_at: string
           first_name: string | null
+          has_aspen_grove: boolean | null
+          has_hud_keys: boolean | null
           hud_keys: string[] | null
           id: string
           inspection_types: string[] | null
@@ -1512,6 +1514,8 @@ export type Database = {
           city?: string | null
           created_at?: string
           first_name?: string | null
+          has_aspen_grove?: boolean | null
+          has_hud_keys?: boolean | null
           hud_keys?: string[] | null
           id?: string
           inspection_types?: string[] | null
@@ -1536,6 +1540,8 @@ export type Database = {
           city?: string | null
           created_at?: string
           first_name?: string | null
+          has_aspen_grove?: boolean | null
+          has_hud_keys?: boolean | null
           hud_keys?: string[] | null
           id?: string
           inspection_types?: string[] | null
