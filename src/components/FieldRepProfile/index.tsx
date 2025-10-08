@@ -111,6 +111,29 @@ const FieldRepProfile = () => {
             if (typeof savedProfile.interested_in_beta === 'boolean') {
               form.setValue('interestedInBeta', savedProfile.interested_in_beta);
             }
+
+            // Check if Personal Info section is complete (all required fields filled)
+            const personalInfoComplete = Boolean(
+              savedProfile.first_name && 
+              savedProfile.last_name && 
+              savedProfile.city && 
+              savedProfile.state && 
+              savedProfile.zip_code && 
+              savedProfile.bio
+            );
+
+            // Check if any Verification fields are filled
+            const verificationComplete = Boolean(
+              savedProfile.aspen_grove_id || 
+              savedProfile.hud_keys?.length
+            );
+
+            // Update completion status based on saved data
+            setTabCompletionStatus(prev => ({
+              ...prev,
+              personalInfoComplete,
+              verificationComplete,
+            }));
           } else {
             // If no saved profile, try to load from NDA signature
             const { data: ndaData } = await supabase
@@ -135,7 +158,7 @@ const FieldRepProfile = () => {
     loadProfileData();
   }, [profile, user, form, fetchProfile]);
 
-  // Load existing coverage areas on component mount
+  // Load existing coverage areas on component mount and check completion status
   useEffect(() => {
     const loadCoverageAreas = async () => {
       if (!user?.id) return;
@@ -143,6 +166,19 @@ const FieldRepProfile = () => {
       try {
         const areas = await fetchCoverageAreas();
         setCoverageAreas(areas);
+
+        // Check if Coverage Setup section is complete after loading coverage areas
+        const savedProfile = await fetchProfile();
+        const coverageSetupComplete = Boolean(
+          areas.length > 0 &&
+          savedProfile?.platforms?.length &&
+          savedProfile?.inspection_types?.length
+        );
+
+        setTabCompletionStatus(prev => ({
+          ...prev,
+          coverageSetupComplete,
+        }));
       } catch (error) {
         console.error('Failed to load coverage areas:', error);
       }
