@@ -9,6 +9,7 @@ interface HudKeysProps {
 }
 
 const hudKeyOptions = [
+  "None",
   "35241",
   "35453", 
   "44535",
@@ -52,11 +53,17 @@ export const HudKeys = ({ form }: HudKeysProps) => {
                           <Checkbox
                             checked={field.value?.includes(key)}
                             onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...(field.value || []), key])
-                                : field.onChange(
-                                    field.value?.filter((value) => value !== key)
-                                  );
+                              if (key === "None") {
+                                // If None is checked, clear all other selections
+                                return checked ? field.onChange(["None"]) : field.onChange([]);
+                              } else {
+                                // If any other key is checked, remove None
+                                const currentValues = field.value || [];
+                                const withoutNone = currentValues.filter(v => v !== "None");
+                                return checked
+                                  ? field.onChange([...withoutNone, key])
+                                  : field.onChange(withoutNone.filter((value) => value !== key));
+                              }
                             }}
                           />
                         </FormControl>
