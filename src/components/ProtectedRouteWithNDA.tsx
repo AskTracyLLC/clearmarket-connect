@@ -86,8 +86,8 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
       return <Navigate to="/beta-nda" state={{ from: location.pathname }} replace />;
     }
     
-    // If NDA signed but profile incomplete, redirect to profile page (but not if already there)
-    if (userNdaSigned && (profile.profile_complete === null || profile.profile_complete < 100)) {
+    // If NDA signed but profile incomplete (less than 80%), redirect to profile page (but not if already there)
+    if (userNdaSigned && (profile.profile_complete === null || profile.profile_complete < 80)) {
       // Only redirect if not already on the profile page (prevent redirect loop)
       if (location.pathname !== '/fieldrep/profile') {
         console.log('❌ Field Rep profile incomplete, redirecting to profile page. Completion:', profile.profile_complete);
@@ -98,7 +98,7 @@ const ProtectedRouteWithNDA: React.FC<ProtectedRouteWithNDAProps> = ({ children 
       return <>{children}</>;
     }
     
-    console.log('✅ Field Rep NDA signed and profile complete, allowing access');
+    console.log('✅ Field Rep NDA signed and profile sufficiently complete, allowing access');
     return <>{children}</>;
   }
 
