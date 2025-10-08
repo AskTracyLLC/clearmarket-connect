@@ -136,6 +136,9 @@ const FieldRepProfile = () => {
       'firstName','lastName','email','city','state','zipCode','bio'
     ];
 
+    // Ensure phone is not considered required
+    form.clearErrors('phone');
+
     const isValid = await form.trigger(requiredFields as any, { shouldFocus: true });
 
     if (!isValid) {
