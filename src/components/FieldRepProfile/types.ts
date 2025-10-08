@@ -11,15 +11,17 @@ export const fieldRepSchema = z.object({
   city: z.string().min(2, "City must be at least 2 characters"),
   state: z.string().min(2, "Please select a state"),
   zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, "Please enter a valid ZIP code"),
+  hasAspenGrove: z.boolean().default(false),
   aspenGroveId: z.string().optional(),
   aspenGroveExpiration: z.date().optional(),
   aspenGroveImage: z.string().optional(), // URL to uploaded image
+  hasHudKeys: z.boolean().default(false),
+  hudKeys: z.array(z.string()).optional(),
+  otherHudKey: z.string().optional(),
   platforms: z.array(z.string()),
   otherPlatform: z.string().optional(),
   inspectionTypes: z.array(z.string()),
   bio: z.string().min(50, "Bio must be at least 50 characters"),
-  hudKeys: z.array(z.string()).optional(),
-  otherHudKey: z.string().optional(),
   interestedInBeta: z.boolean().default(false),
 });
 
@@ -51,12 +53,14 @@ export interface FieldRepProfile {
   state?: string;
   zip_code?: string;
   bio?: string;
+  hasAspenGrove?: boolean;
   aspen_grove_id?: string;
   aspen_grove_expiration?: Date;
   aspen_grove_image?: string;
   platforms?: string[];
   other_platform?: string;
   inspection_types?: string[];
+  hasHudKeys?: boolean;
   hud_keys?: string[];
   other_hud_key?: string;
   interested_in_beta?: boolean;

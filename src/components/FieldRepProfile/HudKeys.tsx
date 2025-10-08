@@ -20,16 +20,64 @@ const hudKeyOptions = [
 ];
 
 export const HudKeys = ({ form }: HudKeysProps) => {
+  const hasHudKeys = form.watch("hasHudKeys");
   const watchedHudKeys = form.watch("hudKeys") || [];
+
+  const handleHasHudKeysChange = (checked: boolean) => {
+    form.setValue('hasHudKeys', checked);
+    if (!checked) {
+      // Clear all HUD key fields when "No" is selected
+      form.setValue('hudKeys', []);
+      form.setValue('otherHudKey', '');
+    }
+  };
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-medium text-foreground">HUD Keys (Optional)</h3>
+        <h3 className="text-lg font-medium text-foreground">HUD Keys</h3>
         <p className="text-sm text-muted-foreground">
-          Do you have HUD keys? Select the ones you own. Vendors may reference specific HUD keys when looking for coverage.
+          Vendors may reference specific HUD keys when looking for coverage.
         </p>
       </div>
+
+      {/* Yes/No Question */}
+      <FormField
+        control={form.control}
+        name="hasHudKeys"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormLabel className="text-base">Do you have HUD Keys?</FormLabel>
+            <FormControl>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={field.value === true}
+                    onChange={() => handleHasHudKeysChange(true)}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm">Yes</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={field.value === false}
+                    onChange={() => handleHasHudKeysChange(false)}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm">No</span>
+                </label>
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Only show HUD key selection if user has them */}
+      {hasHudKeys && (
+        <>
 
       <FormField
         control={form.control}
@@ -100,6 +148,8 @@ export const HudKeys = ({ form }: HudKeysProps) => {
           </FormItem>
         )}
       />
+      </>
+      )}
     </div>
   );
 };

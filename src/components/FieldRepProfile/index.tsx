@@ -103,12 +103,14 @@ const FieldRepProfile = () => {
             if (savedProfile.state) form.setValue('state', savedProfile.state);
             if (savedProfile.zip_code) form.setValue('zipCode', savedProfile.zip_code);
             if (savedProfile.bio) form.setValue('bio', savedProfile.bio);
+            if (typeof savedProfile.hasAspenGrove === 'boolean') form.setValue('hasAspenGrove', savedProfile.hasAspenGrove);
             if (savedProfile.aspen_grove_id) form.setValue('aspenGroveId', savedProfile.aspen_grove_id);
             if (savedProfile.aspen_grove_expiration) form.setValue('aspenGroveExpiration', savedProfile.aspen_grove_expiration);
             if (savedProfile.aspen_grove_image) form.setValue('aspenGroveImage', savedProfile.aspen_grove_image);
             if (savedProfile.platforms) form.setValue('platforms', savedProfile.platforms);
             if (savedProfile.other_platform) form.setValue('otherPlatform', savedProfile.other_platform);
             if (savedProfile.inspection_types) form.setValue('inspectionTypes', savedProfile.inspection_types);
+            if (typeof savedProfile.hasHudKeys === 'boolean') form.setValue('hasHudKeys', savedProfile.hasHudKeys);
             if (savedProfile.hud_keys) form.setValue('hudKeys', savedProfile.hud_keys);
             if (savedProfile.other_hud_key) form.setValue('otherHudKey', savedProfile.other_hud_key);
             if (typeof savedProfile.interested_in_beta === 'boolean') {
@@ -129,8 +131,10 @@ const FieldRepProfile = () => {
             );
 
             const verificationComplete = Boolean(
-              savedProfile.aspen_grove_id || 
-              savedProfile.hud_keys?.length
+              // AspenGrove is complete if: answered "no" OR (answered "yes" AND has ID)
+              (savedProfile.hasAspenGrove === false || (savedProfile.hasAspenGrove === true && savedProfile.aspen_grove_id)) ||
+              // HUD Keys is complete if: answered "no" OR (answered "yes" AND has keys)
+              (savedProfile.hasHudKeys === false || (savedProfile.hasHudKeys === true && savedProfile.hud_keys?.length))
             );
 
             const coverageSetupComplete = Boolean(
@@ -234,13 +238,15 @@ const FieldRepProfile = () => {
   };
 
   const saveVerification = async () => {
-    // Verification fields are optional - just save whatever user has filled out
+    // Verification fields - save whatever user has filled out including yes/no answers
     try {
       const values = form.getValues();
       await saveProfile({
+        hasAspenGrove: values.hasAspenGrove,
         aspen_grove_id: values.aspenGroveId,
         aspen_grove_expiration: values.aspenGroveExpiration,
         aspen_grove_image: values.aspenGroveImage,
+        hasHudKeys: values.hasHudKeys,
         hud_keys: values.hudKeys,
         other_hud_key: values.otherHudKey,
         interested_in_beta: values.interestedInBeta

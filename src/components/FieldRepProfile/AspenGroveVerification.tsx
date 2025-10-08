@@ -21,13 +21,14 @@ interface AspenGroveVerificationProps {
 export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [hasNone, setHasNone] = useState(false);
   const { toast } = useToast();
+  
+  const hasAspenGrove = form.watch('hasAspenGrove');
 
-  const handleNoneToggle = (checked: boolean) => {
-    setHasNone(checked);
-    if (checked) {
-      // Clear all AspenGrove fields when "None" is selected
+  const handleHasAspenGroveChange = (checked: boolean) => {
+    form.setValue('hasAspenGrove', checked);
+    if (!checked) {
+      // Clear all AspenGrove fields when "No" is selected
       form.setValue('aspenGroveId', '');
       form.setValue('aspenGroveExpiration', undefined);
       form.setValue('aspenGroveImage', '');
@@ -121,21 +122,45 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
           <h3 className="text-lg font-semibold">AspenGrove Verification</h3>
           <div className="text-xs bg-muted px-2 py-1 rounded">Unlocks More Work (if available)</div>
         </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="aspengrove-none"
-            checked={hasNone}
-            onChange={(e) => handleNoneToggle(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300"
-          />
-          <label htmlFor="aspengrove-none" className="text-sm">
-            None
-          </label>
-        </div>
       </div>
+
+      {/* Yes/No Question */}
+      <FormField
+        control={form.control}
+        name="hasAspenGrove"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormLabel className="text-base">Do you have an AspenGrove ID?</FormLabel>
+            <FormControl>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={field.value === true}
+                    onChange={() => handleHasAspenGroveChange(true)}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm">Yes</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={field.value === false}
+                    onChange={() => handleHasAspenGroveChange(false)}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm">No</span>
+                </label>
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Only show details if user has AspenGrove */}
+      {hasAspenGrove && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* AspenGrove ID */}
         <FormField
           control={form.control}
@@ -144,7 +169,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
             <FormItem>
               <FormLabel>AspenGrove ID</FormLabel>
               <FormControl>
-                <Input placeholder="AG123456" {...field} disabled={hasNone} />
+                <Input placeholder="AG123456" {...field} disabled={!hasAspenGrove} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -163,7 +188,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
                   <FormControl>
                     <Button
                       variant="outline"
-                      disabled={hasNone}
+                      disabled={!hasAspenGrove}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
                         !field.value && "text-muted-foreground"
@@ -210,7 +235,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
                         onChange={handleImageUpload}
                         className="hidden"
                         id="aspengrove-upload"
-                        disabled={uploading || hasNone}
+                        disabled={uploading || !hasAspenGrove}
                       />
                       <label 
                         htmlFor="aspengrove-upload" 
@@ -261,6 +286,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
           )}
         />
       </div>
+      )}
     </div>
   );
 };
