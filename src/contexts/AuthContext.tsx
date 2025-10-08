@@ -89,10 +89,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If not verified and not already on verification page, redirect
       if (!isVerified && !pathname.includes('verify-email')) {
         window.location.href = '/verify-email';
-      } else if (isVerified && !pathname.includes('nda')) {
-        // Only redirect to NDA if verified and not already on NDA page
-        window.location.href = '/nda';
       }
+      // Don't force verified users to /nda - let protected routes handle their own NDA checks
     };
 
     // Set up auth state listener FIRST
