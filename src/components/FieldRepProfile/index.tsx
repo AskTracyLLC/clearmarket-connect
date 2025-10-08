@@ -12,8 +12,6 @@ import { useCoverageAreas } from "@/hooks/useCoverageAreas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileProgress, getFieldRepProfileSteps } from "@/components/ui/progress-indicator";
-import BoostEligibilityBadge from "@/components/BoostEligibilityBadge";
-import CreditExplainerModal from "@/components/CreditExplainerModal";
 import { fieldRepSchema, type FieldRepFormData, type CoverageArea } from "./types";
 import { PersonalInfo } from "./PersonalInfo";
 import { LocationInfo } from "./LocationInfo";
@@ -32,22 +30,13 @@ const FieldRepProfile = () => {
   const { saveProfile, fetchProfile, loading: profileLoading } = useFieldRepProfile();
   const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
-  const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   
   const [tabCompletionStatus, setTabCompletionStatus] = useState({
     personalInfoComplete: false,
     verificationComplete: false,
-    coverageSetupComplete: false,
-    creditsReviewed: false
+    coverageSetupComplete: false
   });
   const [activeTab, setActiveTab] = useState('personal');
-  
-  // Mock data for demonstration - in real app this would come from database
-  const mockUserData = {
-    trustScore: 85,
-    communityScore: 60,
-    creditBalance: 12
-  };
 
   const form = useForm<FieldRepFormData>({
     resolver: zodResolver(fieldRepSchema),
@@ -147,8 +136,7 @@ const FieldRepProfile = () => {
             setTabCompletionStatus({
               personalInfoComplete,
               verificationComplete,
-              coverageSetupComplete,
-              creditsReviewed: false // This gets set when user views the credits tab
+              coverageSetupComplete
             });
           } else {
             // If no saved profile, try to load from NDA signature
@@ -223,8 +211,6 @@ const FieldRepProfile = () => {
         setActiveTab('verification');
       } else if (!tabCompletionStatus.coverageSetupComplete) {
         setActiveTab('coverage');
-      } else if (!tabCompletionStatus.creditsReviewed) {
-        setActiveTab('credits');
       }
     } catch (error: any) {
       console.error('Save personal info error:', error);
@@ -261,8 +247,6 @@ const FieldRepProfile = () => {
       // Move to next incomplete tab
       if (!tabCompletionStatus.coverageSetupComplete) {
         setActiveTab('coverage');
-      } else if (!tabCompletionStatus.creditsReviewed) {
-        setActiveTab('credits');
       }
     } catch (error: any) {
       console.error('Save verification error:', error);
@@ -312,11 +296,6 @@ const FieldRepProfile = () => {
         title: "Coverage Setup Saved",
         description: "Your coverage setup and pricing have been saved successfully!",
       });
-      
-      // Move to next incomplete tab
-      if (!tabCompletionStatus.creditsReviewed) {
-        setActiveTab('credits');
-      }
     } catch (error: any) {
       console.error('Save coverage setup error:', error);
       const msg = typeof error?.message === 'string' ? error.message : 'Failed to save coverage setup. Please try again.';
@@ -378,11 +357,10 @@ const FieldRepProfile = () => {
           <Form {...form}>
             <div className="space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="personal">Personal Info</TabsTrigger>
                   <TabsTrigger value="verification">Verification</TabsTrigger>
                   <TabsTrigger value="coverage">Coverage Setup</TabsTrigger>
-                  <TabsTrigger value="credits">Credits</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="personal" className="space-y-6 mt-6">
@@ -443,76 +421,11 @@ const FieldRepProfile = () => {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="credits" className="space-y-6 mt-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>
-                          Credit Balance: {mockUserData.creditBalance}
-                        </CardTitle>
-                        <CardDescription>
-                          Use credits to unlock vendor contact information and boost your profile visibility
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-3">
-                          <h4 className="font-semibold text-sm">How to Earn Credits:</h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span>Mark posts as "Helpful"</span>
-                              <span className="text-primary">+1 credit/day</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Receive "Helpful" votes</span>
-                              <span className="text-primary">+1 credit each</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Leave vendor reviews</span>
-                              <span className="text-primary">+1 credit each</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Complete profile (100%)</span>
-                              <span className="text-primary">+5 credits</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Monthly active participation</span>
-                              <span className="text-primary">+5 credits</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-3 pt-4 border-t">
-                          <h4 className="font-semibold text-sm">Credit Usage:</h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span>Unlock contact details</span>
-                              <span className="text-destructive">-2 credits</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Boost profile visibility</span>
-                              <span className="text-destructive">-5 credits</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <BoostEligibilityBadge 
-                      trustScore={mockUserData.trustScore}
-                      profileComplete={85} 
-                    />
-                  </div>
-                </TabsContent>
               </Tabs>
             </div>
           </Form>
         </CardContent>
       </Card>
-      
-      <CreditExplainerModal 
-        open={creditExplainerOpen} 
-        onOpenChange={setCreditExplainerOpen} 
-      />
     </div>
   );
 };

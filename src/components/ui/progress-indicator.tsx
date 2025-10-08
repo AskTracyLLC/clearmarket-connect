@@ -125,11 +125,6 @@ export const getFieldRepProfileSteps = (mockProfile?: any): ProfileStep[] => [
     required: true
   },
   {
-    id: "credits-reviewed",
-    label: "Credit Details Reviewed",
-    completed: mockProfile?.creditsReviewed || false
-  },
-  {
     id: "community",
     label: "Interacted on Community Board",
     completed: false
