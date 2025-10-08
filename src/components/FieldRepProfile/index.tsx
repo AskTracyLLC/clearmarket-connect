@@ -131,51 +131,50 @@ const FieldRepProfile = () => {
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
-    // Don't require displayUsername since it's auto-populated and disabled
-    const personalFields = ['firstName', 'lastName', 'phone', 'email', 'city', 'state', 'zipCode', 'bio'];
-    const values = form.getValues();
-    
-    console.log('Form values:', values); // Debug log
-    
-    const missingFields = personalFields.filter(field => {
-      const value = values[field as keyof FieldRepFormData];
-      const isEmpty = !value || value.toString().trim() === '';
-      if (isEmpty) {
-        console.log(`Missing field: ${field}`); // Debug which field is missing
-      }
-      return isEmpty;
-    });
-    
-    if (missingFields.length === 0) {
-      try {
-        await saveProfile({
-          first_name: values.firstName,
-          last_name: values.lastName,
-          phone: values.phone,
-          city: values.city,
-          state: values.state,
-          zip_code: values.zipCode,
-          bio: values.bio,
-          interested_in_beta: values.interestedInBeta
-        });
-        
-        setTabCompletionStatus(prev => ({ ...prev, personalInfoComplete: true }));
-        toast({
-          title: "Personal Info Saved",
-          description: "Your personal information has been saved successfully!",
-        });
-      } catch (error) {
-        toast({
-          title: "Save Failed",
-          description: "Failed to save personal information. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } else {
+    // Validate only the fields we require for this section
+    const requiredFields: (keyof FieldRepFormData)[] = [
+      'firstName','lastName','phone','email','city','state','zipCode','bio'
+    ];
+
+    const isValid = await form.trigger(requiredFields as any, { shouldFocus: true });
+
+    if (!isValid) {
+      // Collect friendly list of invalid fields
+      const errors = form.formState.errors;
+      const invalid = requiredFields.filter((f) => !!(errors as any)[f]);
       toast({
-        title: "Incomplete Information",
-        description: `Please fill out the following required fields: ${missingFields.join(', ')}`,
-        variant: "destructive",
+        title: 'Incomplete Information',
+        description: `Please review: ${invalid.join(', ')}`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const values = form.getValues();
+      await saveProfile({
+        first_name: values.firstName,
+        last_name: values.lastName,
+        phone: values.phone,
+        city: values.city,
+        state: values.state,
+        zip_code: values.zipCode,
+        bio: values.bio,
+        interested_in_beta: values.interestedInBeta,
+      });
+
+      setTabCompletionStatus((prev) => ({ ...prev, personalInfoComplete: true }));
+      toast({
+        title: 'Personal Info Saved',
+        description: 'Your personal information has been saved successfully!',
+      });
+    } catch (error: any) {
+      console.error('Save personal info error:', error);
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save personal information. Please try again.';
+      toast({
+        title: 'Save Failed',
+        description: msg,
+        variant: 'destructive',
       });
     }
   };
