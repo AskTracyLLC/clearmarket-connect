@@ -119,7 +119,7 @@ export const AspenGroveVerification = ({ form }: AspenGroveVerificationProps) =>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">AspenGrove Verification</h3>
-          <div className="text-xs bg-muted px-2 py-1 rounded">Optional - Unlocks More Work (if available)</div>
+          <div className="text-xs bg-muted px-2 py-1 rounded">Unlocks More Work (if available)</div>
         </div>
         <div className="flex items-center gap-2">
           <input
