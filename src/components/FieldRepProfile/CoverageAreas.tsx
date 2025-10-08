@@ -214,7 +214,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
               Loading states...
             </div>
           ) : states.length > 0 ? (
-            <Select key="coverage-state-select" onValueChange={handleStateChange}>
+            <Select value={selectedState?.code || ""} onValueChange={handleStateChange}>
               <SelectTrigger className="w-full md:w-64">
                 <SelectValue placeholder="Choose a state" />
               </SelectTrigger>
