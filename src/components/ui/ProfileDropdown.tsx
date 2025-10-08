@@ -18,6 +18,7 @@ interface ProfileDropdownProps {
   lastName?: string | null;
   companyLogo?: string | null;
   onSignOut: () => void;
+  anonymousUsername?: string | null;
 }
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
@@ -25,7 +26,8 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   firstName,
   lastName,
   companyLogo,
-  onSignOut
+  onSignOut,
+  anonymousUsername
 }) => {
   const getProfilePath = () => {
     if (!profile) return "/vendor/profile";
@@ -47,7 +49,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       <DropdownMenuTrigger asChild>
         <button className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full">
           <UserAvatar
-            displayName={profile?.display_name}
+            displayName={anonymousUsername || profile?.anonymous_username}
             firstName={firstName}
             lastName={lastName}
             role={profile?.role}

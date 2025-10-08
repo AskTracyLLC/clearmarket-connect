@@ -200,6 +200,7 @@ const Header = () => {
                     profile={profile}
                     firstName={firstName}
                     lastName={lastName}
+                    anonymousUsername={profile?.anonymous_username}
                     onSignOut={handleSignOut}
                   />
                 </div>
@@ -227,16 +228,16 @@ const Header = () => {
                           <AvatarFallback className="bg-primary text-primary-foreground">
                             {firstName && lastName 
                               ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-                              : profile?.display_name?.[0] || profile?.anonymous_username?.[0] || 'U'
+                              : profile?.anonymous_username?.[0] || 'U'
                             }
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium text-sm">
-                            {profile?.display_name || profile?.anonymous_username || 'User'}
+                            {profile?.anonymous_username || 'User'}
                           </div>
                           <div className="text-xs text-muted-foreground capitalize">
-                            {profile?.role || 'field_rep'}
+                            {profile?.role?.replace('_', ' ') || 'field rep'}
                           </div>
                         </div>
                       </div>
