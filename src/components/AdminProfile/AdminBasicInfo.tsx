@@ -18,7 +18,6 @@ interface AdminBasicInfoProps {
 export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [bio, setBio] = useState('System Administrator with full platform access and oversight responsibilities.');
 
   const handleSave = () => {
@@ -31,7 +30,6 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
   };
 
   const handleCancel = () => {
-    setDisplayName(profile?.display_name || '');
     setBio('System Administrator with full platform access and oversight responsibilities.');
     setIsEditing(false);
   };
@@ -68,17 +66,9 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="display-name">Display Name</Label>
-                {isEditing ? (
-                  <Input
-                    id="display-name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Enter display name"
-                  />
-                ) : (
-                  <p className="text-sm mt-1 p-2 bg-muted rounded">{displayName || 'Not set'}</p>
-                )}
+                <Label>Display Name / Username</Label>
+                <p className="text-sm mt-1 p-2 bg-muted rounded">{profile?.anonymous_username || 'Not set'}</p>
+                <p className="text-xs text-muted-foreground mt-1">Display name always matches your anonymous username</p>
               </div>
 
               <div>

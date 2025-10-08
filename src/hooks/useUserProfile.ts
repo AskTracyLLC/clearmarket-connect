@@ -42,21 +42,28 @@ export const useUserProfile = () => {
     try {
       // SECURITY: Remove role from updates to prevent privilege escalation
       // Only admins can change roles via admin_update_user_role() function
-      const { role, ...safeUpdates } = updates;
+      const { role, display_name, ...safeUpdates } = updates;
       
-      if (Object.keys(safeUpdates).length === 0) {
+      // IMPORTANT: display_name should always match anonymous_username
+      // If anonymous_username is being updated, sync display_name to match
+      const finalUpdates: any = { ...safeUpdates };
+      if (finalUpdates.anonymous_username) {
+        finalUpdates.display_name = finalUpdates.anonymous_username;
+      }
+      
+      if (Object.keys(finalUpdates).length === 0) {
         console.warn('No valid fields to update');
         return false;
       }
       
       const { error } = await supabase
         .from('users')
-        .update(safeUpdates)
+        .update(finalUpdates)
         .eq('id', user.id);
 
       if (error) throw error;
       
-      setProfile(prev => prev ? { ...prev, ...safeUpdates } : null);
+      setProfile(prev => prev ? { ...prev, ...finalUpdates } : null);
       return true;
     } catch (error) {
       console.error('Error updating profile:', error);
