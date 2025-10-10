@@ -6,7 +6,7 @@ export type SignupType = "prelaunch" | "field-rep-direct" | "vendor-direct" | "b
 
 export interface JoinResult {
   anonymous_username: string;
-  user_type: "field_rep" | "vendor";
+  user_type: "field-rep" | "vendor";
   email: string;
   temp_password?: string;
   token?: string;
@@ -15,7 +15,7 @@ export interface JoinResult {
 
 export interface PrelaunchData {
   email: string;
-  userType: "field_rep" | "vendor";
+  userType: "field-rep" | "vendor";
   name?: string;
   state?: string;
   experience?: string;
@@ -40,10 +40,10 @@ export const useJoinSubmission = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [generatedUsername, setGeneratedUsername] = useState<string>("");
-  const [userType, setUserType] = useState<"field_rep" | "vendor">("field_rep");
+  const [userType, setUserType] = useState<"field-rep" | "vendor">("field-rep");
 
   const sendAsyncEmail = async (payload: {
-    signupType: "field_rep" | "vendor";
+    signupType: "field-rep" | "vendor";
     email: string;
     anonymous_username: string;
     registration_link?: string;
@@ -88,7 +88,7 @@ export const useJoinSubmission = () => {
     if (error) throw error as Error;
 
     const anon = data?.anonymous_username || "User#0";
-    const utype = (data?.user_type as "field_rep" | "vendor") || formData.userType;
+    const utype = (data?.user_type as "field-rep" | "vendor") || formData.userType;
 
     return {
       anonymous_username: anon,
@@ -102,7 +102,7 @@ export const useJoinSubmission = () => {
     // Fallback to prelaunch table to keep types consistent
     return submitPrelaunchSignup({
       ...formData,
-      userType: "field_rep",
+      userType: "field-rep",
     });
   };
 

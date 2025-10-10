@@ -20,7 +20,7 @@ import { useJoinSubmission } from "@/hooks/useJoinSubmission";
 import UniversalSuccessModal from "@/components/UniversalSuccessModal";
 interface FormState {
   email: string;
-  userType: 'field_rep' | 'vendor' | '';
+  userType: 'field-rep' | 'vendor' | '';
   experienceLevel: string;
   primaryState: string;
   workType: string[];
@@ -167,7 +167,7 @@ const Prelaunch = () => {
       const result = await handleJoinClick(
         {
           email: formState.email,
-          userType: formState.userType as 'field_rep' | 'vendor',
+          userType: formState.userType as 'field-rep' | 'vendor',
           state: formState.primaryState,
           experience: formState.experienceLevel,
           workTypes: formState.workType.map((work) =>
@@ -281,9 +281,9 @@ const Prelaunch = () => {
                   <div className="grid md:grid-cols-2 gap-4">
                     <Button 
                       type="button" 
-                      variant={formState.userType === 'field_rep' ? 'default' : 'outline'} 
+                      variant={formState.userType === 'field-rep' ? 'default' : 'outline'} 
                       className="p-6 h-auto flex-col space-y-2" 
-                      onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'field_rep' })}
+                      onClick={() => dispatch({ type: 'SET_FIELD', field: 'userType', value: 'field-rep' })}
                     >
                       <UserCheck className="h-6 w-6" />
                       <div>
