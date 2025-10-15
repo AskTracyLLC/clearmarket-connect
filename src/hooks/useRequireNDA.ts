@@ -61,19 +61,15 @@ export const useRequireNDA = () => {
 
   useEffect(() => {
     // Don't redirect if still loading or user is not authenticated
-    if (loading || !user || userNdaSigned === null) return;
-
-    console.log('🔍 useRequireNDA - Starting checks for user:', user.email, 'on path:', location.pathname, 'NDA signed:', userNdaSigned);
+    if (loading || !user) return;
 
     // Don't redirect if on a public route (check this FIRST before any other logic)
     if (PUBLIC_ROUTES.includes(location.pathname)) {
-      console.log('✅ On public route, no checks needed');
       return;
     }
 
     // Don't redirect if already on NDA page
     if (location.pathname === '/beta-nda' || location.pathname === '/nda') {
-      console.log('✅ Already on NDA page');
       return;
     }
 
@@ -84,34 +80,34 @@ export const useRequireNDA = () => {
           .rpc('is_admin_user', { user_id_param: user.id });
         
         if (isAdmin) {
-          console.log('✅ useRequireNDA: User is admin - bypassing all restrictions');
           return;
         }
 
-        // Check both hasSignedNDA (from nda_signatures table) AND userNdaSigned (from users table)
-        const ndaCompleted = hasSignedNDA && userNdaSigned;
+        // Primary check: use userNdaSigned from users table (most reliable)
+        // hasSignedNDA is secondary and may have timing issues
+        const ndaCompleted = userNdaSigned === true;
         
         // Only redirect if user is on a protected route AND hasn't completed NDA process
         if (!ndaCompleted && !PUBLIC_ROUTES.includes(location.pathname)) {
-          console.log('❌ User has not completed NDA process, redirecting to NDA page. hasSignedNDA:', hasSignedNDA, 'userNdaSigned:', userNdaSigned);
           navigate('/beta-nda', { 
             replace: true,
             state: { from: location.pathname } 
           });
-        } else {
-          console.log('✅ User has completed NDA process or on allowed route');
         }
       } catch (error) {
         console.error('Error in useRequireNDA:', error);
       }
     };
 
-    checkAdminStatus();
-  }, [user, hasSignedNDA, userNdaSigned, loading, location.pathname, navigate]);
+    // Only check if we have userNdaSigned status (not null)
+    if (userNdaSigned !== null) {
+      checkAdminStatus();
+    }
+  }, [user, userNdaSigned, loading, location.pathname, navigate]);
 
   return {
-    hasSignedNDA: hasSignedNDA && userNdaSigned, // Both must be true
-    loading: loading || (user && userNdaSigned === null), // Only loading if user exists but NDA status unknown
+    hasSignedNDA: userNdaSigned === true, // Use users table as source of truth
+    loading: loading || (user && userNdaSigned === null),
     isProtectedRoute: !PUBLIC_ROUTES.includes(location.pathname),
     userNdaSigned
   };
