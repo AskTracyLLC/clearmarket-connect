@@ -36,7 +36,7 @@ const SimpleCommunityFeed = ({
   const handleCreatePostSubmit = async (title: string, content: string) => {
     // Map UI views to valid database sections
     const sectionMap: Record<string, string> = {
-      'vendor': 'vendor-forum',
+      'vendor': 'vendor-bulletin',
       'field-rep': 'field-rep-forum', 
       'beta-testers': 'beta-testers',
       'all': 'field-rep-forum', // Default for "all" view
