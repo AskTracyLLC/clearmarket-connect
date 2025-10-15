@@ -26,15 +26,7 @@ const FieldRepProfilePage = () => {
     }
   };
 
-  useEffect(() => {
-    if (profile?.profile_complete && profile.profile_complete >= 100) {
-      toast({
-        title: "Profile complete",
-        description: "Redirecting to your dashboard...",
-      });
-      navigate('/fieldrep/dashboard', { replace: true });
-    }
-  }, [profile?.profile_complete, navigate, toast]);
+  // Removed auto-redirect to prevent interruption during save
 
   return (
     <div className="min-h-screen bg-background">

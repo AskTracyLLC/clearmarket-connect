@@ -30,6 +30,7 @@ const FieldRepProfile = () => {
   const { saveProfile, fetchProfile, loading: profileLoading } = useFieldRepProfile();
   const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   
   const [tabCompletionStatus, setTabCompletionStatus] = useState({
     personalInfoComplete: false,
@@ -165,6 +166,8 @@ const FieldRepProfile = () => {
 
   // Save handlers for each tab
   const savePersonalInfo = async () => {
+    if (isSaving) return;
+    
     // Validate only the fields we require for this section
     const requiredFields: (keyof FieldRepFormData)[] = [
       'firstName','lastName','email','city','state','zipCode','bio'
@@ -187,6 +190,7 @@ const FieldRepProfile = () => {
       return;
     }
 
+    setIsSaving(true);
     try {
       const values = form.getValues();
       await saveProfile({
@@ -214,17 +218,21 @@ const FieldRepProfile = () => {
       }
     } catch (error: any) {
       console.error('Save personal info error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save personal information. Please try again.';
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
       toast({
         title: 'Save Failed',
         description: msg,
         variant: 'destructive',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const saveVerification = async () => {
-    // Verification fields - save whatever user has filled out including yes/no answers
+    if (isSaving) return;
+    
+    setIsSaving(true);
     try {
       const values = form.getValues();
       await saveProfile({
@@ -250,16 +258,20 @@ const FieldRepProfile = () => {
       }
     } catch (error: any) {
       console.error('Save verification error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save verification information. Please try again.';
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
       toast({
         title: "Save Failed",
         description: msg,
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const saveCoverageSetup = async () => {
+    if (isSaving) return;
+    
     const values = form.getValues();
     const platforms = values.platforms || [];
     const inspectionTypes = values.inspectionTypes || [];
@@ -279,6 +291,7 @@ const FieldRepProfile = () => {
       return;
     }
     
+    setIsSaving(true);
     try {
       // Save both profile data and coverage areas
       await Promise.all([
@@ -298,12 +311,14 @@ const FieldRepProfile = () => {
       });
     } catch (error: any) {
       console.error('Save coverage setup error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save coverage setup. Please try again.';
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
       toast({
         title: "Save Failed",
         description: msg,
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -375,8 +390,9 @@ const FieldRepProfile = () => {
                       variant="hero" 
                       size="lg" 
                       className="w-full"
+                      disabled={isSaving}
                     >
-                      SAVE Personal Info
+                      {isSaving ? 'Saving...' : 'SAVE Personal Info'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -391,8 +407,9 @@ const FieldRepProfile = () => {
                       variant="hero" 
                       size="lg" 
                       className="w-full"
+                      disabled={isSaving}
                     >
-                      SAVE Verification
+                      {isSaving ? 'Saving...' : 'SAVE Verification'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -415,8 +432,9 @@ const FieldRepProfile = () => {
                       variant="hero" 
                       size="lg" 
                       className="w-full"
+                      disabled={isSaving}
                     >
-                      SAVE Coverage Setup
+                      {isSaving ? 'Saving...' : 'SAVE Coverage Setup'}
                     </Button>
                   </div>
                 </TabsContent>
