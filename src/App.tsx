@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ui/error-boundary";
@@ -56,7 +56,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <HashRouter>
+          <BrowserRouter>
             <LoadingBar />
             <ErrorBoundary>
               <Routes>
@@ -151,7 +151,7 @@ const App = () => (
             </ErrorBoundary>
             <BackToTop />
             <PWAInstallPrompt />
-          </HashRouter>
+          </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
