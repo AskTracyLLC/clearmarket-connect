@@ -228,24 +228,33 @@ export const useCommunityPosts = (section?: string) => {
         return;
       }
 
+      console.log('📝 Creating community post:', newPost);
+
+      const postData = {
+        title: newPost.title,
+        content: newPost.content,
+        post_type: newPost.type,
+        section: newPost.section,
+        user_id: user.id,
+        is_anonymous: newPost.isAnonymous,
+        system_tags: newPost.systemTags,
+        user_tags: newPost.userTags
+      };
+
+      console.log('📤 Inserting into community_posts:', postData);
+
       const { data, error } = await supabase
         .from('community_posts')
-        .insert({
-          title: newPost.title,
-          content: newPost.content,
-          post_type: newPost.type,
-          section: newPost.section,
-          user_id: user.id,
-          is_anonymous: newPost.isAnonymous,
-          system_tags: newPost.systemTags,
-          user_tags: newPost.userTags
-        })
+        .insert(postData)
         .select()
         .single();
 
       if (error) {
+        console.error('❌ Database error:', error);
         throw new Error(error.message);
       }
+
+      console.log('✅ Community post created successfully');
 
       toast({
         title: "Post created",
@@ -255,10 +264,21 @@ export const useCommunityPosts = (section?: string) => {
       // Refresh posts
       fetchPosts();
     } catch (err: any) {
-      console.error('Error creating post:', err);
+      console.error('❌ Error creating post:', err);
+      
+      // Provide specific error message based on error type
+      let errorMessage = "Failed to create post";
+      if (err.message?.includes('violates check constraint "check_section"')) {
+        errorMessage = "Invalid section. Please select: field-rep-forum, vendor-forum, or beta-testers";
+      } else if (err.message?.includes('permission denied')) {
+        errorMessage = "You don't have permission to post in this section";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create post",
+        description: errorMessage,
         variant: "destructive"
       });
     }

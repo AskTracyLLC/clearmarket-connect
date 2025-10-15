@@ -72,6 +72,8 @@ export const useFeedbackPosts = () => {
 
   const createPost = async (newPost: { title: string; description: string; category: string }, feedbackUser?: any) => {
     try {
+      console.log('📝 Creating feedback post:', newPost);
+      
       // Check if we have a feedback user (token-based auth) or regular auth user
       let author = 'Anonymous';
       let userId = null;
@@ -80,26 +82,37 @@ export const useFeedbackPosts = () => {
         // Use feedback user info
         author = feedbackUser.anonymousUsername || feedbackUser.email || 'Anonymous';
         userId = null; // For feedback posts, we don't need to link to auth.users
+        console.log('👤 Using feedback user:', { author, userId });
       } else {
         // Try regular Supabase auth as fallback
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           author = user.email || 'Anonymous';
           userId = user.id;
+          console.log('👤 Using authenticated user:', { author, userId });
         }
       }
 
+      const postData = {
+        title: newPost.title,
+        description: newPost.description,
+        category: newPost.category,
+        author: author,
+        user_id: userId
+      };
+
+      console.log('📤 Inserting into feedback_posts:', postData);
+
       const { error } = await supabase
         .from('feedback_posts')
-        .insert({
-          title: newPost.title,
-          description: newPost.description,
-          category: newPost.category,
-          author: author,
-          user_id: userId
-        });
+        .insert(postData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
+
+      console.log('✅ Feedback post created successfully');
 
       toast({
         title: "Feedback submitted!",
@@ -109,10 +122,21 @@ export const useFeedbackPosts = () => {
       await fetchPosts(); // Refresh the posts
       return true;
     } catch (error: any) {
-      console.error('Error submitting feedback:', error);
+      console.error('❌ Error submitting feedback:', error);
+      
+      // Provide specific error message based on error type
+      let errorMessage = "Failed to submit feedback. Please try again.";
+      if (error.message?.includes('violates check constraint')) {
+        errorMessage = "Invalid feedback category. Please select a valid option.";
+      } else if (error.message?.includes('permission denied')) {
+        errorMessage = "You don't have permission to submit feedback.";
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to submit feedback. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
       return false;
