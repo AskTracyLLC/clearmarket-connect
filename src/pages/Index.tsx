@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
@@ -73,12 +73,13 @@ const Index = () => {
           {/* CTA */}
           <div className="text-center mb-20">
             <p className="text-muted-foreground mb-4">Already have an account?</p>
-            <button 
-              onClick={() => navigate('/auth')}
-              className="text-primary hover:underline font-medium"
+            <Link 
+              to="/auth"
+              className="text-primary hover:underline font-medium inline-block"
+              onClick={() => console.log('➡️ Navigating to /auth from home CTA')}
             >
               Sign In
-            </button>
+            </Link>
           </div>
 
           {/* How ClearMarket Works Section */}
