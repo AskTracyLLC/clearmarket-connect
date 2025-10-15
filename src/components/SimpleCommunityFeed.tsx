@@ -34,11 +34,21 @@ const SimpleCommunityFeed = ({
   const { posts: betaTestersPost, loading: betaTestersLoading } = useCommunityPosts('beta-testers');
 
   const handleCreatePostSubmit = async (title: string, content: string) => {
-    const sectionMap = {
-      'vendor': 'vendor-bulletin',
+    // Map UI views to valid database sections
+    const sectionMap: Record<string, string> = {
+      'vendor': 'vendor-forum',
       'field-rep': 'field-rep-forum', 
-      'beta-testers': 'beta-testers'
+      'beta-testers': 'beta-testers',
+      'all': 'field-rep-forum', // Default for "all" view
+      'community': 'field-rep-forum', // Default for "community" view
+      'user': 'field-rep-forum', // Default for user posts
+      'saved': 'field-rep-forum' // Default for saved posts
     };
+    
+    // Get valid section - fallback chain ensures we always have a valid value
+    const validSection = sectionMap[primaryView] || sectionMap[section || ''] || 'field-rep-forum';
+    
+    console.log('📝 Creating post with section:', validSection, 'primaryView:', primaryView, 'section prop:', section);
     
     await handleCreatePost({
       type: 'question',
@@ -47,7 +57,7 @@ const SimpleCommunityFeed = ({
       isAnonymous: false,
       systemTags: [],
       userTags: [],
-      section: sectionMap[primaryView as keyof typeof sectionMap] || section || 'field-rep-forum'
+      section: validSection
     });
     setIsPostModalOpen(false);
   };
