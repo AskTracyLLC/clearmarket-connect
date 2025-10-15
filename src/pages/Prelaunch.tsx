@@ -1,4 +1,5 @@
 import { useState, useReducer, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -698,12 +699,12 @@ const Prelaunch = () => {
               The professional marketplace for field inspection services
             </p>
             <div className="mb-4">
-              <a 
-                href="/auth?bypass=beta" 
+              <Link 
+                to="/auth?bypass=beta" 
                 className="text-primary hover:text-primary/80 transition-colors font-medium underline"
               >
                 Beta User Sign In
-              </a>
+              </Link>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 ClearMarket. All rights reserved. | 
