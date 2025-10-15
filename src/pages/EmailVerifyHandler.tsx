@@ -1,55 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 /**
  * Email Verification Handler Page
  * 
- * This page handles email verification tokens from Supabase auth emails.
- * It processes the verification and redirects users to the appropriate page
- * based on their authentication status and NDA signing status.
+ * This page handles Supabase email verification by detecting when a session
+ * is established after the user clicks the verification link. It then redirects
+ * users to the appropriate page based on their role and NDA signing status.
  */
 const EmailVerifyHandler = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
-  const [message, setMessage] = useState('Verifying your email...');
+  const [message, setMessage] = useState('Finalizing verification...');
 
   useEffect(() => {
-    const handleEmailVerification = async () => {
-      const token = searchParams.get('token');
-      const type = searchParams.get('type');
+    let timeoutId: NodeJS.Timeout;
+    let isProcessed = false;
 
-      if (!token || type !== 'signup') {
-        setStatus('error');
-        setMessage('Invalid verification link.');
-        return;
-      }
+    const processVerification = async (user: any) => {
+      if (isProcessed) return;
+      isProcessed = true;
 
       try {
-        // The token verification is handled automatically by Supabase
-        // We just need to check the user's authentication status
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          setStatus('error');
-          setMessage('Verification failed. Please try signing up again.');
-          toast({
-            variant: "destructive",
-            title: "Verification failed",
-            description: "Please try signing up again.",
-          });
-          
-          setTimeout(() => {
-            navigate('/auth');
-          }, 3000);
-          return;
-        }
-
         // Check if user is verified
         if (!user.email_confirmed_at) {
           setStatus('error');
@@ -64,7 +42,6 @@ const EmailVerifyHandler = () => {
         const isAdmin = user.email === 'rehawby@gmail.com' || user.email === 'rewby1@gmail.com';
         
         if (isAdmin) {
-          // Admin users bypass NDA
           toast({
             title: "Welcome back, Admin!",
             description: "Redirecting to your dashboard.",
@@ -73,7 +50,7 @@ const EmailVerifyHandler = () => {
           return;
         }
 
-        // For regular users, check NDA status (both nda_signatures AND users.nda_signed)
+        // For regular users, check NDA status
         const [ndaSignatureResponse, userDataResponse] = await Promise.all([
           supabase
             .from('nda_signatures')
@@ -88,21 +65,11 @@ const EmailVerifyHandler = () => {
             .single()
         ]);
 
-        const { data: ndaSignature, error: ndaError } = ndaSignatureResponse;
-        const { data: userData, error: userDataError } = userDataResponse;
+        const { data: ndaSignature } = ndaSignatureResponse;
+        const { data: userData } = userDataResponse;
 
-        if (ndaError) {
-          console.error('Error checking NDA status:', ndaError);
-        }
-
-        if (userDataError) {
-          console.error('Error fetching user data:', userDataError);
-        }
-
-        // Check if NDA process is complete (both signature exists AND users.nda_signed is true)
         const ndaCompleted = ndaSignature && userData?.nda_signed;
 
-        // Redirect based on NDA completion status
         if (!ndaCompleted) {
           toast({
             title: "Welcome to ClearMarket!",
@@ -110,7 +77,6 @@ const EmailVerifyHandler = () => {
           });
           navigate('/beta-nda');
         } else {
-          // User has completed NDA, redirect to appropriate dashboard
           switch (userData?.role) {
             case 'field_rep':
               navigate('/fieldrep/dashboard');
@@ -130,7 +96,6 @@ const EmailVerifyHandler = () => {
             description: "Email verified successfully!",
           });
         }
-
       } catch (error) {
         console.error('Email verification error:', error);
         setStatus('error');
@@ -140,15 +105,36 @@ const EmailVerifyHandler = () => {
           title: "Verification error",
           description: "Please try again or contact support.",
         });
-        
-        setTimeout(() => {
-          navigate('/auth');
-        }, 3000);
       }
     };
 
-    handleEmailVerification();
-  }, [searchParams, navigate, toast]);
+    // Set up auth state listener to detect when session is established
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user && !isProcessed) {
+        processVerification(session.user);
+      }
+    });
+
+    // Also check for existing session immediately
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && !isProcessed) {
+        processVerification(session.user);
+      }
+    });
+
+    // Set a timeout to show error if verification doesn't complete
+    timeoutId = setTimeout(() => {
+      if (!isProcessed) {
+        setStatus('error');
+        setMessage('Verification is taking longer than expected.');
+      }
+    }, 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [navigate, toast]);
 
   const getIcon = () => {
     switch (status) {

@@ -118,7 +118,7 @@ const BetaRegister = () => {
         email: tokenData.email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/nda`
+          emailRedirectTo: `${window.location.origin}/auth/verify`
         }
       });
 
