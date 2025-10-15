@@ -13,6 +13,7 @@ import { MapPin, Calendar, Eye, Unlock, UserPlus, Gift, Star } from "lucide-reac
 import { mockCurrentVendor } from "@/data/mockVendorData";
 import { mockResults } from "@/data/mockData";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
 
 const getRepName = (initials: string) => {
   const nameMap: { [key: string]: string } = {
@@ -143,7 +144,7 @@ const VendorNetworkTab = () => {
                 Start building your network by searching for field reps and unlocking their contact information.
               </p>
               <Button variant="outline" asChild>
-                <a href="/vendor/search">Search for Reps</a>
+                <Link to="/vendor/search">Search for Reps</Link>
               </Button>
             </div>
           ) : (
