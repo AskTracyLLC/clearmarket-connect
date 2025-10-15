@@ -21,7 +21,7 @@ export const fieldRepSchema = z.object({
   platforms: z.array(z.string()),
   otherPlatform: z.string().optional(),
   inspectionTypes: z.array(z.string()),
-  bio: z.string().min(50, "Bio must be at least 50 characters"),
+  bio: z.string(),
   interestedInBeta: z.boolean().default(false),
 });
 

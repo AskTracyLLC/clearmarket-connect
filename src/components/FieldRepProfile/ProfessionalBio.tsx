@@ -24,7 +24,7 @@ export const ProfessionalBio = ({ form }: ProfessionalBioProps) => {
               />
             </FormControl>
             <FormDescription>
-              Minimum 50 characters required
+              Tell vendors about your experience and expertise
             </FormDescription>
             <FormMessage />
           </FormItem>

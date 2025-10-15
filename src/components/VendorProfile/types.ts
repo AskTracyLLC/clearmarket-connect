@@ -9,7 +9,7 @@ export const vendorFormSchema = z.object({
   workTypes: z.array(z.string()).min(1, "Please select at least one work type"),
   platforms: z.array(z.string()).min(1, "Please select at least one platform"),
   otherPlatform: z.string().optional(),
-  companyBio: z.string().min(50, "Company bio must be at least 50 characters"),
+  companyBio: z.string(),
   avgJobs: z.string().min(1, "Please select average jobs per month"),
   paymentTerms: z.string().min(1, "Please select payment terms"),
 });
