@@ -1,7 +1,10 @@
-import { Users, MapPin, MessageSquare, Star, CreditCard, Database, AlertTriangle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, MapPin, MessageSquare, Star, CreditCard, Database, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface StatsCardProps {
   title: string;
@@ -51,166 +54,131 @@ const StatsCard = ({ title, count, icon: Icon, description, actions, urgentCount
 );
 
 export const AdminStatsCards = () => {
-  // Mock data - replace with actual API calls
-  const stats = {
-    vendors: 156,
-    fieldReps: 243,
-    coverageRequests: 34,
-    communityPosts: 89,
-    flaggedPosts: 7,
-    pendingVendorReviews: 12,
-    pendingRepReviews: 8,
-    monthlyUnlocks: 45,
-    monthlyBoosts: 23,
-    totalRevenue: 2847,
-    totalZips: 41692,
-    ruralZips: 28456,
-    urbanZips: 13236,
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    vendors: 0,
+    fieldReps: 0,
+    coverageRequests: 0,
+    communityPosts: 0,
+    flaggedPosts: 0,
+    monthlyUnlocks: 0,
+    monthlyBoosts: 0,
+    totalRevenue: 0,
+    totalZips: 0,
+    ruralZips: 0,
+    urbanZips: 0,
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const [vendors, fieldReps, coverage, posts, flagged, zips, rural, urban, unlocks, credits] = await Promise.all([
+        supabase.from('user_profiles').select('*', { count: 'exact', head: true }).eq('user_type', 'vendor'),
+        supabase.from('user_profiles').select('*', { count: 'exact', head: true }).eq('user_type', 'field-rep'),
+        supabase.from('coverage_requests').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('community_posts').select('*', { count: 'exact', head: true }),
+        supabase.from('community_posts').select('*', { count: 'exact', head: true }).eq('flagged', true),
+        supabase.from('zip_county_classifications').select('*', { count: 'exact', head: true }),
+        supabase.from('zip_county_classifications').select('*', { count: 'exact', head: true }).eq('rural_urban', 'Rural'),
+        supabase.from('zip_county_classifications').select('*', { count: 'exact', head: true }).eq('rural_urban', 'Urban'),
+        supabase.from('contact_unlocks').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth.toISOString()),
+        supabase.from('credit_transactions').select('amount, transaction_type').gte('created_at', startOfMonth.toISOString()).in('transaction_type', ['unlock_contact', 'boost_profile'])
+      ]);
+
+      const totalRevenue = credits.data?.reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0) || 0;
+      const monthlyBoosts = credits.data?.filter(tx => tx.transaction_type === 'boost_profile').length || 0;
+
+      setStats({
+        vendors: vendors.count || 0,
+        fieldReps: fieldReps.count || 0,
+        coverageRequests: coverage.count || 0,
+        communityPosts: posts.count || 0,
+        flaggedPosts: flagged.count || 0,
+        monthlyUnlocks: unlocks.count || 0,
+        monthlyBoosts,
+        totalRevenue,
+        totalZips: zips.count || 0,
+        ruralZips: rural.count || 0,
+        urbanZips: urban.count || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      toast({
+        title: "Error loading stats",
+        description: "Failed to fetch admin statistics",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVendorDirectoryClick = () => {
-    console.log("Navigate to Vendor Directory");
-    // Add navigation logic here
-  };
-
-  const handleFieldRepDirectoryClick = () => {
-    console.log("Navigate to Field Rep Directory");
-    // Add navigation logic here
-  };
-
-  const handleCoverageRequestsClick = () => {
-    console.log("Navigate to Coverage Requests");
-    // Add navigation logic here
-  };
-
-  const handleFlaggedPostsClick = () => {
-    console.log("Navigate to Flagged Posts Review");
-    // Add navigation logic here
-  };
-
-  const handlePendingReviewsClick = () => {
-    console.log("Navigate to Review Queue");
-    // Add navigation logic here
-  };
-
-  const handleTransactionsClick = () => {
-    console.log("Navigate to Transaction Logs");
-    // Add navigation logic here
-  };
+  if (isLoading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="col-span-full">
+          <CardContent className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mr-3" />
+            <span className="text-muted-foreground">Loading admin statistics...</span>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {/* Total Vendors */}
       <StatsCard
         title="Total Vendors"
         count={stats.vendors}
         icon={Users}
         description="Active vendor accounts"
-        clickableNumber={true}
-        onClick={handleVendorDirectoryClick}
-        actions={
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Login as Vendor (Support)
-          </Button>
-        }
       />
 
-      {/* Total Field Reps */}
       <StatsCard
         title="Total Field Reps"
         count={stats.fieldReps}
         icon={Users}
         description="Active field rep accounts"
-        clickableNumber={true}
-        onClick={handleFieldRepDirectoryClick}
-        actions={
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Login as Field Rep (Support)
-          </Button>
-        }
       />
 
-      {/* Active Coverage Requests */}
       <StatsCard
         title="Coverage Requests"
         count={stats.coverageRequests}
         icon={MapPin}
         description="Open seeking coverage posts"
-        clickableNumber={true}
-        onClick={handleCoverageRequestsClick}
-        actions={
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Moderate Posts
-          </Button>
-        }
       />
 
-      {/* Community Posts - Show only flagged posts count */}
       <StatsCard
-        title="Community Posts"
+        title="Flagged Posts"
         count={stats.flaggedPosts}
         icon={MessageSquare}
-        description="flagged posts need review"
+        description="Posts needing review"
         urgentCount={stats.flaggedPosts}
-        clickableNumber={true}
-        onClick={handleFlaggedPostsClick}
-        actions={
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Moderate Community
-          </Button>
-        }
       />
 
-      {/* Pending Reviews */}
-      <StatsCard
-        title="Pending Reviews"
-        count={stats.pendingVendorReviews + stats.pendingRepReviews}
-        icon={Star}
-        description={`${stats.pendingVendorReviews} vendor, ${stats.pendingRepReviews} field rep`}
-        urgentCount={stats.pendingVendorReviews + stats.pendingRepReviews}
-        clickableNumber={true}
-        onClick={handlePendingReviewsClick}
-        actions={
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Export Review Data
-          </Button>
-        }
-      />
-
-      {/* Transactions */}
       <StatsCard
         title="Monthly Transactions"
         count={stats.monthlyUnlocks + stats.monthlyBoosts}
         icon={CreditCard}
-        description={`$${stats.totalRevenue.toLocaleString()} revenue | ${stats.monthlyUnlocks} unlocks, ${stats.monthlyBoosts} boosts`}
-        clickableNumber={true}
-        onClick={handleTransactionsClick}
-        actions={
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Export CSV
-          </Button>
-        }
+        description={`${stats.monthlyUnlocks} unlocks, ${stats.monthlyBoosts} boosts`}
       />
 
-      {/* ZIP & County Classification - Spans 2 columns on larger screens */}
-      <div className="md:col-span-2 lg:col-span-1">
-        <StatsCard
-          title="ZIP Classification"
-          count={stats.totalZips}
-          icon={Database}
-          description={`${stats.ruralZips.toLocaleString()} Rural | ${stats.urbanZips.toLocaleString()} Urban`}
-          actions={
-            <>
-              <Button variant="outline" size="sm" className="w-full">
-                Upload CSV Data
-              </Button>
-              <Button variant="ghost" size="sm" className="w-full text-xs">
-                Search & Edit ZIPs
-              </Button>
-            </>
-          }
-        />
-      </div>
+      <StatsCard
+        title="ZIP Classification"
+        count={stats.totalZips}
+        icon={Database}
+        description={`${stats.ruralZips.toLocaleString()} Rural | ${stats.urbanZips.toLocaleString()} Urban`}
+      />
     </div>
   );
 };
