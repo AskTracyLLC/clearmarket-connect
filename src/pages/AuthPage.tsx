@@ -33,14 +33,60 @@ const AuthPage = () => {
   const { count: userCount } = useUserCount();
 
   useEffect(() => {
-    if (user) {
-      const from = (location.state as any)?.from;
-      if (from && from !== '/auth') {
-        navigate(from, { replace: true });
-      } else {
-        navigate('/', { replace: true });
+    if (!user) return;
+
+    let isMounted = true;
+    const redirectAfterLogin = async () => {
+      try {
+        const from = (location.state as any)?.from;
+        if (from && from !== '/auth') {
+          navigate(from, { replace: true });
+          return;
+        }
+
+        const isVerified = !!user.email_confirmed_at;
+        if (!isVerified) {
+          navigate('/verify-email', { replace: true });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (!isMounted) return;
+
+        if (!error && data?.role) {
+          const role = data.role as 'admin' | 'moderator' | 'vendor' | 'field_rep';
+          switch (role) {
+            case 'admin':
+              navigate('/admin', { replace: true });
+              break;
+            case 'moderator':
+              navigate('/moderator', { replace: true });
+              break;
+            case 'vendor':
+              navigate('/vendor/dashboard', { replace: true });
+              break;
+            default:
+              navigate('/fieldrep/dashboard', { replace: true });
+          }
+        } else {
+          // Fallback for unknown role
+          navigate('/fieldrep/dashboard', { replace: true });
+        }
+      } catch {
+        // On error, send to a safe default
+        navigate('/fieldrep/dashboard', { replace: true });
       }
-    }
+    };
+
+    redirectAfterLogin();
+    return () => {
+      isMounted = false;
+    };
   }, [user, navigate, location.state]);
 
   const handleSignIn = async (e: React.FormEvent) => {
