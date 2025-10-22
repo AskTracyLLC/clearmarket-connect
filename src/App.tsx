@@ -41,7 +41,6 @@ import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import BetaRegister from "./pages/BetaRegister";
 import BetaNDA from "./pages/BetaNDA";
-import Prelaunch from "./pages/Prelaunch";
 import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
@@ -144,7 +143,7 @@ const App = () => (
                 {/* Legacy routes - redirect to new flow */}
                 <Route path="/beta-register" element={<BetaRegister />} />
                 <Route path="/beta-nda" element={<BetaNDA />} />
-                <Route path="/prelaunch" element={<Prelaunch />} />
+                <Route path="/prelaunch" element={<AuthPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

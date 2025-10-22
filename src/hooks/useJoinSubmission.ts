@@ -2,6 +2,15 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * @deprecated This hook is deprecated and only kept for backwards compatibility.
+ * The prelaunch signup flow has been replaced with the standard /auth?tab=signup flow.
+ * New implementations should direct users to /auth?tab=signup instead.
+ * 
+ * KNOWN ISSUE: The generate_beta_registration_token function is broken and prevents
+ * successful account creation. Users who signup via this flow receive emails but
+ * cannot complete registration.
+ */
 export type SignupType = "prelaunch" | "field-rep-direct" | "vendor-direct" | "beta-register";
 
 export interface JoinResult {
