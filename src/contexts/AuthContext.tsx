@@ -119,19 +119,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (emailOrUsername: string, password: string) => {
-    // Check if input is an email or username
-    const isEmail = emailOrUsername.includes('@');
-    let email = emailOrUsername;
+    // Normalize input and detect email vs username
+    const input = emailOrUsername.trim();
+    const isEmail = input.includes('@');
+    let email = input;
 
-    // If it's a username, look up the email
+    // If it's a username, look up the email (case-insensitive)
     if (!isEmail) {
       const { data: userData, error: lookupError } = await supabase
         .from('users')
         .select('email')
-        .eq('anonymous_username', emailOrUsername)
-        .single();
+        .ilike('anonymous_username', input)
+        .limit(1)
+        .maybeSingle();
 
-      if (lookupError || !userData) {
+      if (lookupError) {
+        return { error: { message: 'Unable to verify username. Please try again.' } };
+      }
+      if (!userData) {
         return { error: { message: 'Username not found' } };
       }
       email = userData.email;
