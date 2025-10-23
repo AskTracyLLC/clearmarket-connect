@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, Database, Settings, Coins, Mail, Calendar, Network } from "lucide-react";
+import { Shield, Users, Database, Settings, Coins, Mail, Calendar, Network, BarChart3, Wrench, MessageSquare } from "lucide-react";
 import { AIDiscussionCreator } from "@/components/admin/AIDiscussionCreator";
 
 const AdminDashboard = () => {
@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("moderation");
+  const [activeTab, setActiveTab] = useState("content");
 
   useEffect(() => {
     // SECURITY: Removed development mode bypass for proper authorization
@@ -133,81 +133,119 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="moderation" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Moderation
-            </TabsTrigger>
-            <TabsTrigger value="ai-creator" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Discussion Scheduler
-            </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              System Settings
+          <TabsList className="grid w-full grid-cols-5 mb-6">
+            <TabsTrigger value="content" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Content & Community
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              User Management
+              Users & Access
             </TabsTrigger>
-            <TabsTrigger value="connection-limits" className="flex items-center gap-2">
-              <Network className="h-4 w-4" />
-              Connection Limits
-            </TabsTrigger>
-            <TabsTrigger value="credits" className="flex items-center gap-2">
+            <TabsTrigger value="financial" className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
-              Credit System
+              Financial
             </TabsTrigger>
-            <TabsTrigger value="zip-county" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              ZIP/County Data
+            <TabsTrigger value="system" className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              System & Data
             </TabsTrigger>
-            <TabsTrigger value="email-templates" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Email Templates
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Reports
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics & Reports
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="moderation" className="mt-6">
-            <ContentModeration />
+          {/* Content & Community Section */}
+          <TabsContent value="content" className="mt-6">
+            <Tabs defaultValue="moderation" className="w-full">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="moderation" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Content Moderation
+                </TabsTrigger>
+                <TabsTrigger value="discussions" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Discussion Scheduler
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="moderation">
+                <ContentModeration />
+              </TabsContent>
+
+              <TabsContent value="discussions">
+                <AIDiscussionCreator />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="ai-creator" className="mt-6">
-            <AIDiscussionCreator />
-          </TabsContent>
-
-          <TabsContent value="system" className="mt-6">
-            <SystemSettings />
-          </TabsContent>
-
+          {/* Users & Access Section */}
           <TabsContent value="users" className="mt-6">
-            <UserManagement />
+            <Tabs defaultValue="management" className="w-full">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="management" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  User Management
+                </TabsTrigger>
+                <TabsTrigger value="limits" className="flex items-center gap-2">
+                  <Network className="h-4 w-4" />
+                  Connection Limits
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="management">
+                <UserManagement />
+              </TabsContent>
+
+              <TabsContent value="limits">
+                <ConnectionLimitManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="connection-limits" className="mt-6">
-            <ConnectionLimitManager />
-          </TabsContent>
-
-          <TabsContent value="credits" className="mt-6">
+          {/* Financial Section */}
+          <TabsContent value="financial" className="mt-6">
             <div className="space-y-6">
               <CreditOverrides />
               <CreditEarningSystem />
             </div>
           </TabsContent>
 
-          <TabsContent value="zip-county" className="mt-6">
-            <ZipCountyImportTool />
+          {/* System & Data Section */}
+          <TabsContent value="system" className="mt-6">
+            <Tabs defaultValue="settings" className="w-full">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  System Settings
+                </TabsTrigger>
+                <TabsTrigger value="zip-county" className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  ZIP/County Data
+                </TabsTrigger>
+                <TabsTrigger value="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email Templates
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="settings">
+                <SystemSettings />
+              </TabsContent>
+
+              <TabsContent value="zip-county">
+                <ZipCountyImportTool />
+              </TabsContent>
+
+              <TabsContent value="email">
+                <EmailTemplateManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="email-templates" className="mt-6">
-            <EmailTemplateManager />
-          </TabsContent>
-
-          <TabsContent value="reports" className="mt-6">
+          {/* Analytics & Reports Section */}
+          <TabsContent value="analytics" className="mt-6">
             <div className="space-y-6">
               <UserActivityLog />
               <Card>

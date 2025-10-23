@@ -4,16 +4,16 @@ import { Separator } from "@/components/ui/separator";
 import { 
   Shield, 
   Users, 
-  MapPin, 
   MessageSquare, 
   CreditCard, 
   Database,
-  FileDown,
-  Search,
-  AlertTriangle,
   Settings,
   Calendar,
-  Plus
+  Plus,
+  BarChart3,
+  Wrench,
+  Network,
+  Coins
 } from "lucide-react";
 
 interface AdminQuickActionsProps {
@@ -29,114 +29,93 @@ export const AdminQuickActions = ({ onTabChange }: AdminQuickActionsProps) => {
           Quick Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* User Management */}
-        <div>
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            User Management
-          </h4>
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="ghost" size="sm" className="justify-start">
-              Vendor Directory
-            </Button>
-            <Button variant="ghost" size="sm" className="justify-start">
-              Field Rep Directory
-            </Button>
-          </div>
-        </div>
+      <CardContent className="space-y-3">
+        {/* Content & Community */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start"
+          onClick={() => onTabChange?.('content')}
+        >
+          <MessageSquare className="h-4 w-4 mr-2" />
+          Content & Community
+        </Button>
 
-        <Separator />
-
-        {/* Community Scheduler */}
-        <div>
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Community Scheduler
-          </h4>
-          <div className="space-y-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start"
-              onClick={() => onTabChange?.('ai-creator')}
-            >
-              <Plus className="h-3 w-3 mr-2" />
-              Schedule Discussion
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              Upcoming Posts
-            </Button>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Content Moderation */}
-        <div>
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Content Moderation
-          </h4>
-          <div className="space-y-1">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <AlertTriangle className="h-3 w-3 mr-2" />
-              Review Flagged Content
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              Coverage Requests
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              Community Posts
-            </Button>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Data Management */}
-        <div>
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            Data Management
-          </h4>
-          <div className="space-y-1">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <Search className="h-3 w-3 mr-2" />
-              Search ZIP Codes
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              <FileDown className="h-3 w-3 mr-2" />
-              Export Data
-            </Button>
-          </div>
-        </div>
-
-        <Separator />
+        {/* Users & Access */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start"
+          onClick={() => onTabChange?.('users')}
+        >
+          <Users className="h-4 w-4 mr-2" />
+          Users & Access
+        </Button>
 
         {/* Financial */}
-        <div>
-          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Financial
-          </h4>
-          <div className="space-y-1">
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              Transaction Logs
-            </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start">
-              Revenue Reports
-            </Button>
-          </div>
-        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start"
+          onClick={() => onTabChange?.('financial')}
+        >
+          <Coins className="h-4 w-4 mr-2" />
+          Financial Management
+        </Button>
+
+        {/* System & Data */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start"
+          onClick={() => onTabChange?.('system')}
+        >
+          <Wrench className="h-4 w-4 mr-2" />
+          System & Data
+        </Button>
+
+        {/* Analytics & Reports */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start"
+          onClick={() => onTabChange?.('analytics')}
+        >
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Analytics & Reports
+        </Button>
 
         <Separator />
 
-        {/* System */}
-        <div>
-          <Button variant="ghost" size="sm" className="w-full justify-start">
-            <Settings className="h-3 w-3 mr-2" />
-            System Settings
+        {/* Quick Links */}
+        <div className="space-y-2 pt-2">
+          <p className="text-xs font-medium text-muted-foreground">Quick Links</p>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start text-xs"
+            onClick={() => onTabChange?.('content')}
+          >
+            <Calendar className="h-3 w-3 mr-2" />
+            Schedule Discussion
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start text-xs"
+            onClick={() => onTabChange?.('users')}
+          >
+            <Network className="h-3 w-3 mr-2" />
+            Manage Connections
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start text-xs"
+            onClick={() => onTabChange?.('system')}
+          >
+            <Database className="h-3 w-3 mr-2" />
+            ZIP/County Data
           </Button>
         </div>
       </CardContent>
