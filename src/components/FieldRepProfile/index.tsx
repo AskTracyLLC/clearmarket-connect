@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
@@ -27,17 +27,16 @@ const FieldRepProfile = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useUserProfile();
-  const { saveProfile, fetchProfile, loading: profileLoading } = useFieldRepProfile();
+  const { saveProfile: saveProfileToDb, fetchProfile, loading: profileLoading } = useFieldRepProfile();
   const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [tabCompletionStatus, setTabCompletionStatus] = useState({
+  const [profileCompletionStatus, setProfileCompletionStatus] = useState({
     personalInfoComplete: false,
     verificationComplete: false,
     coverageSetupComplete: false
   });
-  const [activeTab, setActiveTab] = useState('personal');
 
   const form = useForm<FieldRepFormData>({
     resolver: zodResolver(fieldRepSchema),
@@ -134,7 +133,7 @@ const FieldRepProfile = () => {
             );
 
             // Update all completion status at once
-            setTabCompletionStatus({
+            setProfileCompletionStatus({
               personalInfoComplete,
               verificationComplete,
               coverageSetupComplete
@@ -164,60 +163,84 @@ const FieldRepProfile = () => {
   }, [profile, user, form, fetchProfile, fetchCoverageAreas]);
 
 
-  // Save handlers for each tab
-  const savePersonalInfo = async () => {
+  // Consolidated save function
+  const handleSaveProfile = async () => {
     if (isSaving) return;
     
-    // Validate only the fields we require for this section
+    // Validate all required fields
     const requiredFields: (keyof FieldRepFormData)[] = [
       'firstName','lastName','email','city','state','zipCode','bio'
     ];
 
-    // Ensure phone is not considered required
     form.clearErrors('phone');
-
     const isValid = await form.trigger(requiredFields as any, { shouldFocus: true });
 
     if (!isValid) {
-      // Collect friendly list of invalid fields
       const errors = form.formState.errors;
       const invalid = requiredFields.filter((f) => !!(errors as any)[f]);
       toast({
         title: 'Incomplete Information',
-        description: `Please review: ${invalid.join(', ')}`,
+        description: `Please complete all required fields: ${invalid.join(', ')}`,
         variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate coverage areas, platforms, and inspection types
+    const values = form.getValues();
+    const missing: string[] = [];
+    if (coverageAreas.length === 0) missing.push('at least one coverage area');
+    if (!values.platforms?.length) missing.push('platforms');
+    if (!values.inspectionTypes?.length) missing.push('inspection types');
+    
+    if (missing.length > 0) {
+      toast({
+        title: "Incomplete Setup",
+        description: `Please add: ${missing.join(', ')}`,
+        variant: "destructive",
       });
       return;
     }
 
     setIsSaving(true);
     try {
-      const values = form.getValues();
-      await saveProfile({
-        first_name: values.firstName,
-        last_name: values.lastName,
-        phone: values.phone,
-        city: values.city,
-        state: values.state,
-        zip_code: values.zipCode,
-        bio: values.bio,
-        interested_in_beta: values.interestedInBeta,
-      });
+      // Save all profile data and coverage areas
+      await Promise.all([
+        saveProfileToDb({
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phone,
+          city: values.city,
+          state: values.state,
+          zip_code: values.zipCode,
+          bio: values.bio,
+          hasAspenGrove: values.hasAspenGrove,
+          aspen_grove_id: values.aspenGroveId,
+          aspen_grove_expiration: values.aspenGroveExpiration,
+          aspen_grove_image: values.aspenGroveImage,
+          hasHudKeys: values.hasHudKeys,
+          hud_keys: values.hudKeys,
+          other_hud_key: values.otherHudKey,
+          platforms: values.platforms,
+          other_platform: values.otherPlatform,
+          inspection_types: values.inspectionTypes,
+          interested_in_beta: values.interestedInBeta,
+        }),
+        saveCoverageAreas(coverageAreas)
+      ]);
 
-      setTabCompletionStatus((prev) => ({ ...prev, personalInfoComplete: true }));
-      toast({
-        title: 'Personal Info Saved',
-        description: 'Your personal information has been saved successfully!',
+      setProfileCompletionStatus({
+        personalInfoComplete: true,
+        verificationComplete: true,
+        coverageSetupComplete: true
       });
       
-      // Move to next incomplete tab
-      if (!tabCompletionStatus.verificationComplete) {
-        setActiveTab('verification');
-      } else if (!tabCompletionStatus.coverageSetupComplete) {
-        setActiveTab('coverage');
-      }
+      toast({
+        title: 'Profile Saved',
+        description: 'Your profile has been saved successfully!',
+      });
     } catch (error: any) {
-      console.error('Save personal info error:', error);
+      console.error('Save profile error:', error);
       const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
       toast({
         title: 'Save Failed',
@@ -229,125 +252,8 @@ const FieldRepProfile = () => {
     }
   };
 
-  const saveVerification = async () => {
-    if (isSaving) return;
-    
-    setIsSaving(true);
-    try {
-      const values = form.getValues();
-      await saveProfile({
-        hasAspenGrove: values.hasAspenGrove,
-        aspen_grove_id: values.aspenGroveId,
-        aspen_grove_expiration: values.aspenGroveExpiration,
-        aspen_grove_image: values.aspenGroveImage,
-        hasHudKeys: values.hasHudKeys,
-        hud_keys: values.hudKeys,
-        other_hud_key: values.otherHudKey,
-        interested_in_beta: values.interestedInBeta
-      });
-      
-      setTabCompletionStatus(prev => ({ ...prev, verificationComplete: true }));
-      toast({
-        title: "Verification Saved",
-        description: "Your verification information has been saved successfully!",
-      });
-      
-      // Move to next incomplete tab
-      if (!tabCompletionStatus.coverageSetupComplete) {
-        setActiveTab('coverage');
-      }
-    } catch (error: any) {
-      console.error('Save verification error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
-      toast({
-        title: "Save Failed",
-        description: msg,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const saveCoverageSetup = async () => {
-    if (isSaving) return;
-    
-    const values = form.getValues();
-    const platforms = values.platforms || [];
-    const inspectionTypes = values.inspectionTypes || [];
-    
-    // Build list of missing requirements
-    const missing: string[] = [];
-    if (coverageAreas.length === 0) missing.push('at least one coverage area');
-    if (platforms.length === 0) missing.push('platforms');
-    if (inspectionTypes.length === 0) missing.push('inspection types');
-    
-    if (missing.length > 0) {
-      toast({
-        title: "Incomplete Setup",
-        description: `Please add: ${missing.join(', ')}`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSaving(true);
-    try {
-      // Save both profile data and coverage areas
-      await Promise.all([
-        saveProfile({
-          platforms: platforms,
-          other_platform: values.otherPlatform,
-          inspection_types: inspectionTypes,
-          interested_in_beta: values.interestedInBeta
-        }),
-        saveCoverageAreas(coverageAreas)
-      ]);
-      
-      setTabCompletionStatus(prev => ({ ...prev, coverageSetupComplete: true }));
-      toast({
-        title: "Coverage Setup Saved",
-        description: "Your coverage setup and pricing have been saved successfully!",
-      });
-    } catch (error: any) {
-      console.error('Save coverage setup error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
-      toast({
-        title: "Save Failed",
-        description: msg,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const saveCredits = async () => {
-    // No validation needed - this is just acknowledging they reviewed the credits tab
-    try {
-      const values = form.getValues();
-      await saveProfile({
-        interested_in_beta: values.interestedInBeta
-      });
-      
-      setTabCompletionStatus(prev => ({ ...prev, creditsReviewed: true }));
-      toast({
-        title: "Profile Saved",
-        description: "Your profile has been saved successfully!",
-      });
-    } catch (error: any) {
-      console.error('Save credits error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save profile. Please try again.';
-      toast({
-        title: "Save Failed", 
-        description: msg,
-        variant: "destructive",
-      });
-    }
-  };
-
   const profileSteps = getFieldRepProfileSteps({
-    ...tabCompletionStatus,
+    ...profileCompletionStatus,
     networkSize: 0
   });
 
@@ -370,76 +276,62 @@ const FieldRepProfile = () => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <div className="space-y-6">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                  <TabsTrigger value="verification">Verification</TabsTrigger>
-                  <TabsTrigger value="coverage">Coverage Setup</TabsTrigger>
-                </TabsList>
+            <div className="space-y-8">
+              {/* Section 1: Personal Information */}
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">Personal Information</h2>
+                  <p className="text-sm text-muted-foreground">Basic information about yourself</p>
+                </div>
+                <Separator />
+                <PersonalInfo form={form} />
+                <ContactVerification form={form} />
+                <ProfessionalBio form={form} />
+                <LocationInfo form={form} />
+              </div>
 
-                <TabsContent value="personal" className="space-y-6 mt-6">
-                  <PersonalInfo form={form} />
-                  <ContactVerification form={form} />
-                  <ProfessionalBio form={form} />
-                  <LocationInfo form={form} />
-                  
-                  <div className="pt-4">
-                    <Button 
-                      onClick={savePersonalInfo} 
-                      variant="hero" 
-                      size="lg" 
-                      className="w-full"
-                      disabled={isSaving}
-                    >
-                      {isSaving ? 'Saving...' : 'SAVE Personal Info'}
-                    </Button>
-                  </div>
-                </TabsContent>
+              {/* Section 2: Verification & Credentials */}
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">Verification & Credentials</h2>
+                  <p className="text-sm text-muted-foreground">Optional credentials that can help you stand out</p>
+                </div>
+                <Separator />
+                <AspenGroveVerification form={form} />
+                <HudKeys form={form} />
+              </div>
 
-                <TabsContent value="verification" className="space-y-6 mt-6">
-                  <AspenGroveVerification form={form} />
-                  <HudKeys form={form} />
-                  
-                  <div className="pt-4">
-                    <Button 
-                      onClick={saveVerification} 
-                      variant="hero" 
-                      size="lg" 
-                      className="w-full"
-                      disabled={isSaving}
-                    >
-                      {isSaving ? 'Saving...' : 'SAVE Verification'}
-                    </Button>
-                  </div>
-                </TabsContent>
+              {/* Section 3: Coverage & Services */}
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">Coverage & Services</h2>
+                  <p className="text-sm text-muted-foreground">Where you work and what services you provide</p>
+                </div>
+                <Separator />
+                <CoverageAreas 
+                  coverageAreas={coverageAreas}
+                  setCoverageAreas={setCoverageAreas}
+                  selectedInspectionTypes={form.watch("inspectionTypes")}
+                  onSaveCoverageAreas={async (areas) => {
+                    await saveCoverageAreas(areas);
+                  }}
+                />
+                <PlatformsUsed form={form} />
+                <InspectionTypes form={form} />
+              </div>
 
-                <TabsContent value="coverage" className="space-y-6 mt-6">
-                  <CoverageAreas 
-                    coverageAreas={coverageAreas}
-                    setCoverageAreas={setCoverageAreas}
-                    selectedInspectionTypes={form.watch("inspectionTypes")}
-                    onSaveCoverageAreas={async (areas) => {
-                      await saveCoverageAreas(areas);
-                    }}
-                  />
-                  <PlatformsUsed form={form} />
-                  <InspectionTypes form={form} />
-                  
-                  <div className="pt-4">
-                    <Button 
-                      onClick={saveCoverageSetup} 
-                      variant="hero" 
-                      size="lg" 
-                      className="w-full"
-                      disabled={isSaving}
-                    >
-                      {isSaving ? 'Saving...' : 'SAVE Coverage Setup'}
-                    </Button>
-                  </div>
-                </TabsContent>
-
-              </Tabs>
+              {/* Save Button */}
+              <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
+                <Button 
+                  onClick={handleSaveProfile} 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full"
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving Profile...' : 'SAVE PROFILE'}
+                </Button>
+              </div>
             </div>
           </Form>
         </CardContent>
