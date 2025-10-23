@@ -10,6 +10,7 @@ import { User, Mail, Key, Trash2, AlertTriangle, Shield, Star } from "lucide-rea
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AccountSettingsProps {
   onSave?: (data: any) => void;
@@ -18,6 +19,8 @@ interface AccountSettingsProps {
 const AccountSettings = ({ onSave }: AccountSettingsProps) => {
   const { profile, loading, updateProfile } = useUserProfile();
   const [accountData, setAccountData] = useState<any>(null);
+  const { toast } = useToast();
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Update local state when user data is loaded
   useEffect(() => {
@@ -45,19 +48,53 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure both passwords are identical.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (newPassword.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
       return;
     }
 
-    // Password change functionality would go here
-    const success = false; // Placeholder
-    if (success) {
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+    setPasswordLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast({
+          title: "Password update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Password updated",
+          description: "Your password has been changed successfully.",
+        });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -241,10 +278,14 @@ const AccountSettings = ({ onSave }: AccountSettingsProps) => {
 
           <Button 
             onClick={handlePasswordChange} 
-            disabled={!newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 6}
+            disabled={!newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 6 || passwordLoading}
           >
-            Update Password
+            {passwordLoading ? "Updating..." : "Update Password"}
           </Button>
+          
+          <p className="text-sm text-muted-foreground">
+            No email verification needed - changes take effect immediately.
+          </p>
         </CardContent>
       </Card>
 
