@@ -122,7 +122,7 @@ const AuthPage = () => {
       // Use dedicated verification handler route
       const redirectUrl = `${window.location.origin}/auth/verify`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email: formData.email,
         password: tempPassword,
         options: {
@@ -143,6 +143,28 @@ const AuthPage = () => {
           variant: "destructive",
         });
       } else {
+        // Get the user's anonymous username from the users table
+        if (authData.user) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('anonymous_username')
+            .eq('id', authData.user.id)
+            .single();
+
+          const anonymousUsername = userData?.anonymous_username || 'User#0';
+
+          // Send the signup email with credentials
+          await supabase.functions.invoke('send-signup-email', {
+            body: {
+              signupType: formData.userRole,
+              email: formData.email,
+              anonymous_username: anonymousUsername,
+              beta_tester: false,
+              temp_password: tempPassword
+            }
+          });
+        }
+
         toast({
           title: "Welcome to ClearMarket!",
           description: "An email has been sent with your login credentials. Check your inbox to complete the process.",
