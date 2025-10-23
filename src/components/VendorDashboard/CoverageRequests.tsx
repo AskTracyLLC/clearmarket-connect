@@ -11,6 +11,15 @@ const CoverageRequests = () => {
   const [postRequestModalOpen, setPostRequestModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleModalClose = (open: boolean) => {
+    setPostRequestModalOpen(open);
+    if (!open) {
+      // Refresh the coverage requests list when modal closes
+      setRefreshTrigger(prev => prev + 1);
+    }
+  };
   
   // Mock coverage requests data
   const coverageRequests = [
@@ -271,7 +280,7 @@ const CoverageRequests = () => {
       
       <PostCoverageRequestModal 
         open={postRequestModalOpen}
-        onOpenChange={setPostRequestModalOpen}
+        onOpenChange={handleModalClose}
       />
       
       <CoverageRequestDetailModal 

@@ -13,6 +13,9 @@ import { MapPin, X, DollarSign } from "lucide-react";
 import { useStates, useCountiesByState, type State, type County } from "@/hooks/useLocationData";
 import { usePlatforms } from "@/hooks/usePlatforms";
 import { useWorkTypes } from "@/hooks/useWorkTypes";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface PostCoverageRequestModalProps {
   open: boolean;
@@ -67,6 +70,9 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
   const { states } = useStates();
   const { platforms, loading: platformsLoading } = usePlatforms();
   const { workTypes, loading: workTypesLoading } = useWorkTypes();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<CoverageRequestForm>({
     title: "",
     description: "",
@@ -161,10 +167,29 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "You must be logged in to post a coverage request.",
+      });
+      return;
+    }
+
+    // Validation
+    if (!form.title || !form.description || !form.selectedState) {
+      toast({
+        variant: "destructive",
+        title: "Missing Required Fields",
+        description: "Please fill in title, description, and select a state.",
+      });
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      // TODO: Implement actual Supabase insertion
       const requestData = {
-        vendor_id: 'current-user-id', // This should come from auth context
+        vendor_id: user.id,
         title: form.title,
         description: form.description,
         estimated_monthly_volume: form.estimatedMonthlyVolume,
@@ -178,15 +203,68 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         hud_key_required: form.hudKeyRequired,
         years_experience_required: form.yearsExperienceRequired,
         hide_from_all_network: form.hideFromAllNetwork,
-        hide_from_current_network: form.hideFromCurrentNetwork
+        hide_from_current_network: form.hideFromCurrentNetwork,
+        status: 'active'
       };
       
-      console.log("Creating coverage request:", requestData);
-      // Here you would insert into the coverage_requests table
+      // Insert coverage request
+      const { data: insertedRequest, error: insertError } = await supabase
+        .from('coverage_requests')
+        .insert(requestData)
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+
+      // Call edge function to notify matching field reps
+      const { error: notifyError } = await supabase.functions.invoke('notify-coverage-request', {
+        body: {
+          requestId: insertedRequest.id,
+          state: form.selectedState,
+          counties: form.selectedCounties,
+          inspectionTypes: form.selectedInspectionTypes,
+          platforms: form.selectedPlatforms
+        }
+      });
+
+      if (notifyError) {
+        console.error("Error sending notifications:", notifyError);
+        // Don't fail the whole operation if notifications fail
+      }
+
+      toast({
+        title: "Coverage Request Posted",
+        description: "Field reps in your area have been notified.",
+      });
       
       onOpenChange(false);
-    } catch (error) {
+      
+      // Reset form
+      setForm({
+        title: "",
+        description: "",
+        estimatedMonthlyVolume: "",
+        budgetRange: "",
+        selectedState: "",
+        selectedCounties: [],
+        selectedCities: [],
+        selectedPlatforms: [],
+        selectedInspectionTypes: [],
+        abcRequired: null,
+        hudKeyRequired: null,
+        yearsExperienceRequired: "",
+        hideFromAllNetwork: false,
+        hideFromCurrentNetwork: false,
+      });
+    } catch (error: any) {
       console.error("Error creating coverage request:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to create coverage request. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -482,11 +560,11 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         </div>
 
         <div className="flex justify-end space-x-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="min-w-[120px]">
-            Post Request
+          <Button onClick={handleSubmit} className="min-w-[120px]" disabled={submitting}>
+            {submitting ? "Posting..." : "Post Request"}
           </Button>
         </div>
       </DialogContent>
