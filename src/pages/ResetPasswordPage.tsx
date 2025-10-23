@@ -16,6 +16,7 @@ const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -77,10 +78,11 @@ const ResetPasswordPage = () => {
 
       // As a final guard, ensure we have a user session before allowing password change
       const { data: { user } } = await supabase.auth.getUser();
+      setSessionReady(!!user);
       if (!user && type !== 'recovery') {
         toast({
           title: 'Invalid Reset Link',
-          description: 'This password reset link is invalid or has expired. Please request a new one.',
+          description: 'This reset link did not establish a secure session. Please open the link from your email again.',
           variant: 'destructive',
         });
       }
@@ -113,6 +115,18 @@ const ResetPasswordPage = () => {
     setLoading(true);
 
     try {
+      // Ensure an active auth session exists before attempting update
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        toast({
+          title: 'Invalid Reset Link',
+          description: 'No active session found. Open the reset link from your email again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -219,7 +233,7 @@ const ResetPasswordPage = () => {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={loading || !newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 6}
+                disabled={loading || !sessionReady || !newPassword || !confirmPassword || newPassword !== confirmPassword || newPassword.length < 6}
               >
                 {loading ? "Updating Password..." : "Update Password"}
               </Button>

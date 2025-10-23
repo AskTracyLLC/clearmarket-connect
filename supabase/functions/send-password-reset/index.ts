@@ -90,10 +90,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Email template not found: password-reset');
     }
 
-    // Replace template variables
+    // Replace template variables (ensure the action link with session tokens is used everywhere)
+    const actionLink = resetData.properties?.action_link || '#';
     const replacements = {
       '{{anonymous_username}}': userData.anonymous_username,
-      '{{reset_link}}': resetData.properties?.action_link || '#',
+      '{{reset_link}}': actionLink,
+      '{{action_link}}': actionLink,
+      '{{app_redirect}}': actionLink,
+      '{{magic_link}}': actionLink,
       '{{company_name}}': 'ClearMarket',
       '{{support_email}}': 'support@useclearmarket.io',
       '{{help_center_url}}': 'https://useclearmarket.io/help'
@@ -104,8 +108,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Apply replacements
     Object.entries(replacements).forEach(([placeholder, value]) => {
-      subject = subject.replace(new RegExp(placeholder, 'g'), value);
-      htmlContent = htmlContent.replace(new RegExp(placeholder, 'g'), value);
+      subject = subject.replace(new RegExp(placeholder, 'g'), value as string);
+      htmlContent = htmlContent.replace(new RegExp(placeholder, 'g'), value as string);
     });
 
     console.log('Sending password reset email to:', email);
