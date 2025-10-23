@@ -17,6 +17,9 @@ const ResetPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [errorCodeState, setErrorCodeState] = useState<string | null>(null);
+  const [errorDesc, setErrorDesc] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -51,6 +54,8 @@ const ResetPasswordPage = () => {
     return false;
   };
 
+  // (removed duplicate ensureSessionFromUrl)
+
   // Verify tokens/session on mount and hydrate session if needed
   useEffect(() => {
     const initFromUrl = async () => {
@@ -65,12 +70,14 @@ const ResetPasswordPage = () => {
       const tokenHash = hashParams.get('token_hash') || queryParams.get('token_hash') || hashParams.get('token') || queryParams.get('token');
 
       if (errorCode) {
+        setErrorCodeState(errorCode);
+        setErrorDesc(errorDescription || 'This password reset link is invalid or has expired. Please request a new one.');
         toast({
           title: 'Invalid Reset Link',
           description: errorDescription || 'This password reset link is invalid or has expired. Please request a new one.',
           variant: 'destructive',
         });
-        return;
+        // Continue to attempt session hydration just in case
       }
 
       // If we don't have session tokens but do have a token hash, verify it to establish a session
@@ -213,6 +220,37 @@ const ResetPasswordPage = () => {
     }
   };
 
+  const handleResend = async () => {
+    const emailFromQuery = searchParams.get('email');
+    if (!emailFromQuery) {
+      toast({
+        title: 'Missing email',
+        description: 'Open the latest reset email or go back to the sign-in page to request a new link.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    try {
+      setResending(true);
+      const { error } = await supabase.functions.invoke('send-password-reset', {
+        body: { email: emailFromQuery },
+      });
+      if (error) throw error;
+      toast({
+        title: 'Reset email sent',
+        description: `We sent a new link to ${emailFromQuery}. Open it on this device.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Could not resend',
+        description: err?.message || 'Please try again from the sign-in page.',
+        variant: 'destructive',
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -291,6 +329,16 @@ const ResetPasswordPage = () => {
             </form>
           </CardContent>
         </Card>
+        {errorCodeState && (
+          <div className="mt-4 p-4 border border-border rounded-md text-sm">
+            <p className="mb-2 text-muted-foreground">{errorDesc}</p>
+            {searchParams.get('email') && (
+              <Button onClick={handleResend} disabled={resending} className="w-full sm:w-auto">
+                {resending ? 'Resending...' : `Resend to ${searchParams.get('email')}`}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: 'https://useclearmarket.io/reset-password'
+        redirectTo: `https://useclearmarket.io/reset-password?email=${encodeURIComponent(email)}`
       }
     });
 
