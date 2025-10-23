@@ -81,34 +81,74 @@ export const AdminStatsCards = () => {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const [vendors, fieldReps, coverage, posts, flagged, zips, rural, urban, unlocks, credits] = await Promise.all([
-        supabase.from('user_profiles').select('*', { count: 'exact', head: true }).eq('user_type', 'vendor'),
-        supabase.from('user_profiles').select('*', { count: 'exact', head: true }).eq('user_type', 'field-rep'),
-        supabase.from('coverage_requests').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('community_posts').select('*', { count: 'exact', head: true }),
-        supabase.from('community_posts').select('*', { count: 'exact', head: true }).eq('flagged', true),
-        supabase.from('zip_county_classifications').select('*', { count: 'exact', head: true }),
-        supabase.from('zip_county_classifications').select('*', { count: 'exact', head: true }).eq('rural_urban', 'Rural'),
-        supabase.from('zip_county_classifications').select('*', { count: 'exact', head: true }).eq('rural_urban', 'Urban'),
-        supabase.from('contact_unlocks').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth.toISOString()),
-        supabase.from('credit_transactions').select('amount, transaction_type').gte('created_at', startOfMonth.toISOString()).in('transaction_type', ['unlock_contact', 'boost_profile'])
-      ]);
+      // Fetch user counts
+      const vendorsResult: any = await (supabase as any)
+        .from('user_profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_type', 'vendor');
 
-      const totalRevenue = credits.data?.reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0) || 0;
-      const monthlyBoosts = credits.data?.filter(tx => tx.transaction_type === 'boost_profile').length || 0;
+      const fieldRepsResult: any = await (supabase as any)
+        .from('user_profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_type', 'field-rep');
+
+      // Fetch coverage and posts
+      const coverageResult: any = await (supabase as any)
+        .from('coverage_requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      const postsResult: any = await (supabase as any)
+        .from('community_posts')
+        .select('id', { count: 'exact', head: true });
+
+      const flaggedResult: any = await (supabase as any)
+        .from('community_posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('flagged', true);
+
+      // Fetch ZIP data
+      const totalZipsResult: any = await (supabase as any)
+        .from('zip_county_classifications')
+        .select('id', { count: 'exact', head: true });
+
+      const ruralZipsResult: any = await (supabase as any)
+        .from('zip_county_classifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('rural_urban', 'Rural');
+
+      const urbanZipsResult: any = await (supabase as any)
+        .from('zip_county_classifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('rural_urban', 'Urban');
+
+      // Fetch transactions
+      const unlocksResult: any = await (supabase as any)
+        .from('contact_unlocks')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', startOfMonth.toISOString());
+
+      const { data: creditsData } = await supabase
+        .from('credit_transactions')
+        .select('amount, transaction_type')
+        .gte('created_at', startOfMonth.toISOString())
+        .in('transaction_type', ['unlock_contact', 'boost_profile']);
+
+      const totalRevenue = creditsData?.reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0) || 0;
+      const monthlyBoosts = creditsData?.filter(tx => tx.transaction_type === 'boost_profile').length || 0;
 
       setStats({
-        vendors: vendors.count || 0,
-        fieldReps: fieldReps.count || 0,
-        coverageRequests: coverage.count || 0,
-        communityPosts: posts.count || 0,
-        flaggedPosts: flagged.count || 0,
-        monthlyUnlocks: unlocks.count || 0,
+        vendors: vendorsResult.count || 0,
+        fieldReps: fieldRepsResult.count || 0,
+        coverageRequests: coverageResult.count || 0,
+        communityPosts: postsResult.count || 0,
+        flaggedPosts: flaggedResult.count || 0,
+        monthlyUnlocks: unlocksResult.count || 0,
         monthlyBoosts,
         totalRevenue,
-        totalZips: zips.count || 0,
-        ruralZips: rural.count || 0,
-        urbanZips: urban.count || 0,
+        totalZips: totalZipsResult.count || 0,
+        ruralZips: ruralZipsResult.count || 0,
+        urbanZips: urbanZipsResult.count || 0,
       });
     } catch (error) {
       console.error('Error fetching admin stats:', error);
