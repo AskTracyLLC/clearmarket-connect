@@ -48,28 +48,24 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Look up user by email to get their username
+    // Normalize email and look up user by email (case-insensitive) to get their username
+    const normalizedEmail = (email || '').trim().toLowerCase();
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('anonymous_username')
-      .eq('email', email)
+      .ilike('email', normalizedEmail)
       .single();
 
-    if (userError || !userData) {
-      console.log('User not found for email:', email);
-      // Return success even if user not found (security best practice)
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
+    const anonymousUsername = userError || !userData
+      ? 'there'
+      : (userData.anonymous_username || 'there');
 
     // Generate password reset link using Supabase Auth
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
-      email: email,
+      email: normalizedEmail,
       options: {
-        redirectTo: `https://useclearmarket.io/reset-password?email=${encodeURIComponent(email)}`
+        redirectTo: `https://useclearmarket.io/reset-password?email=${encodeURIComponent(normalizedEmail)}`
       }
     });
 
@@ -93,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Replace template variables (ensure the action link with session tokens is used everywhere)
     const actionLink = resetData.properties?.action_link || '#';
     const replacements = {
-      '{{anonymous_username}}': userData.anonymous_username,
+      '{{anonymous_username}}': anonymousUsername,
       '{{reset_link}}': actionLink,
       '{{action_link}}': actionLink,
       '{{app_redirect}}': actionLink,
@@ -112,13 +108,13 @@ const handler = async (req: Request): Promise<Response> => {
       htmlContent = htmlContent.replace(new RegExp(placeholder, 'g'), value as string);
     });
 
-    console.log('Sending password reset email to:', email);
+    console.log('Sending password reset email to:', normalizedEmail);
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
       from: "ClearMarket <hello@useclearmarket.io>",
       reply_to: "support@useclearmarket.io",
-      to: [email],
+      to: [normalizedEmail],
       subject: subject,
       html: htmlContent,
       text: htmlToText(htmlContent),

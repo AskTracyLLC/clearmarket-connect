@@ -192,10 +192,21 @@ const AuthPage = () => {
       return;
     }
 
+    const emailValue = email.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(emailValue)) {
+      toast({
+        title: "Enter a valid email",
+        description: "Password resets require a valid email address (not a username).",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setResetLoading(true);
 
     try {
-      const { error } = await resetPassword(email);
+      const { error } = await resetPassword(emailValue.toLowerCase());
 
       if (error) {
         toast({
