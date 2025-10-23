@@ -20,6 +20,37 @@ const ResetPasswordPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Helper to ensure a valid Supabase session from URL tokens/hash
+  const ensureSessionFromUrl = async (): Promise<boolean> => {
+    try {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const queryParams = new URLSearchParams(window.location.search);
+
+      const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token');
+      const tokenHash = hashParams.get('token_hash') || queryParams.get('token_hash') || hashParams.get('token') || queryParams.get('token');
+
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (!error) return true;
+      }
+
+      if (tokenHash && !accessToken) {
+        const { data, error } = await supabase.auth.verifyOtp({
+          type: 'recovery',
+          token_hash: tokenHash,
+        });
+        if (!error && data?.user) return true;
+      }
+    } catch (e) {
+      console.error('ensureSessionFromUrl error:', e);
+    }
+    return false;
+  };
+
   // Verify tokens/session on mount and hydrate session if needed
   useEffect(() => {
     const initFromUrl = async () => {
@@ -116,7 +147,11 @@ const ResetPasswordPage = () => {
 
     try {
       // Ensure an active auth session exists before attempting update
-      const { data: { user } } = await supabase.auth.getUser();
+      let { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        await ensureSessionFromUrl();
+        ({ data: { user } } = await supabase.auth.getUser());
+      }
       if (!user) {
         setLoading(false);
         toast({
@@ -133,10 +168,26 @@ const ResetPasswordPage = () => {
 
       if (error) {
         console.error('Password update error:', error);
+        // Attempt to rehydrate session and retry once if session was missing
+        if (error.message && error.message.toLowerCase().includes('auth session')) {
+          await ensureSessionFromUrl();
+          const retry = await supabase.auth.updateUser({ password: newPassword });
+          if (!retry.error) {
+            toast({
+              title: 'Password Updated!',
+              description: 'Your password has been successfully updated. Please log in with your new password.',
+            });
+            await supabase.auth.signOut();
+            setTimeout(() => {
+              window.location.href = '/auth';
+            }, 2000);
+            return;
+          }
+        }
         toast({
-          title: "Error",
+          title: 'Error',
           description: error.message,
-          variant: "destructive",
+          variant: 'destructive',
         });
       } else {
         toast({
