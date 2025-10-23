@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileProgress, getVendorProfileSteps } from "@/components/ui/progress-indicator";
@@ -113,21 +114,56 @@ const VendorProfile = () => {
             
             <TabsContent value="profile" className="mt-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <VendorBasicInfo form={form} />
-                  <VendorCoverageAreas 
-                    coverageAreas={coverageAreas} 
-                    setCoverageAreas={setCoverageAreas} 
-                  />
-                  <VendorWorkTypes form={form} />
-                  <VendorPlatforms form={form} />
-                  <VendorCompanyBio form={form} />
-                  <VendorAdditionalInfo form={form} />
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Section 1: Company Information */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Company Information</h2>
+                      <p className="text-sm text-muted-foreground">Basic details about your company</p>
+                    </div>
+                    <Separator />
+                    <VendorBasicInfo form={form} />
+                    <VendorCompanyBio form={form} />
+                  </div>
+
+                  {/* Section 2: Service Coverage */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Service Coverage</h2>
+                      <p className="text-sm text-muted-foreground">Areas where you need field rep coverage</p>
+                    </div>
+                    <Separator />
+                    <VendorCoverageAreas 
+                      coverageAreas={coverageAreas} 
+                      setCoverageAreas={setCoverageAreas} 
+                    />
+                  </div>
+
+                  {/* Section 3: Work Details */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Work Details</h2>
+                      <p className="text-sm text-muted-foreground">Services you need and platforms you use</p>
+                    </div>
+                    <Separator />
+                    <VendorWorkTypes form={form} />
+                    <VendorPlatforms form={form} />
+                  </div>
+
+                  {/* Section 4: Additional Information */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Additional Information</h2>
+                      <p className="text-sm text-muted-foreground">Job volume and payment details</p>
+                    </div>
+                    <Separator />
+                    <VendorAdditionalInfo form={form} />
+                  </div>
 
                   {/* Submit Button */}
-                  <div className="pt-4">
+                  <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
                     <Button type="submit" variant="hero" size="lg" className="w-full">
-                      Save Profile Changes
+                      SAVE PROFILE
                     </Button>
                   </div>
                 </form>
