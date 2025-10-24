@@ -86,14 +86,26 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Email template not found: password-reset');
     }
 
-    // Replace template variables (ensure the action link with session tokens is used everywhere)
+    // Build a human-gated gateway link to avoid email security scanners consuming OTP
     const actionLink = resetData.properties?.action_link || '#';
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    let functionsBase = '';
+    try {
+      const host = new URL(supabaseUrl).hostname;
+      const projectRef = host.split('.')[0];
+      functionsBase = `https://${projectRef}.functions.supabase.co`;
+    } catch { /* no-op */ }
+    const gatewayLink = functionsBase
+      ? `${functionsBase}/reset-link-gateway?email=${encodeURIComponent(normalizedEmail)}`
+      : actionLink;
+
     const replacements = {
       '{{anonymous_username}}': anonymousUsername,
-      '{{reset_link}}': actionLink,
-      '{{action_link}}': actionLink,
-      '{{app_redirect}}': actionLink,
-      '{{magic_link}}': actionLink,
+      '{{reset_link}}': gatewayLink,
+      '{{action_link}}': gatewayLink,
+      '{{app_redirect}}': gatewayLink,
+      '{{magic_link}}': gatewayLink,
+      '{{direct_action_link}}': actionLink,
       '{{company_name}}': 'ClearMarket',
       '{{support_email}}': 'support@useclearmarket.io',
       '{{help_center_url}}': 'https://useclearmarket.io/help'

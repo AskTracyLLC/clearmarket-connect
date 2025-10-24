@@ -2,3 +2,6 @@ project_id = "bgqlhaqwsnfhhatxhtfx"
 
 [functions.send-password-reset]
 verify_jwt = false
+
+[functions.reset-link-gateway]
+verify_jwt = false
