@@ -95,9 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
       const projectRef = host.split('.')[0];
       functionsBase = `https://${projectRef}.functions.supabase.co`;
     } catch { /* no-op */ }
-    const gatewayLink = functionsBase
-      ? `${functionsBase}/reset-link-gateway?email=${encodeURIComponent(normalizedEmail)}`
-      : actionLink;
+    const gatewayLink = `https://useclearmarket.io/password-reset-gateway?email=${encodeURIComponent(normalizedEmail)}`;
 
     const replacements = {
       '{{anonymous_username}}': anonymousUsername,

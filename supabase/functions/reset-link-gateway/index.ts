@@ -6,10 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Use strict HTML headers without CORS for document responses (navigation requests)
 const htmlHeaders = {
   "Content-Type": "text/html; charset=utf-8",
   "Cache-Control": "no-store, no-cache, must-revalidate",
-  ...corsHeaders,
 };
 
 function htmlPage(title: string, bodyHtml: string) {

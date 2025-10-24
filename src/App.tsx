@@ -45,6 +45,7 @@ import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
 import NetworkPage from "./pages/NetworkPage";
+import PasswordResetGateway from "./pages/PasswordResetGateway";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/auth/verify" element={<EmailVerifyHandler />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/password-reset-gateway" element={<PasswordResetGateway />} />
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/vendor/public/:id" element={<VendorPublicProfile />} />
