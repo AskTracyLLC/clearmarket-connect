@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ const ResetPasswordPage = () => {
   const [resending, setResending] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const autoResentRef = useRef(false);
 
   // Helper to ensure a valid Supabase session from URL tokens/hash
   const ensureSessionFromUrl = async (): Promise<boolean> => {
@@ -74,9 +75,32 @@ const ResetPasswordPage = () => {
         setErrorDesc(errorDescription || 'This password reset link is invalid or has expired. Please request a new one.');
         toast({
           title: 'Invalid Reset Link',
-          description: errorDescription || 'This password reset link is invalid or has expired. Please request a new one.',
+          description: errorDescription || 'This password reset link is invalid or has expired. We will send you a fresh link.',
           variant: 'destructive',
         });
+        // Auto-resend a fresh link when scanners consume the OTP
+        const emailParam = queryParams.get('email');
+        const shouldAutoResend = ['otp_expired','access_denied','one_time_token','token_not_found'].includes(errorCode);
+        if (emailParam && shouldAutoResend && !autoResentRef.current) {
+          try {
+            autoResentRef.current = true;
+            setResending(true);
+            await supabase.functions.invoke('send-password-reset', { body: { email: emailParam } });
+            toast({
+              title: 'Sent a fresh reset link',
+              description: `We sent a new link to ${emailParam}. Open the latest email on this device.`,
+            });
+          } catch (err: any) {
+            console.error('auto-resend failed:', err);
+            toast({
+              title: 'Could not resend automatically',
+              description: 'Tap "Resend" below or request again from the sign-in page.',
+              variant: 'destructive',
+            });
+          } finally {
+            setResending(false);
+          }
+        }
         // Continue to attempt session hydration just in case
       }
 
