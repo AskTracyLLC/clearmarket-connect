@@ -6,6 +6,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const htmlHeaders = {
+  "Content-Type": "text/html; charset=utf-8",
+  "Cache-Control": "no-store, no-cache, must-revalidate",
+  ...corsHeaders,
+};
+
 function htmlPage(title: string, bodyHtml: string) {
   return `<!doctype html>
 <html lang="en">
@@ -52,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Reset Link",
         `<h1>Missing email</h1><p>Please request a new password reset from the sign-in page.</p><a class="button" href="https://useclearmarket.io/auth">Go to Sign In</a>`
       );
-      return new Response(html, { status: 400, headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders } });
+      return new Response(html, { status: 400, headers: htmlHeaders });
     }
 
     const supabase = createClient(
@@ -69,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Continue to Reset Password",
         `<h1>Continue to Reset</h1><p>Click the button below to generate a fresh, secure reset link.</p><a class="button" href="${clickUrl.toString()}">Continue</a><p><small>If you didn’t request this, you can safely ignore this page.</small></p>`
       );
-      return new Response(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...corsHeaders } });
+      return new Response(html, { status: 200, headers: htmlHeaders });
     }
 
     // On explicit user click, generate a new recovery link and redirect to the Supabase action_link
@@ -87,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Reset Error",
         `<h1>Something went wrong</h1><p>We couldn't generate a reset link. Please request a new one from the sign-in page.</p><a class="button" href="https://useclearmarket.io/auth">Go to Sign In</a>`
       );
-      return new Response(html, { status: 500, headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders } });
+      return new Response(html, { status: 500, headers: htmlHeaders });
     }
 
     const actionLink = data.properties?.action_link;
@@ -96,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Reset Error",
         `<h1>Invalid reset</h1><p>Please request a new password reset from the sign-in page.</p><a class="button" href="https://useclearmarket.io/auth">Go to Sign In</a>`
       );
-      return new Response(html, { status: 400, headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders } });
+      return new Response(html, { status: 400, headers: htmlHeaders });
     }
 
     // Redirect user to the real Supabase action link (contains OTP/session tokens)
@@ -110,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
       "Reset Error",
       `<h1>Unexpected error</h1><p>Please try again later or request a new link from the sign-in page.</p><a class="button" href="https://useclearmarket.io/auth">Go to Sign In</a>`
     );
-    return new Response(html, { status: 500, headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders } });
+    return new Response(html, { status: 500, headers: htmlHeaders });
   }
 };
 
