@@ -63,6 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Human-gated step: show a page requiring a user click before generating a fresh OTP
     if (!go) {
       const clickUrl = new URL(req.url);
+      clickUrl.protocol = 'https:'; // Force HTTPS for security
       clickUrl.searchParams.set("go", "1");
       const html = htmlPage(
         "Continue to Reset Password",
