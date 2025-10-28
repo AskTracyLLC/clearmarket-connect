@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.reset-link-gateway]
 verify_jwt = false
+
+[functions.generate-admin-reset-link]
+verify_jwt = true
