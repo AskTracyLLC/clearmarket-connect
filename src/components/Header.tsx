@@ -21,6 +21,7 @@ import ClearMarketLogo from '@/components/ui/ClearMarketLogo';
 import ProfileDropdown from '@/components/ui/ProfileDropdown';
 import NotificationBell from '@/components/ui/NotificationBell';
 import SendFieldRepNetworkAlert from '@/components/FieldRepDashboard/SendFieldRepNetworkAlert';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   User, 
   LogOut, 
@@ -192,6 +193,9 @@ const Header = () => {
                     </Button>
                   </div>
 
+                  {/* Theme Toggle */}
+                  <ThemeToggle />
+
                   {/* Notifications */}
                   <NotificationBell />
 
@@ -278,6 +282,14 @@ const Header = () => {
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Buy More Credits
                       </Button>
+                    </div>
+
+                    {/* Theme Toggle for Mobile */}
+                    <div className="px-6 pb-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Theme</span>
+                        <ThemeToggle />
+                      </div>
                     </div>
 
                     {/* Navigation */}
