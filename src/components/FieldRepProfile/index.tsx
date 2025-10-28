@@ -31,6 +31,7 @@ const FieldRepProfile = () => {
   const { saveCoverageAreas, fetchCoverageAreas, loading: coverageLoading } = useCoverageAreas();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingCoverage, setIsSavingCoverage] = useState(false);
   
   const [profileCompletionStatus, setProfileCompletionStatus] = useState({
     personalInfoComplete: false,
@@ -163,11 +164,11 @@ const FieldRepProfile = () => {
   }, [profile, user, form, fetchProfile, fetchCoverageAreas]);
 
 
-  // Consolidated save function with timeout protection
+  // Save profile data only (excluding coverage areas)
   const handleSaveProfile = async () => {
     if (isSaving) return;
     
-    // Validate all required fields
+    // Validate all required personal info fields
     const requiredFields: (keyof FieldRepFormData)[] = [
       'firstName','lastName','email','city','state','zipCode','bio'
     ];
@@ -186,22 +187,7 @@ const FieldRepProfile = () => {
       return;
     }
 
-    // Validate coverage areas, platforms, and inspection types
     const values = form.getValues();
-    const missing: string[] = [];
-    if (coverageAreas.length === 0) missing.push('at least one coverage area');
-    if (!values.platforms?.length) missing.push('platforms');
-    if (!values.inspectionTypes?.length) missing.push('inspection types');
-    
-    if (missing.length > 0) {
-      toast({
-        title: "Incomplete Setup",
-        description: `Please add: ${missing.join(', ')}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSaving(true);
     
     // Add timeout protection (30 seconds)
@@ -210,43 +196,41 @@ const FieldRepProfile = () => {
     });
     
     try {
-      // Save with timeout protection
+      // Save profile data with timeout protection (NO coverage areas)
       await Promise.race([
-        Promise.all([
-          saveProfileToDb({
-            first_name: values.firstName,
-            last_name: values.lastName,
-            phone: values.phone,
-            city: values.city,
-            state: values.state,
-            zip_code: values.zipCode,
-            bio: values.bio,
-            hasAspenGrove: values.hasAspenGrove,
-            aspen_grove_id: values.aspenGroveId,
-            aspen_grove_expiration: values.aspenGroveExpiration,
-            aspen_grove_image: values.aspenGroveImage,
-            hasHudKeys: values.hasHudKeys,
-            hud_keys: values.hudKeys,
-            other_hud_key: values.otherHudKey,
-            platforms: values.platforms,
-            other_platform: values.otherPlatform,
-            inspection_types: values.inspectionTypes,
-            interested_in_beta: values.interestedInBeta,
-          }),
-          saveCoverageAreas(coverageAreas)
-        ]),
+        saveProfileToDb({
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phone,
+          city: values.city,
+          state: values.state,
+          zip_code: values.zipCode,
+          bio: values.bio,
+          hasAspenGrove: values.hasAspenGrove,
+          aspen_grove_id: values.aspenGroveId,
+          aspen_grove_expiration: values.aspenGroveExpiration,
+          aspen_grove_image: values.aspenGroveImage,
+          hasHudKeys: values.hasHudKeys,
+          hud_keys: values.hudKeys,
+          other_hud_key: values.otherHudKey,
+          platforms: values.platforms,
+          other_platform: values.otherPlatform,
+          inspection_types: values.inspectionTypes,
+          interested_in_beta: values.interestedInBeta,
+        }),
         timeoutPromise
       ]);
 
-      setProfileCompletionStatus({
+      // Update personal info and verification completion
+      setProfileCompletionStatus(prev => ({
+        ...prev,
         personalInfoComplete: true,
         verificationComplete: true,
-        coverageSetupComplete: true
-      });
+      }));
       
       toast({
         title: 'Profile Saved',
-        description: 'Your profile has been saved successfully!',
+        description: 'Your personal information has been saved successfully!',
       });
     } catch (error: any) {
       console.error('Save profile error:', error);
@@ -258,6 +242,63 @@ const FieldRepProfile = () => {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Save coverage areas separately (manual action)
+  const handleSaveCoverageAreas = async () => {
+    if (isSavingCoverage) return;
+
+    // Validate coverage areas, platforms, and inspection types
+    const values = form.getValues();
+    const missing: string[] = [];
+    if (coverageAreas.length === 0) missing.push('at least one coverage area');
+    if (!values.platforms?.length) missing.push('platforms');
+    if (!values.inspectionTypes?.length) missing.push('inspection types');
+    
+    if (missing.length > 0) {
+      toast({
+        title: "Incomplete Coverage Setup",
+        description: `Please add: ${missing.join(', ')}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingCoverage(true);
+    
+    // Add timeout protection (60 seconds for bulk operation)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Coverage save timed out. This is a large operation, please try again.')), 60000);
+    });
+    
+    try {
+      // Save coverage areas with timeout protection
+      await Promise.race([
+        saveCoverageAreas(coverageAreas),
+        timeoutPromise
+      ]);
+
+      // Update coverage setup completion
+      setProfileCompletionStatus(prev => ({
+        ...prev,
+        coverageSetupComplete: true,
+      }));
+      
+      toast({
+        title: 'Coverage Areas Saved',
+        description: 'Your coverage areas have been saved successfully!',
+      });
+    } catch (error: any) {
+      console.error('Save coverage error:', error);
+      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save coverage areas. Please try again.';
+      toast({
+        title: 'Coverage Save Failed',
+        description: msg,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingCoverage(false);
     }
   };
 
@@ -327,9 +368,31 @@ const FieldRepProfile = () => {
                 />
                 <PlatformsUsed form={form} />
                 <InspectionTypes form={form} />
+                
+                {/* Coverage Areas Save Button - Separate from profile save */}
+                <div className="rounded-lg border border-muted bg-card p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-foreground">Save Coverage Areas</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ⏱️ This may take 30-60 seconds depending on the number of counties selected. 
+                        Your profile data will be saved separately.
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleSaveCoverageAreas} 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    disabled={isSavingCoverage}
+                  >
+                    {isSavingCoverage ? 'Saving Coverage Areas...' : 'SAVE COVERAGE AREAS'}
+                  </Button>
+                </div>
               </div>
 
-              {/* Save Button */}
+              {/* Profile Save Button */}
               <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
                 <Button 
                   onClick={handleSaveProfile} 
