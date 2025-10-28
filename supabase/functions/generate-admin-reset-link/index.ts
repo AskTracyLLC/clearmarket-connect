@@ -44,11 +44,12 @@ serve(async (req) => {
     }
 
     // Check if user is admin
-    const { data: isAdmin, error: adminCheckError } = await supabaseAdmin.rpc('is_admin', {
-      user_id: user.id
+    const { data: isAdmin, error: adminCheckError } = await supabaseAdmin.rpc('is_admin_user', {
+      user_id_param: user.id
     });
 
     if (adminCheckError || !isAdmin) {
+      console.error('Admin check error:', adminCheckError);
       return new Response(
         JSON.stringify({ error: 'Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
