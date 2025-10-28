@@ -190,37 +190,37 @@ export const FeedbackBoardNew = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      {isAdmin ? (
-                        <Select 
-                          value={post.status} 
-                          onValueChange={(value) => handleStatusChange(post.id, value)}
-                        >
-                          <SelectTrigger className={`w-40 h-7 ${statusColors[post.status]}`}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="under-review">Under Review</SelectItem>
-                            <SelectItem value="future-release">Future Release</SelectItem>
-                            <SelectItem value="resolved">Resolved</SelectItem>
-                            <SelectItem value="archived">Archive</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        {isAdmin ? (
+                          <Select 
+                            value={post.status} 
+                            onValueChange={(value) => handleStatusChange(post.id, value)}
+                          >
+                            <SelectTrigger className={`w-40 h-7 ${statusColors[post.status]}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="new">New</SelectItem>
+                              <SelectItem value="under-review">Under Review</SelectItem>
+                              <SelectItem value="future-release">Future Release</SelectItem>
+                              <SelectItem value="resolved">Resolved</SelectItem>
+                              <SelectItem value="archived">Archive</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
                           <Badge variant="outline" className={statusColors[post.status]}>
                             {post.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </Badge>
-                          {getDaysUntilRemoval(post) !== null && (
-                            <span className="text-sm text-muted-foreground">
-                              {getDaysUntilRemoval(post)! > 0 
-                                ? `Removing in ${getDaysUntilRemoval(post)} day${getDaysUntilRemoval(post) !== 1 ? 's' : ''}`
-                                : 'Removing soon'
-                              }
-                            </span>
-                          )}
-                        </div>
-                      )}
+                        )}
+                        {getDaysUntilRemoval(post) !== null && (
+                          <span className="text-sm text-muted-foreground">
+                            {getDaysUntilRemoval(post)! > 0 
+                              ? `Removing in ${getDaysUntilRemoval(post)} day${getDaysUntilRemoval(post) !== 1 ? 's' : ''}`
+                              : 'Removing soon'
+                            }
+                          </span>
+                        )}
+                      </div>
                       <Badge variant="secondary">
                         {categoryLabels[post.category]}
                       </Badge>
