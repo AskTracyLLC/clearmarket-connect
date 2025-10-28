@@ -14,6 +14,7 @@ import { FeedbackDetailModal } from './FeedbackDetailModal';
 import { useToast } from '@/hooks/use-toast';
 
 const statusColors = {
+  'new': 'bg-orange-100 text-orange-800 border-orange-200',
   'under-review': 'bg-yellow-100 text-yellow-800 border-yellow-200',
   'future-release': 'bg-blue-100 text-blue-800 border-blue-200',
   'resolved': 'bg-green-100 text-green-800 border-green-200',
@@ -143,6 +144,7 @@ export const FeedbackBoardNew = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="new">New</SelectItem>
             <SelectItem value="under-review">Under Review</SelectItem>
             <SelectItem value="future-release">Future Release</SelectItem>
             <SelectItem value="resolved">Resolved</SelectItem>
@@ -197,6 +199,7 @@ export const FeedbackBoardNew = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
                             <SelectItem value="under-review">Under Review</SelectItem>
                             <SelectItem value="future-release">Future Release</SelectItem>
                             <SelectItem value="resolved">Resolved</SelectItem>

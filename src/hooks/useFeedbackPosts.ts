@@ -7,7 +7,7 @@ export interface FeedbackPost {
   title: string;
   description: string;
   category: 'bug-report' | 'feature-request';
-  status: 'under-review' | 'future-release' | 'resolved' | 'archived';
+  status: 'new' | 'under-review' | 'future-release' | 'resolved' | 'archived';
   upvotes: number;
   userHasUpvoted: boolean;
   userIsFollowing: boolean;
@@ -50,7 +50,7 @@ export const useFeedbackPosts = () => {
         title: post.title,
         description: post.description,
         category: post.category as 'bug-report' | 'feature-request',
-        status: post.status as 'under-review' | 'future-release' | 'resolved' | 'archived',
+        status: post.status as 'new' | 'under-review' | 'future-release' | 'resolved' | 'archived',
         upvotes: post.upvotes || 0,
         userHasUpvoted: false, // TODO: Implement upvote tracking
         userIsFollowing: false, // TODO: Implement follow tracking
