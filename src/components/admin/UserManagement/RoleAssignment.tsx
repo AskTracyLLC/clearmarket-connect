@@ -221,16 +221,30 @@ export const RoleAssignment = () => {
       setResetLink("");
       setCopiedLink(false);
 
-      // Call Supabase admin API to generate password reset link
-      const { data, error } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: user.email,
-      });
+      // Call edge function with service role to generate password reset link
+      const { data: { session } } = await supabase.auth.getSession();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/generate-admin-reset-link`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: user.email }),
+        }
+      );
 
-      if (error) throw error;
+      const result = await response.json();
 
-      if (data?.properties?.action_link) {
-        setResetLink(data.properties.action_link);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate reset link');
+      }
+
+      if (result.action_link) {
+        setResetLink(result.action_link);
         toast({
           title: "Reset Link Generated",
           description: `Password reset link created for ${user.display_name}`,
