@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ThumbsUp, MessageSquare, Bell, BellOff, Plus } from 'lucide-react';
 import { useFeedbackPosts, FeedbackPost } from '@/hooks/useFeedbackPosts';
 import { useFeedbackAuth } from '@/hooks/useFeedbackAuth';
+import { useSecureAuth } from '@/hooks/useSecureAuth';
 import { FeedbackSubmissionModal } from './FeedbackSubmissionModal';
 import { FeedbackDetailModal } from './FeedbackDetailModal';
+import { useToast } from '@/hooks/use-toast';
 
 const statusColors = {
   'under-review': 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -29,7 +31,9 @@ export const FeedbackBoardNew = () => {
   console.log('🔥 Component starting...');
   
   const { user: feedbackUser } = useFeedbackAuth();
-  const { posts, loading, createPost } = useFeedbackPosts();
+  const { posts, loading, createPost, updatePost } = useFeedbackPosts();
+  const { isAdmin } = useSecureAuth();
+  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -68,6 +72,23 @@ export const FeedbackBoardNew = () => {
   const handleFollow = (postId: string) => {
     console.log('🔔 Follow clicked for post:', postId);
     // TODO: Implement follow functionality
+  };
+
+  const handleStatusChange = async (postId: string, newStatus: string) => {
+    try {
+      await updatePost(postId, { status: newStatus as any });
+      toast({
+        title: "Status updated",
+        description: `Post status changed to ${newStatus.replace('-', ' ')}`,
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredAndSortedPosts = posts
@@ -147,9 +168,27 @@ export const FeedbackBoardNew = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className={statusColors[post.status]}>
-                        {post.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </Badge>
+                      {isAdmin ? (
+                        <Select 
+                          value={post.status} 
+                          onValueChange={(value) => handleStatusChange(post.id, value)}
+                        >
+                          <SelectTrigger className={`w-40 h-7 ${statusColors[post.status]}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="under-review">Under Review</SelectItem>
+                            <SelectItem value="planned">Planned</SelectItem>
+                            <SelectItem value="in-progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge variant="outline" className={statusColors[post.status]}>
+                          {post.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </Badge>
+                      )}
                       <Badge variant="secondary">
                         {categoryLabels[post.category]}
                       </Badge>
