@@ -46,8 +46,6 @@ export const RoleAssignment = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedUserForLimit, setSelectedUserForLimit] = useState<UserProfile | null>(null);
   const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
-  const [resetLink, setResetLink] = useState<string>("");
-  const [copiedLink, setCopiedLink] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -218,72 +216,38 @@ export const RoleAssignment = () => {
   const generatePasswordResetLink = async (user: UserProfile) => {
     try {
       setResetLinkUser(user);
-      setResetLink("");
-      setCopiedLink(false);
 
-      // Call edge function with service role to generate password reset link
-      const { data: { session } } = await supabase.auth.getSession();
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      
-      console.log('Calling generate-admin-reset-link with:', { email: user.email });
-      
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/generate-admin-reset-link`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: user.email }),
-        }
-      );
+      // Trigger Supabase's built-in password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-      
-      let result;
-      try {
-        result = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse response:', parseError);
-        throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
+      if (error) {
+        throw error;
       }
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to generate reset link');
-      }
-
-      if (result.action_link) {
-        setResetLink(result.action_link);
-        toast({
-          title: "Reset Link Generated",
-          description: `Password reset link created for ${user.display_name}`,
-        });
-      }
+      toast({
+        title: "Password Reset Email Sent",
+        description: `A password reset email has been sent to ${user.email}`,
+      });
+      
+      // Close the modal after short delay
+      setTimeout(() => {
+        setResetLinkUser(null);
+      }, 2000);
+      
     } catch (error: any) {
-      console.error('Error generating reset link:', error);
+      console.error('Error sending reset email:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to generate password reset link",
+        description: error.message || "Failed to send password reset email",
         variant: "destructive"
       });
     }
   };
 
   const copyResetLink = () => {
-    if (resetLink) {
-      navigator.clipboard.writeText(resetLink);
-      setCopiedLink(true);
-      toast({
-        title: "Copied!",
-        description: "Password reset link copied to clipboard",
-      });
-      setTimeout(() => setCopiedLink(false), 2000);
-    }
+    // Deprecated - no longer used
   };
 
   // Filter and sort users
@@ -589,17 +553,15 @@ export const RoleAssignment = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Password Reset Link Modal */}
+      {/* Password Reset Modal */}
       <Dialog open={!!resetLinkUser} onOpenChange={(open) => {
         if (!open) {
           setResetLinkUser(null);
-          setResetLink("");
-          setCopiedLink(false);
         }
       }}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Password Reset Link</DialogTitle>
+            <DialogTitle>Password Reset</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -610,34 +572,9 @@ export const RoleAssignment = () => {
                 Email: <span className="font-medium text-foreground">{resetLinkUser?.email}</span>
               </p>
             </div>
-            
-            {resetLink ? (
-              <div className="space-y-3">
-                <div className="p-3 bg-muted rounded-lg break-all text-sm font-mono">
-                  {resetLink}
-                </div>
-                <Button onClick={copyResetLink} className="w-full">
-                  {copiedLink ? (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Link
-                    </>
-                  )}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Send this link to the user to reset their password. This link expires in 1 hour.
-                </p>
-              </div>
-            ) : (
-              <div className="flex justify-center py-4">
-                <RefreshCw className="h-6 w-6 animate-spin" />
-              </div>
-            )}
+            <div className="rounded-md bg-primary/10 p-4 text-sm text-center">
+              A password reset email will be sent to the user's email address.
+            </div>
           </div>
         </DialogContent>
       </Dialog>
