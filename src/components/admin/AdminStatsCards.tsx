@@ -81,51 +81,51 @@ export const AdminStatsCards = () => {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      // Fetch user counts
-      const vendorsResult: any = await (supabase as any)
-        .from('user_profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_type', 'vendor');
+      // Fetch user counts from users table by role
+      const { count: vendorCount } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'vendor');
 
-      const fieldRepsResult: any = await (supabase as any)
-        .from('user_profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_type', 'field-rep');
+      const { count: fieldRepCount } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'field_rep');
 
       // Fetch coverage and posts
-      const coverageResult: any = await (supabase as any)
+      const { count: coverageCount } = await supabase
         .from('coverage_requests')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .eq('status', 'active');
 
-      const postsResult: any = await (supabase as any)
+      const { count: postsCount } = await supabase
         .from('community_posts')
-        .select('id', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true });
 
-      const flaggedResult: any = await (supabase as any)
+      const { count: flaggedCount } = await supabase
         .from('community_posts')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .eq('flagged', true);
 
       // Fetch ZIP data
-      const totalZipsResult: any = await (supabase as any)
+      const { count: totalZipsCount } = await supabase
         .from('zip_county_classifications')
-        .select('id', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true });
 
-      const ruralZipsResult: any = await (supabase as any)
+      const { count: ruralZipsCount } = await supabase
         .from('zip_county_classifications')
-        .select('id', { count: 'exact', head: true })
-        .eq('rural_urban', 'Rural');
+        .select('*', { count: 'exact', head: true })
+        .eq('rural_urban_designation', 'Rural');
 
-      const urbanZipsResult: any = await (supabase as any)
+      const { count: urbanZipsCount } = await supabase
         .from('zip_county_classifications')
-        .select('id', { count: 'exact', head: true })
-        .eq('rural_urban', 'Urban');
+        .select('*', { count: 'exact', head: true })
+        .eq('rural_urban_designation', 'Urban');
 
       // Fetch transactions
-      const unlocksResult: any = await (supabase as any)
+      const { count: unlocksCount } = await supabase
         .from('contact_unlocks')
-        .select('id', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString());
 
       const { data: creditsData } = await supabase
@@ -138,17 +138,17 @@ export const AdminStatsCards = () => {
       const monthlyBoosts = creditsData?.filter(tx => tx.transaction_type === 'boost_profile').length || 0;
 
       setStats({
-        vendors: vendorsResult.count || 0,
-        fieldReps: fieldRepsResult.count || 0,
-        coverageRequests: coverageResult.count || 0,
-        communityPosts: postsResult.count || 0,
-        flaggedPosts: flaggedResult.count || 0,
-        monthlyUnlocks: unlocksResult.count || 0,
+        vendors: vendorCount || 0,
+        fieldReps: fieldRepCount || 0,
+        coverageRequests: coverageCount || 0,
+        communityPosts: postsCount || 0,
+        flaggedPosts: flaggedCount || 0,
+        monthlyUnlocks: unlocksCount || 0,
         monthlyBoosts,
         totalRevenue,
-        totalZips: totalZipsResult.count || 0,
-        ruralZips: ruralZipsResult.count || 0,
-        urbanZips: urbanZipsResult.count || 0,
+        totalZips: totalZipsCount || 0,
+        ruralZips: ruralZipsCount || 0,
+        urbanZips: urbanZipsCount || 0,
       });
     } catch (error) {
       console.error('Error fetching admin stats:', error);
