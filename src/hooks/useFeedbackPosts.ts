@@ -7,7 +7,7 @@ export interface FeedbackPost {
   title: string;
   description: string;
   category: 'bug-report' | 'feature-request';
-  status: 'under-review' | 'planned' | 'in-progress' | 'completed' | 'closed';
+  status: 'under-review' | 'future-release' | 'resolved' | 'archived';
   upvotes: number;
   userHasUpvoted: boolean;
   userIsFollowing: boolean;
@@ -15,6 +15,8 @@ export interface FeedbackPost {
   createdAt: string;
   user_id: string;
   screenshot_urls?: string[];
+  status_changed_at?: string;
+  removed_at?: string;
 }
 
 export interface FeedbackComment {
@@ -48,14 +50,16 @@ export const useFeedbackPosts = () => {
         title: post.title,
         description: post.description,
         category: post.category as 'bug-report' | 'feature-request',
-        status: post.status as 'under-review' | 'planned' | 'in-progress' | 'completed' | 'closed',
+        status: post.status as 'under-review' | 'future-release' | 'resolved' | 'archived',
         upvotes: post.upvotes || 0,
         userHasUpvoted: false, // TODO: Implement upvote tracking
         userIsFollowing: false, // TODO: Implement follow tracking
         author: post.author,
         createdAt: new Date(post.created_at).toISOString().split('T')[0],
         user_id: post.user_id,
-        screenshot_urls: post.screenshot_urls || []
+        screenshot_urls: post.screenshot_urls || [],
+        status_changed_at: post.status_changed_at,
+        removed_at: post.removed_at
       }));
 
       console.log('✅ Transformed posts:', transformedPosts);

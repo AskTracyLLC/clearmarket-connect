@@ -1414,8 +1414,10 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          removed_at: string | null
           screenshot_urls: string[] | null
           status: string
+          status_changed_at: string | null
           title: string
           updated_at: string
           upvotes: number
@@ -1428,8 +1430,10 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          removed_at?: string | null
           screenshot_urls?: string[] | null
           status?: string
+          status_changed_at?: string | null
           title: string
           updated_at?: string
           upvotes?: number
@@ -1442,8 +1446,10 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          removed_at?: string | null
           screenshot_urls?: string[] | null
           status?: string
+          status_changed_at?: string | null
           title?: string
           updated_at?: string
           upvotes?: number
@@ -4402,6 +4408,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      auto_remove_old_feedback_posts: { Args: never; Returns: undefined }
       award_credit: {
         Args: {
           credit_amount: number

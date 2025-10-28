@@ -15,10 +15,9 @@ import { useToast } from '@/hooks/use-toast';
 
 const statusColors = {
   'under-review': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'planned': 'bg-blue-100 text-blue-800 border-blue-200',
-  'in-progress': 'bg-purple-100 text-purple-800 border-purple-200',
-  'completed': 'bg-green-100 text-green-800 border-green-200',
-  'closed': 'bg-gray-100 text-gray-800 border-gray-200'
+  'future-release': 'bg-blue-100 text-blue-800 border-blue-200',
+  'resolved': 'bg-green-100 text-green-800 border-green-200',
+  'archived': 'bg-gray-100 text-gray-800 border-gray-200'
 };
 
 const categoryLabels = {
@@ -77,9 +76,14 @@ export const FeedbackBoardNew = () => {
   const handleStatusChange = async (postId: string, newStatus: string) => {
     try {
       await updatePost(postId, { status: newStatus as any });
+      const removalMessage = newStatus === 'resolved' 
+        ? ' This post will be removed from public view in 7 days.' 
+        : newStatus === 'archived' 
+        ? ' This post will be removed from public view in 14 days.' 
+        : '';
       toast({
         title: "Status updated",
-        description: `Post status changed to ${newStatus.replace('-', ' ')}`,
+        description: `Post status changed to ${newStatus.replace('-', ' ')}.${removalMessage}`,
       });
     } catch (error) {
       console.error('Error updating status:', error);
@@ -89,6 +93,23 @@ export const FeedbackBoardNew = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getDaysUntilRemoval = (post: FeedbackPost) => {
+    if (!post.status_changed_at) return null;
+    
+    const statusDate = new Date(post.status_changed_at);
+    const now = new Date();
+    const daysSinceChange = Math.floor((now.getTime() - statusDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (post.status === 'resolved') {
+      const daysLeft = 7 - daysSinceChange;
+      return daysLeft > 0 ? daysLeft : 0;
+    } else if (post.status === 'archived') {
+      const daysLeft = 14 - daysSinceChange;
+      return daysLeft > 0 ? daysLeft : 0;
+    }
+    return null;
   };
 
   const filteredAndSortedPosts = posts
@@ -123,10 +144,9 @@ export const FeedbackBoardNew = () => {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="under-review">Under Review</SelectItem>
-            <SelectItem value="planned">Planned</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
+            <SelectItem value="future-release">Future Release</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
 
@@ -178,16 +198,25 @@ export const FeedbackBoardNew = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="under-review">Under Review</SelectItem>
-                            <SelectItem value="planned">Planned</SelectItem>
-                            <SelectItem value="in-progress">In Progress</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="closed">Closed</SelectItem>
+                            <SelectItem value="future-release">Future Release</SelectItem>
+                            <SelectItem value="resolved">Resolved</SelectItem>
+                            <SelectItem value="archived">Archive</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge variant="outline" className={statusColors[post.status]}>
-                          {post.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className={statusColors[post.status]}>
+                            {post.status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </Badge>
+                          {getDaysUntilRemoval(post) !== null && (
+                            <span className="text-sm text-muted-foreground">
+                              {getDaysUntilRemoval(post)! > 0 
+                                ? `Removing in ${getDaysUntilRemoval(post)} day${getDaysUntilRemoval(post) !== 1 ? 's' : ''}`
+                                : 'Removing soon'
+                              }
+                            </span>
+                          )}
+                        </div>
                       )}
                       <Badge variant="secondary">
                         {categoryLabels[post.category]}
