@@ -163,7 +163,7 @@ const FieldRepProfile = () => {
   }, [profile, user, form, fetchProfile, fetchCoverageAreas]);
 
 
-  // Consolidated save function
+  // Consolidated save function with timeout protection
   const handleSaveProfile = async () => {
     if (isSaving) return;
     
@@ -203,30 +203,39 @@ const FieldRepProfile = () => {
     }
 
     setIsSaving(true);
+    
+    // Add timeout protection (30 seconds)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Save operation timed out. Please check your internet connection and try again.')), 30000);
+    });
+    
     try {
-      // Save all profile data and coverage areas
-      await Promise.all([
-        saveProfileToDb({
-          first_name: values.firstName,
-          last_name: values.lastName,
-          phone: values.phone,
-          city: values.city,
-          state: values.state,
-          zip_code: values.zipCode,
-          bio: values.bio,
-          hasAspenGrove: values.hasAspenGrove,
-          aspen_grove_id: values.aspenGroveId,
-          aspen_grove_expiration: values.aspenGroveExpiration,
-          aspen_grove_image: values.aspenGroveImage,
-          hasHudKeys: values.hasHudKeys,
-          hud_keys: values.hudKeys,
-          other_hud_key: values.otherHudKey,
-          platforms: values.platforms,
-          other_platform: values.otherPlatform,
-          inspection_types: values.inspectionTypes,
-          interested_in_beta: values.interestedInBeta,
-        }),
-        saveCoverageAreas(coverageAreas)
+      // Save with timeout protection
+      await Promise.race([
+        Promise.all([
+          saveProfileToDb({
+            first_name: values.firstName,
+            last_name: values.lastName,
+            phone: values.phone,
+            city: values.city,
+            state: values.state,
+            zip_code: values.zipCode,
+            bio: values.bio,
+            hasAspenGrove: values.hasAspenGrove,
+            aspen_grove_id: values.aspenGroveId,
+            aspen_grove_expiration: values.aspenGroveExpiration,
+            aspen_grove_image: values.aspenGroveImage,
+            hasHudKeys: values.hasHudKeys,
+            hud_keys: values.hudKeys,
+            other_hud_key: values.otherHudKey,
+            platforms: values.platforms,
+            other_platform: values.otherPlatform,
+            inspection_types: values.inspectionTypes,
+            interested_in_beta: values.interestedInBeta,
+          }),
+          saveCoverageAreas(coverageAreas)
+        ]),
+        timeoutPromise
       ]);
 
       setProfileCompletionStatus({
