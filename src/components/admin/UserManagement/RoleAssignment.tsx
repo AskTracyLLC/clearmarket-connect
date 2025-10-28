@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield } from "lucide-react";
+import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield, Key, Copy, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ConnectionLimitManager } from "./ConnectionLimitManager";
@@ -45,6 +45,9 @@ export const RoleAssignment = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedUserForLimit, setSelectedUserForLimit] = useState<UserProfile | null>(null);
+  const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
+  const [resetLink, setResetLink] = useState<string>("");
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -202,6 +205,49 @@ export const RoleAssignment = () => {
       title: "Impersonation Started",
       description: `You are now impersonating ${user.display_name}`,
     });
+  };
+
+  const generatePasswordResetLink = async (user: UserProfile) => {
+    try {
+      setResetLinkUser(user);
+      setResetLink("");
+      setCopiedLink(false);
+
+      // Call Supabase admin API to generate password reset link
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: user.email,
+      });
+
+      if (error) throw error;
+
+      if (data?.properties?.action_link) {
+        setResetLink(data.properties.action_link);
+        toast({
+          title: "Reset Link Generated",
+          description: `Password reset link created for ${user.display_name}`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating reset link:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate password reset link",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const copyResetLink = () => {
+    if (resetLink) {
+      navigator.clipboard.writeText(resetLink);
+      setCopiedLink(true);
+      toast({
+        title: "Copied!",
+        description: "Password reset link copied to clipboard",
+      });
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
   };
 
   // Filter and sort users
@@ -467,6 +513,14 @@ export const RoleAssignment = () => {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => generatePasswordResetLink(user)}
+                              title="Generate Password Reset Link"
+                            >
+                              <Key className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleImpersonate(user)}
                             >
                               <Eye className="h-4 w-4 mr-2" />
@@ -496,6 +550,59 @@ export const RoleAssignment = () => {
               displayName={selectedUserForLimit.display_name}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Link Modal */}
+      <Dialog open={!!resetLinkUser} onOpenChange={(open) => {
+        if (!open) {
+          setResetLinkUser(null);
+          setResetLink("");
+          setCopiedLink(false);
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Password Reset Link</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                User: <span className="font-medium text-foreground">{resetLinkUser?.display_name}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Email: <span className="font-medium text-foreground">{resetLinkUser?.email}</span>
+              </p>
+            </div>
+            
+            {resetLink ? (
+              <div className="space-y-3">
+                <div className="p-3 bg-muted rounded-lg break-all text-sm font-mono">
+                  {resetLink}
+                </div>
+                <Button onClick={copyResetLink} className="w-full">
+                  {copiedLink ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Link
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Send this link to the user to reset their password. This link expires in 1 hour.
+                </p>
+              </div>
+            ) : (
+              <div className="flex justify-center py-4">
+                <RefreshCw className="h-6 w-6 animate-spin" />
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </Card>
