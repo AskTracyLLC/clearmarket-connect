@@ -46,6 +46,7 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
     { value: "user_created", label: "User Created" },
     { value: "trust_score_update", label: "Trust Score Updates" },
     { value: "password_change", label: "Password Changes" },
+    { value: "admin_password_reset_sent", label: "Admin Password Resets" },
     { value: "email_change", label: "Email Changes" },
     { value: "coverage_update", label: "Coverage Updates" },
   ];
@@ -216,6 +217,8 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
         return 'Email address updated';
       case 'password_change':
         return 'Password changed';
+      case 'admin_password_reset_sent':
+        return `Password reset email sent to ${log.metadata?.target_email || log.metadata?.target_username || 'user'}`;
       case 'trust_score_update':
         return `Trust score updated to ${log.metadata?.new_score}`;
       case 'coverage_update':
@@ -234,6 +237,7 @@ export const UserActivityLog = ({ targetUserId, showUserFilter = true }: UserAct
       profile_update: 'secondary',
       email_change: 'secondary',
       password_change: 'secondary',
+      admin_password_reset_sent: 'secondary',
       trust_score_update: 'default',
       coverage_update: 'secondary',
       user_created: 'default'
