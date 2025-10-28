@@ -226,12 +226,16 @@ export const RoleAssignment = () => {
         throw resetError;
       }
 
+      console.log('Password reset email sent, now logging to audit log...');
+
       // Get current user for audit log
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      
+      console.log('Current user:', currentUser?.id, 'Error:', userError);
 
       // Log the action to audit log
-      const { error: auditError } = await supabase.from('audit_log').insert({
-        user_id: currentUser?.id,
+      const auditData = {
+        user_id: currentUser?.id || null,
         action: 'admin_password_reset_sent',
         target_table: 'users',
         target_id: user.user_id,
@@ -241,11 +245,23 @@ export const RoleAssignment = () => {
           target_display_name: user.display_name,
         },
         performed_by_admin: true,
-      });
+      };
+
+      console.log('Attempting to insert audit log:', auditData);
+
+      const { data: auditResult, error: auditError } = await supabase
+        .from('audit_log')
+        .insert(auditData);
 
       if (auditError) {
-        console.error('Error logging to audit log:', auditError);
-        // Don't fail the whole operation if audit log fails
+        console.error('Audit log insert error:', auditError);
+        toast({
+          title: "Warning",
+          description: "Password reset sent but failed to log action",
+          variant: "default",
+        });
+      } else {
+        console.log('Audit log insert successful:', auditResult);
       }
 
       toast({
