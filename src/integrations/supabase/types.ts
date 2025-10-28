@@ -4930,6 +4930,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      sync_coverage_areas_v2: {
+        Args: { p_payload: Json; p_username: string }
+        Returns: {
+          deleted: number
+          inserted: number
+          updated: number
+        }[]
+      }
       text_to_bytea: { Args: { data: string }; Returns: string }
       toggle_user_activation: {
         Args: { is_active_param: boolean; target_user_id: string }
