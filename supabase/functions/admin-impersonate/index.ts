@@ -111,7 +111,8 @@ serve(async (req) => {
     }
 
     // Generate short-lived JWT with impersonation claims
-    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET') || Deno.env.get('JWT_SECRET');
+    console.log('Available env vars:', Object.keys(Deno.env.toObject()));
     if (!jwtSecret) {
       throw new Error('JWT secret not configured');
     }
