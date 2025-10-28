@@ -61,11 +61,14 @@ const handler = async (req: Request): Promise<Response> => {
       : (userData.anonymous_username || 'there');
 
     // Generate password reset link using Supabase Auth
+    // Use environment variable for base URL or fallback to Lovable preview
+    const baseUrl = Deno.env.get('APP_BASE_URL') || 'https://34544cc9-f36f-4fa8-8a05-17348470ccfc.lovableproject.com';
+    
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: normalizedEmail,
       options: {
-        redirectTo: `https://useclearmarket.io/reset-password?email=${encodeURIComponent(normalizedEmail)}`
+        redirectTo: `${baseUrl}/reset-password?email=${encodeURIComponent(normalizedEmail)}`
       }
     });
 
@@ -95,7 +98,9 @@ const handler = async (req: Request): Promise<Response> => {
       const projectRef = host.split('.')[0];
       functionsBase = `https://${projectRef}.functions.supabase.co`;
     } catch { /* no-op */ }
-    const gatewayLink = `https://useclearmarket.io/password-reset-gateway?email=${encodeURIComponent(normalizedEmail)}`;
+    
+    // Use the same base URL for gateway link
+    const gatewayLink = `${baseUrl}/password-reset-gateway?email=${encodeURIComponent(normalizedEmail)}`;
 
     const replacements = {
       '{{anonymous_username}}': anonymousUsername,
