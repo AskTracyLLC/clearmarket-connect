@@ -226,6 +226,19 @@ export const RoleAssignment = () => {
         throw error;
       }
 
+      // Log the action to audit log
+      await supabase.from('audit_log').insert({
+        action: 'admin_password_reset_sent',
+        target_table: 'users',
+        target_id: user.user_id,
+        metadata: {
+          target_email: user.email,
+          target_username: user.username,
+          target_display_name: user.display_name,
+        },
+        performed_by_admin: true,
+      });
+
       toast({
         title: "Password Reset Email Sent",
         description: `A password reset email has been sent to ${user.email}`,
