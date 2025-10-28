@@ -14,6 +14,7 @@ export interface FeedbackPost {
   author: string;
   createdAt: string;
   user_id: string;
+  screenshot_urls?: string[];
 }
 
 export interface FeedbackComment {
@@ -53,7 +54,8 @@ export const useFeedbackPosts = () => {
         userIsFollowing: false, // TODO: Implement follow tracking
         author: post.author,
         createdAt: new Date(post.created_at).toISOString().split('T')[0],
-        user_id: post.user_id
+        user_id: post.user_id,
+        screenshot_urls: post.screenshot_urls || []
       }));
 
       console.log('✅ Transformed posts:', transformedPosts);
