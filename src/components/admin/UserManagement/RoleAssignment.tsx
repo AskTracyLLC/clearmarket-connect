@@ -218,16 +218,20 @@ export const RoleAssignment = () => {
       setResetLinkUser(user);
 
       // Trigger Supabase's built-in password reset email
-      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(user.email, {
         redirectTo: `${window.location.origin}/reset-password`
       });
 
-      if (error) {
-        throw error;
+      if (resetError) {
+        throw resetError;
       }
 
+      // Get current user for audit log
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
       // Log the action to audit log
-      await supabase.from('audit_log').insert({
+      const { error: auditError } = await supabase.from('audit_log').insert({
+        user_id: currentUser?.id,
         action: 'admin_password_reset_sent',
         target_table: 'users',
         target_id: user.user_id,
@@ -238,6 +242,11 @@ export const RoleAssignment = () => {
         },
         performed_by_admin: true,
       });
+
+      if (auditError) {
+        console.error('Error logging to audit log:', auditError);
+        // Don't fail the whole operation if audit log fails
+      }
 
       toast({
         title: "Password Reset Email Sent",
