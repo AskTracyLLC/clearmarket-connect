@@ -53,36 +53,44 @@ export const RoleAssignment = () => {
     try {
       setLoading(true);
       
-      // First get user profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('*');
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        return;
-      }
-
-      // Then get user data with roles and other fields
+      // Get all users with their data
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('id, role, trust_score, community_score, display_name, last_active');
+        .select('id, email, role, trust_score, community_score, display_name, anonymous_username, last_active');
 
       if (usersError) {
         console.error('Error fetching users:', usersError);
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          variant: "destructive"
+        });
         return;
       }
 
-      // Combine the data
-      const combinedData = profiles?.map(profile => {
-        const userData = usersData?.find(user => user.id === profile.user_id);
+      // Try to get additional profile data from user_profiles (optional)
+      const { data: profilesData } = await supabase
+        .from('user_profiles')
+        .select('user_id, first_name, last_name, phone, join_date, is_active');
+
+      // Combine the data - users table is the source of truth
+      const combinedData = usersData?.map(user => {
+        const profile = profilesData?.find(p => p.user_id === user.id);
         return {
-          ...profile,
-          role: userData?.role || 'field_rep',
-          trust_score: userData?.trust_score || 0,
-          community_score: userData?.community_score || 0,
-          display_name: userData?.display_name || `${profile.first_name} ${profile.last_name}`.trim(),
-          last_active: userData?.last_active || null
+          id: user.id,
+          user_id: user.id,
+          first_name: profile?.first_name || null,
+          last_name: profile?.last_name || null,
+          username: user.anonymous_username || user.display_name || 'Unknown',
+          email: user.email || 'No email',
+          phone: profile?.phone || null,
+          join_date: profile?.join_date || new Date().toISOString(),
+          is_active: profile?.is_active ?? true,
+          role: user.role,
+          trust_score: user.trust_score || 0,
+          community_score: user.community_score || 0,
+          display_name: user.display_name || user.anonymous_username || 'Unknown',
+          last_active: user.last_active || null
         };
       }) || [];
 
