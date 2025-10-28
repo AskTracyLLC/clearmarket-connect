@@ -84,7 +84,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           performed_by_admin: boolean | null
           target_id: string | null
@@ -96,7 +96,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           performed_by_admin?: boolean | null
           target_id?: string | null
@@ -108,7 +108,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           performed_by_admin?: boolean | null
           target_id?: string | null
@@ -1291,7 +1291,7 @@ export type Database = {
           created_at: string | null
           document_id: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           shared_with: string | null
           user_agent: string | null
         }
@@ -1301,7 +1301,7 @@ export type Database = {
           created_at?: string | null
           document_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           shared_with?: string | null
           user_agent?: string | null
         }
@@ -1311,7 +1311,7 @@ export type Database = {
           created_at?: string | null
           document_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           shared_with?: string | null
           user_agent?: string | null
         }
@@ -1755,6 +1755,92 @@ export type Database = {
           },
         ]
       }
+      impersonation_sessions: {
+        Row: {
+          admin_id: string
+          created_at: string
+          ended_at: string | null
+          expires_at: string
+          id: string
+          ip_address: string | null
+          read_only: boolean
+          reason: string
+          scopes: string[]
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          ended_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          read_only?: boolean
+          reason: string
+          scopes?: string[]
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          ended_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          read_only?: boolean
+          reason?: string
+          scopes?: string[]
+          target_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      impersonation_writes: {
+        Row: {
+          action: string
+          happened_at: string
+          id: string
+          metadata: Json | null
+          payload_sha256: string | null
+          resource: string | null
+          result: string | null
+          route: string
+          session_id: string
+        }
+        Insert: {
+          action: string
+          happened_at?: string
+          id?: string
+          metadata?: Json | null
+          payload_sha256?: string | null
+          resource?: string | null
+          result?: string | null
+          route: string
+          session_id: string
+        }
+        Update: {
+          action?: string
+          happened_at?: string
+          id?: string
+          metadata?: Json | null
+          payload_sha256?: string | null
+          resource?: string | null
+          result?: string | null
+          route?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impersonation_writes_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "impersonation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_users: {
         Row: {
           access_expiration: string | null
@@ -1814,7 +1900,7 @@ export type Database = {
           feature_name: string
           id: string
           interested_features: string[] | null
-          ip_address: unknown | null
+          ip_address: unknown
           last_engagement: string | null
           notes: string | null
           notified_at: string | null
@@ -1843,7 +1929,7 @@ export type Database = {
           feature_name?: string
           id?: string
           interested_features?: string[] | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_engagement?: string | null
           notes?: string | null
           notified_at?: string | null
@@ -1872,7 +1958,7 @@ export type Database = {
           feature_name?: string
           id?: string
           interested_features?: string[] | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           last_engagement?: string | null
           notes?: string | null
           notified_at?: string | null
@@ -2188,7 +2274,7 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           status: string
           user_agent: string | null
@@ -2198,7 +2284,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           status: string
           user_agent?: string | null
@@ -2208,7 +2294,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           status?: string
           user_agent?: string | null
@@ -4301,10 +4387,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      add_new_role_type: {
-        Args: { new_role_name: string }
-        Returns: boolean
-      }
+      add_new_role_type: { Args: { new_role_name: string }; Returns: boolean }
       admin_set_connection_request_limit: {
         Args: { new_limit: number; target_user_id: string }
         Returns: boolean
@@ -4324,9 +4407,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      award_credits: {
-        Args:
-          | {
+      award_credits:
+        | {
+            Args: {
               credit_amount: number
               metadata_param?: Json
               reference_id_param?: string
@@ -4334,15 +4417,18 @@ export type Database = {
               rule_name_param: string
               target_user_id: string
             }
-          | {
+            Returns: boolean
+          }
+        | {
+            Args: {
               metadata_param?: Json
               reference_id_param?: string
               reference_type_param?: string
               rule_name_param: string
               target_user_id: string
             }
-        Returns: boolean
-      }
+            Returns: boolean
+          }
       award_rep_points: {
         Args: {
           metadata_param?: Json
@@ -4354,10 +4440,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      bytea_to_text: {
-        Args: { data: string }
-        Returns: string
-      }
+      bytea_to_text: { Args: { data: string }; Returns: string }
       calculate_response_metrics: {
         Args: { period_days?: number; target_user_id: string }
         Returns: undefined
@@ -4370,13 +4453,14 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: number
       }
-      can_create_flag: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      can_create_flag: { Args: { user_id: string }; Returns: boolean }
       can_send_connection_request: {
         Args: { recipient_user_id: string; sender_user_id: string }
         Returns: Json
+      }
+      can_start_impersonation: {
+        Args: { admin_id_param: string }
+        Returns: boolean
       }
       can_submit_review: {
         Args: { reviewer_user_id: string; target_user_id: string }
@@ -4390,10 +4474,7 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
-      check_document_expiration: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      check_document_expiration: { Args: never; Returns: undefined }
       check_rate_limit: {
         Args: {
           max_attempts?: number
@@ -4407,10 +4488,7 @@ export type Database = {
         Args: { file_size_bytes: number; target_user_id: string }
         Returns: boolean
       }
-      cleanup_expired_ai_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_ai_data: { Args: never; Returns: undefined }
       complete_beta_registration: {
         Args: { registration_token: string; user_password: string }
         Returns: Json
@@ -4419,18 +4497,16 @@ export type Database = {
         Args: { request_id_param: string }
         Returns: boolean
       }
-      ensure_admin_exists: {
-        Args: Record<PropertyKey, never>
+      end_impersonation_session: {
+        Args: { session_id_param: string }
         Returns: boolean
       }
+      ensure_admin_exists: { Args: never; Returns: boolean }
       ensure_role_counter_exists: {
         Args: { role_name: string }
         Returns: undefined
       }
-      expire_old_connection_requests: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      expire_old_connection_requests: { Args: never; Returns: undefined }
       generate_anonymous_username: {
         Args: { user_type_param?: string }
         Returns: string
@@ -4449,7 +4525,7 @@ export type Database = {
         }[]
       }
       get_beta_testers_with_nda_status: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -4502,6 +4578,12 @@ export type Database = {
           updated_at: string
           user_id: string
         }
+        SetofOptions: {
+          from: "*"
+          to: "user_preferences"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_pending_review_reminders: {
         Args: { target_user_id: string }
@@ -4514,7 +4596,7 @@ export type Database = {
         }[]
       }
       get_role_counters: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           counter: number
           created_at: string
@@ -4522,7 +4604,7 @@ export type Database = {
         }[]
       }
       get_signup_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           beta_interested: number
           field_rep_signups: number
@@ -4560,10 +4642,7 @@ export type Database = {
           verified_documents: number
         }[]
       }
-      get_user_email: {
-        Args: { user_id: string }
-        Returns: string
-      }
+      get_user_email: { Args: { user_id: string }; Returns: string }
       get_user_login_analytics: {
         Args: { days_back?: number; target_anonymous_username: string }
         Returns: {
@@ -4591,7 +4670,7 @@ export type Database = {
         }[]
       }
       get_users_with_display_names: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           anonymous_username: string
           display_name: string
@@ -4607,10 +4686,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      has_signed_nda: {
-        Args: { target_user_id: string }
-        Returns: boolean
-      }
+      has_signed_nda: { Args: { target_user_id: string }; Returns: boolean }
       hide_review_with_credits: {
         Args: { hide_days?: number; review_id: string }
         Returns: boolean
@@ -4618,27 +4694,77 @@ export type Database = {
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "http_request"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      http_delete: {
-        Args:
-          | { content: string; content_type: string; uri: string }
-          | { uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
-      http_get: {
-        Args: { data: Json; uri: string } | { uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+      http_delete:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_get:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       http_head: {
         Args: { uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       http_header: {
         Args: { field: string; value: string }
         Returns: Database["public"]["CompositeTypes"]["http_header"]
+        SetofOptions: {
+          from: "*"
+          to: "http_header"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       http_list_curlopt: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           curlopt: string
           value: string
@@ -4647,21 +4773,45 @@ export type Database = {
       http_patch: {
         Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      http_post: {
-        Args:
-          | { content: string; content_type: string; uri: string }
-          | { data: Json; uri: string }
-        Returns: Database["public"]["CompositeTypes"]["http_response"]
-      }
+      http_post:
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       http_put: {
         Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      http_reset_curlopt: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      http_reset_curlopt: { Args: never; Returns: boolean }
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
         Returns: boolean
@@ -4674,18 +4824,13 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: undefined
       }
-      is_admin_user: {
-        Args: { user_id_param: string }
+      is_admin_user: { Args: { user_id_param: string }; Returns: boolean }
+      is_beta_tester: { Args: { user_email: string }; Returns: boolean }
+      is_impersonation_session_valid: {
+        Args: { session_id_param: string }
         Returns: boolean
       }
-      is_beta_tester: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      is_in_network_with: {
-        Args: { target_user_id: string }
-        Returns: boolean
-      }
+      is_in_network_with: { Args: { target_user_id: string }; Returns: boolean }
       log_document_access: {
         Args: {
           access_type_param: string
@@ -4693,6 +4838,18 @@ export type Database = {
           shared_with_param?: string
         }
         Returns: boolean
+      }
+      log_impersonation_write: {
+        Args: {
+          action_param: string
+          metadata_param?: Json
+          payload_sha256_param?: string
+          resource_param: string
+          result_param?: string
+          route_param: string
+          session_id_param: string
+        }
+        Returns: string
       }
       log_nda_attempt: {
         Args: {
@@ -4709,10 +4866,7 @@ export type Database = {
         Args: { message_id: string; responder_user_id: string }
         Returns: boolean
       }
-      populate_location_data_from_csv: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      populate_location_data_from_csv: { Args: never; Returns: undefined }
       reset_role_counter: {
         Args: { new_value?: number; target_role: string }
         Returns: boolean
@@ -4776,10 +4930,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      text_to_bytea: {
-        Args: { data: string }
-        Returns: string
-      }
+      text_to_bytea: { Args: { data: string }; Returns: string }
       toggle_user_activation: {
         Args: { is_active_param: boolean; target_user_id: string }
         Returns: boolean
@@ -4804,10 +4955,20 @@ export type Database = {
         }
         Returns: boolean
       }
-      urlencode: {
-        Args: { data: Json } | { string: string } | { string: string }
-        Returns: string
-      }
+      urlencode:
+        | { Args: { data: Json }; Returns: string }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       use_bad_day_token: {
         Args: { target_review_id: string; target_user_id: string }
         Returns: boolean
@@ -4816,10 +4977,7 @@ export type Database = {
         Args: { _message_id: string; _user_id: string }
         Returns: boolean
       }
-      validate_tag_length: {
-        Args: { tags: string[] }
-        Returns: boolean
-      }
+      validate_tag_length: { Args: { tags: string[] }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "field_rep" | "vendor"
@@ -4836,7 +4994,7 @@ export type Database = {
         value: string | null
       }
       http_request: {
-        method: unknown | null
+        method: unknown
         uri: string | null
         headers: Database["public"]["CompositeTypes"]["http_header"][] | null
         content_type: string | null

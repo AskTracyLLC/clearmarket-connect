@@ -9,6 +9,7 @@ import ErrorBoundary from "@/components/ui/error-boundary";
 import LoadingBar from "@/components/ui/loading-bar";
 import BackToTop from "@/components/ui/back-to-top";
 import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
+import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteWithNDA from "@/components/ProtectedRouteWithNDA";
 import Index from "./pages/Index";
@@ -57,6 +58,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ImpersonationBanner />
             <LoadingBar />
             <ErrorBoundary>
               <Routes>
