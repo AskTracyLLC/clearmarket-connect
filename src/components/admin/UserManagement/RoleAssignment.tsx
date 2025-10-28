@@ -225,6 +225,8 @@ export const RoleAssignment = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       
+      console.log('Calling generate-admin-reset-link with:', { email: user.email });
+      
       const response = await fetch(
         `${supabaseUrl}/functions/v1/generate-admin-reset-link`,
         {
@@ -237,7 +239,19 @@ export const RoleAssignment = () => {
         }
       );
 
-      const result = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        throw new Error(`Invalid response from server: ${responseText.substring(0, 100)}`);
+      }
 
       if (!response.ok) {
         throw new Error(result.error || 'Failed to generate reset link');

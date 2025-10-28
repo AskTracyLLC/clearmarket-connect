@@ -7,6 +7,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Edge function called:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -15,6 +17,12 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const appBaseUrl = Deno.env.get('APP_BASE_URL') || 'https://34544cc9-f36f-4fa8-8a05-17348470ccfc.lovableproject.com';
+
+    console.log('Environment check:', { 
+      hasUrl: !!supabaseUrl, 
+      hasServiceKey: !!supabaseServiceKey,
+      appBaseUrl 
+    });
 
     // Create admin client with service role
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -26,7 +34,10 @@ serve(async (req) => {
 
     // Verify the requesting user is an admin
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('Missing authorization header');
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -35,6 +46,8 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    console.log('User auth result:', { userId: user?.id, authError: authError?.message });
 
     if (authError || !user) {
       return new Response(
@@ -48,6 +61,8 @@ serve(async (req) => {
       user_id_param: user.id
     });
 
+    console.log('Admin check result:', { isAdmin, adminCheckError: adminCheckError?.message });
+
     if (adminCheckError || !isAdmin) {
       console.error('Admin check error:', adminCheckError);
       return new Response(
@@ -58,6 +73,8 @@ serve(async (req) => {
 
     // Get target user email from request
     const { email } = await req.json();
+    console.log('Target email:', email);
+    
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
@@ -66,6 +83,7 @@ serve(async (req) => {
     }
 
     // Generate password reset link with service role
+    console.log('Generating password reset link...');
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email,
@@ -73,6 +91,8 @@ serve(async (req) => {
         redirectTo: `${appBaseUrl}/reset-password`
       }
     });
+
+    console.log('Generate link result:', { hasData: !!data, error: error?.message });
 
     if (error) {
       console.error('Error generating reset link:', error);
