@@ -8,7 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield, Key, Copy, Check } from "lucide-react";
+import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield, Key, Copy, Check, Download, Settings } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ConnectionLimitManager } from "./ConnectionLimitManager";
@@ -34,6 +37,27 @@ type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'community_scor
 type SortDirection = 'asc' | 'desc';
 type StatusFilter = 'all' | 'active' | 'inactive';
 
+interface ColumnConfig {
+  key: string;
+  label: string;
+  enabled: boolean;
+}
+
+const DEFAULT_COLUMNS: ColumnConfig[] = [
+  { key: 'user', label: 'User', enabled: true },
+  { key: 'email', label: 'Email', enabled: true },
+  { key: 'phone', label: 'Phone', enabled: false },
+  { key: 'current_role', label: 'Current Role', enabled: true },
+  { key: 'new_role', label: 'New Role', enabled: true },
+  { key: 'trust_score', label: 'Trust Score', enabled: true },
+  { key: 'pulse_score', label: 'Pulse Score', enabled: false },
+  { key: 'join_date', label: 'Join Date', enabled: true },
+  { key: 'last_active', label: 'Last Active', enabled: true },
+  { key: 'status', label: 'Status', enabled: false },
+  { key: 'active_toggle', label: 'Active Toggle', enabled: true },
+  { key: 'actions', label: 'Actions', enabled: true },
+];
+
 export const RoleAssignment = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +70,12 @@ export const RoleAssignment = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedUserForLimit, setSelectedUserForLimit] = useState<UserProfile | null>(null);
   const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
+  
+  // Column visibility management
+  const [visibleColumns, setVisibleColumns] = useState<ColumnConfig[]>(() => {
+    const saved = localStorage.getItem('admin_users_columns');
+    return saved ? JSON.parse(saved) : DEFAULT_COLUMNS;
+  });
 
   const fetchUsers = async () => {
     try {
@@ -284,8 +314,69 @@ export const RoleAssignment = () => {
     }
   };
 
-  const copyResetLink = () => {
-    // Deprecated - no longer used
+  const toggleColumn = (key: string) => {
+    const updated = visibleColumns.map(col => 
+      col.key === key ? { ...col, enabled: !col.enabled } : col
+    );
+    setVisibleColumns(updated);
+    localStorage.setItem('admin_users_columns', JSON.stringify(updated));
+  };
+
+  const exportToCSV = () => {
+    // Prepare CSV headers
+    const headers = visibleColumns
+      .filter(col => col.enabled)
+      .map(col => col.label)
+      .join(',');
+
+    // Prepare CSV rows
+    const rows = filteredAndSortedUsers.map(user => {
+      const currentRole = pendingChanges[user.user_id] || user.role;
+      const currentStatus = statusChanges[user.user_id] !== undefined 
+        ? statusChanges[user.user_id] 
+        : user.is_active;
+
+      const rowData: Record<string, string> = {
+        user: `"${user.first_name} ${user.last_name} (@${user.username || user.display_name})"`,
+        email: user.email,
+        phone: user.phone || '-',
+        current_role: user.role,
+        new_role: currentRole,
+        trust_score: String(user.trust_score || 0),
+        pulse_score: String(user.community_score || 0),
+        join_date: format(new Date(user.join_date), 'MMM dd, yyyy'),
+        last_active: user.last_active ? format(new Date(user.last_active), 'MMM dd, yyyy') : 'Never',
+        status: currentStatus ? 'Active' : 'Deactivated',
+        active_toggle: currentStatus ? 'Yes' : 'No',
+        actions: 'N/A',
+      };
+
+      return visibleColumns
+        .filter(col => col.enabled)
+        .map(col => rowData[col.key])
+        .join(',');
+    });
+
+    // Create CSV content
+    const csv = [headers, ...rows].join('\n');
+
+    // Create download link
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `users-export-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Successful",
+      description: `Exported ${filteredAndSortedUsers.length} users to CSV`,
+    });
+  };
+
+  const isColumnVisible = (key: string) => {
+    return visibleColumns.find(col => col.key === key)?.enabled ?? false;
   };
 
   // Filter and sort users
@@ -418,10 +509,46 @@ export const RoleAssignment = () => {
           <Users className="h-5 w-5" />
           Users
         </CardTitle>
-        <Button variant="outline" size="sm" onClick={fetchUsers}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Columns
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="end">
+              <div className="space-y-4">
+                <div className="font-semibold text-sm">Customize Columns</div>
+                <div className="space-y-3">
+                  {visibleColumns.map((col) => (
+                    <div key={col.key} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={col.key}
+                        checked={col.enabled}
+                        onCheckedChange={() => toggleColumn(col.key)}
+                      />
+                      <Label
+                        htmlFor={col.key}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {col.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Button variant="outline" size="sm" onClick={fetchUsers}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -462,21 +589,21 @@ export const RoleAssignment = () => {
             </div>
           ) : (
             <div className="rounded-md border overflow-x-auto">
-              <Table className="min-w-[1200px]">
+              <Table>
                 <TableHeader>
                   <TableRow>
-                    <SortableHeader field="username">User</SortableHeader>
-                    <SortableHeader field="email">Email</SortableHeader>
-                    <TableHead>Phone</TableHead>
-                    <SortableHeader field="role">Current Role</SortableHeader>
-                    <TableHead>New Role</TableHead>
-                    <SortableHeader field="trust_score">Trust Score</SortableHeader>
-                    <SortableHeader field="community_score">Pulse Score</SortableHeader>
-                    <SortableHeader field="join_date">Join Date</SortableHeader>
-                    <SortableHeader field="last_active">Last Active</SortableHeader>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Active</TableHead>
-                    <TableHead>Actions</TableHead>
+                    {isColumnVisible('user') && <SortableHeader field="username">User</SortableHeader>}
+                    {isColumnVisible('email') && <SortableHeader field="email">Email</SortableHeader>}
+                    {isColumnVisible('phone') && <TableHead>Phone</TableHead>}
+                    {isColumnVisible('current_role') && <SortableHeader field="role">Current Role</SortableHeader>}
+                    {isColumnVisible('new_role') && <TableHead>New Role</TableHead>}
+                    {isColumnVisible('trust_score') && <SortableHeader field="trust_score">Trust Score</SortableHeader>}
+                    {isColumnVisible('pulse_score') && <SortableHeader field="community_score">Pulse Score</SortableHeader>}
+                    {isColumnVisible('join_date') && <SortableHeader field="join_date">Join Date</SortableHeader>}
+                    {isColumnVisible('last_active') && <SortableHeader field="last_active">Last Active</SortableHeader>}
+                    {isColumnVisible('status') && <TableHead>Status</TableHead>}
+                    {isColumnVisible('active_toggle') && <TableHead>Active</TableHead>}
+                    {isColumnVisible('actions') && <TableHead>Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -488,84 +615,100 @@ export const RoleAssignment = () => {
                     
                     return (
                       <TableRow key={user.id}>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {user.first_name} {user.last_name}
-                            </span>
-                            <span className="text-sm text-muted-foreground">@{user.username || user.display_name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone || '-'}</TableCell>
-                        <TableCell>{getRoleBadge(user.role)}</TableCell>
-                        <TableCell>
-                          <Select
-                            value={currentRole}
-                            onValueChange={(value) => handleRoleChange(user.user_id, value)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="field_rep">Field Rep</SelectItem>
-                              <SelectItem value="vendor">Vendor</SelectItem>
-                              <SelectItem value="moderator">Moderator</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm font-medium">{user.trust_score || 0}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm font-medium">{user.community_score || 0}</span>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(user.join_date), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell>
-                          {user.last_active ? (
-                            <span className="text-sm">{format(new Date(user.last_active), 'MMM dd, yyyy')}</span>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Never</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(currentStatus)}</TableCell>
-                        <TableCell>
-                          <Switch
-                            checked={currentStatus}
-                            onCheckedChange={() => handleStatusChange(user.user_id, user.is_active)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedUserForLimit(user)}
-                              title="Manage Connection Limits"
+                        {isColumnVisible('user') && (
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {user.first_name} {user.last_name}
+                              </span>
+                              <span className="text-sm text-muted-foreground">@{user.username || user.display_name}</span>
+                            </div>
+                          </TableCell>
+                        )}
+                        {isColumnVisible('email') && <TableCell>{user.email}</TableCell>}
+                        {isColumnVisible('phone') && <TableCell>{user.phone || '-'}</TableCell>}
+                        {isColumnVisible('current_role') && <TableCell>{getRoleBadge(user.role)}</TableCell>}
+                        {isColumnVisible('new_role') && (
+                          <TableCell>
+                            <Select
+                              value={currentRole}
+                              onValueChange={(value) => handleRoleChange(user.user_id, value)}
                             >
-                              <Shield className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => generatePasswordResetLink(user)}
-                              title="Generate Password Reset Link"
-                            >
-                              <Key className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleImpersonate(user)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Impersonate
-                            </Button>
-                          </div>
-                        </TableCell>
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="field_rep">Field Rep</SelectItem>
+                                <SelectItem value="vendor">Vendor</SelectItem>
+                                <SelectItem value="moderator">Moderator</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        )}
+                        {isColumnVisible('trust_score') && (
+                          <TableCell>
+                            <span className="text-sm font-medium">{user.trust_score || 0}</span>
+                          </TableCell>
+                        )}
+                        {isColumnVisible('pulse_score') && (
+                          <TableCell>
+                            <span className="text-sm font-medium">{user.community_score || 0}</span>
+                          </TableCell>
+                        )}
+                        {isColumnVisible('join_date') && (
+                          <TableCell>
+                            {format(new Date(user.join_date), 'MMM dd, yyyy')}
+                          </TableCell>
+                        )}
+                        {isColumnVisible('last_active') && (
+                          <TableCell>
+                            {user.last_active ? (
+                              <span className="text-sm">{format(new Date(user.last_active), 'MMM dd, yyyy')}</span>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Never</span>
+                            )}
+                          </TableCell>
+                        )}
+                        {isColumnVisible('status') && <TableCell>{getStatusBadge(currentStatus)}</TableCell>}
+                        {isColumnVisible('active_toggle') && (
+                          <TableCell>
+                            <Switch
+                              checked={currentStatus}
+                              onCheckedChange={() => handleStatusChange(user.user_id, user.is_active)}
+                            />
+                          </TableCell>
+                        )}
+                        {isColumnVisible('actions') && (
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedUserForLimit(user)}
+                                title="Manage Connection Limits"
+                              >
+                                <Shield className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => generatePasswordResetLink(user)}
+                                title="Generate Password Reset Link"
+                              >
+                                <Key className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleImpersonate(user)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Impersonate
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })}
