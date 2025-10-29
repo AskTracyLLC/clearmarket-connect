@@ -15,11 +15,11 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+    const jwtSecret = Deno.env.get('JWT_SECRET');
 
     if (!jwtSecret) {
       return new Response(
-        JSON.stringify({ error: 'Missing SUPABASE_JWT_SECRET' }),
+        JSON.stringify({ error: 'Missing JWT_SECRET' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
