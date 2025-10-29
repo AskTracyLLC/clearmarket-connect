@@ -429,9 +429,9 @@ const AdminUserDetailPage = () => {
                   <Button
                     variant="outline"
                     onClick={handleImpersonate}
+                    title="Impersonate User"
                   >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Impersonate User
+                    <Eye className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

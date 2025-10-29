@@ -707,9 +707,9 @@ export const RoleAssignment = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleImpersonate(user)}
+                                title="Impersonate User"
                               >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Impersonate
+                                <Eye className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
