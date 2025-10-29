@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
 ];
 
 export const RoleAssignment = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -617,12 +619,15 @@ export const RoleAssignment = () => {
                       <TableRow key={user.id}>
                         {isColumnVisible('user') && (
                           <TableCell>
-                            <div className="flex flex-col">
-                              <span className="font-medium">
+                            <button 
+                              onClick={() => navigate(`/admin/users/${user.user_id}`)}
+                              className="flex flex-col text-left hover:underline focus:outline-none focus:underline"
+                            >
+                              <span className="font-medium text-primary">
                                 {user.first_name} {user.last_name}
                               </span>
                               <span className="text-sm text-muted-foreground">@{user.username || user.display_name}</span>
-                            </div>
+                            </button>
                           </TableCell>
                         )}
                         {isColumnVisible('email') && <TableCell>{user.email}</TableCell>}

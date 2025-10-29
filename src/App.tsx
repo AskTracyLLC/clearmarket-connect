@@ -45,6 +45,7 @@ import BetaNDA from "./pages/BetaNDA";
 import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
+import AdminUserDetailPage from "./pages/AdminUserDetailPage";
 import NetworkPage from "./pages/NetworkPage";
 import PasswordResetGateway from "./pages/PasswordResetGateway";
 
@@ -129,6 +130,13 @@ const App = () => (
                   <ProtectedRouteWithNDA>
                     <AdminRoute>
                       <AdminGiveawayDashboard />
+                    </AdminRoute>
+                  </ProtectedRouteWithNDA>
+                } />
+                <Route path="/admin/users/:userId" element={
+                  <ProtectedRouteWithNDA>
+                    <AdminRoute>
+                      <AdminUserDetailPage />
                     </AdminRoute>
                   </ProtectedRouteWithNDA>
                 } />
