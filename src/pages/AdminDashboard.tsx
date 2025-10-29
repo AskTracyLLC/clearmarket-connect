@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("content");
+  const [activeTab, setActiveTab] = useState("users");
 
   useEffect(() => {
     // SECURITY: Removed development mode bypass for proper authorization
