@@ -29,12 +29,32 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Verify user
+    // Parse the JWT to get admin ID from the 'act' claim
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    let adminId: string;
     
-    if (userError || !user) {
-      throw new Error('Unauthorized');
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid token format');
+      }
+      const payload = JSON.parse(atob(parts[1]));
+      
+      // Check if this is an impersonation token with 'act' claim (admin ID)
+      if (payload.act) {
+        adminId = payload.act;
+        console.log('Ending impersonation session for admin:', adminId);
+      } else {
+        // Not an impersonation token, verify normally
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+        if (userError || !user) {
+          throw new Error('Unauthorized');
+        }
+        adminId = user.id;
+      }
+    } catch (parseError) {
+      console.error('Error parsing token:', parseError);
+      throw new Error('Invalid token');
     }
 
     const body = await req.json();
@@ -63,7 +83,7 @@ serve(async (req) => {
     await supabaseClient
       .from('audit_log')
       .insert({
-        user_id: user.id,
+        user_id: adminId,
         action: 'impersonation_ended',
         target_table: 'impersonation_sessions',
         target_id: session_id,
