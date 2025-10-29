@@ -21,11 +21,14 @@ import {
   Calendar,
   TrendingUp,
   Activity,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from "lucide-react";
 import { UserActivityLog } from "@/components/admin/UserActivityLog";
 import { ConnectionLimitManager } from "@/components/admin/UserManagement/ConnectionLimitManager";
+import { useImpersonation } from "@/hooks/useImpersonation";
 import Header from "@/components/Header";
+import { Textarea } from "@/components/ui/textarea";
 
 interface UserProfile {
   id: string;
@@ -53,6 +56,11 @@ const AdminUserDetailPage = () => {
   const [pendingStatus, setPendingStatus] = useState<boolean | null>(null);
   const [showLimitManager, setShowLimitManager] = useState(false);
   const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [impersonationReason, setImpersonationReason] = useState("");
+  const [isImpersonating, setIsImpersonating] = useState(false);
+  
+  const { startImpersonation } = useImpersonation();
 
   const fetchUser = async () => {
     if (!userId) return;
@@ -176,12 +184,44 @@ const AdminUserDetailPage = () => {
     }
   };
 
-  const handleImpersonate = () => {
-    if (user) {
+  const handleImpersonate = async () => {
+    if (!user || !impersonationReason.trim() || impersonationReason.length < 10) {
       toast({
-        title: "Impersonation Started",
-        description: `You are now impersonating ${user.display_name}`,
+        title: "Error",
+        description: "Please provide a reason (minimum 10 characters)",
+        variant: "destructive"
       });
+      return;
+    }
+
+    try {
+      setIsImpersonating(true);
+      const result = await startImpersonation(
+        user.user_id,
+        impersonationReason,
+        true, // read-only mode
+        []
+      );
+
+      if (result.success) {
+        setShowImpersonateModal(false);
+        setImpersonationReason("");
+        
+        // Navigate to appropriate dashboard based on role
+        setTimeout(() => {
+          if (user.role === 'vendor') {
+            navigate('/vendor/dashboard');
+          } else if (user.role === 'field_rep') {
+            navigate('/fieldrep/dashboard');
+          } else {
+            navigate('/');
+          }
+        }, 1000);
+      }
+    } catch (error: any) {
+      console.error('Impersonation error:', error);
+    } finally {
+      setIsImpersonating(false);
     }
   };
 
@@ -428,10 +468,11 @@ const AdminUserDetailPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={handleImpersonate}
+                    onClick={() => setShowImpersonateModal(true)}
                     title="Impersonate User"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 mr-2" />
+                    Mimic User
                   </Button>
                 </div>
               </div>
@@ -472,6 +513,77 @@ const AdminUserDetailPage = () => {
               </div>
               <div className="rounded-md bg-primary/10 p-4 text-sm text-center">
                 A password reset email will be sent to the user's email address.
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Impersonation Modal */}
+        <Dialog open={showImpersonateModal} onOpenChange={setShowImpersonateModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Start Impersonation
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-4">
+                <div className="flex gap-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-sm">
+                    <p className="font-medium text-yellow-600">Security Notice</p>
+                    <p className="text-muted-foreground">
+                      This action will be logged. You'll view the platform as{' '}
+                      <span className="font-medium text-foreground">{user?.display_name}</span> in read-only mode.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Reason for impersonation <span className="text-destructive">*</span>
+                </label>
+                <Textarea
+                  placeholder="e.g., Investigating reported issue with profile visibility..."
+                  value={impersonationReason}
+                  onChange={(e) => setImpersonationReason(e.target.value)}
+                  rows={3}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Minimum 10 characters. This will be recorded in the audit log.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowImpersonateModal(false);
+                    setImpersonationReason("");
+                  }}
+                  disabled={isImpersonating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleImpersonate}
+                  disabled={isImpersonating || impersonationReason.length < 10}
+                >
+                  {isImpersonating ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Starting...
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Start Impersonation
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </DialogContent>
