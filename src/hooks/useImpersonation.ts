@@ -134,6 +134,9 @@ export const useImpersonation = () => {
         description: `You are now viewing as the target user in ${readOnly ? 'read-only' : 'support'} mode.`,
       });
 
+      // Reload to show the impersonation banner and use the new token
+      window.location.reload();
+
       return { success: true, sessionId: data.session_id };
     } catch (error: any) {
       console.error('Error starting impersonation:', error);
