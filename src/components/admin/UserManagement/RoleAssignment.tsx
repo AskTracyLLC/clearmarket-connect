@@ -80,10 +80,22 @@ export const RoleAssignment = () => {
   const [selectedUserForLimit, setSelectedUserForLimit] = useState<UserProfile | null>(null);
   const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
   
-  // Column visibility management
+  // Column visibility management - merge saved with defaults to include new columns
   const [visibleColumns, setVisibleColumns] = useState<ColumnConfig[]>(() => {
     const saved = localStorage.getItem('admin_users_columns');
-    return saved ? JSON.parse(saved) : DEFAULT_COLUMNS;
+    if (!saved) return DEFAULT_COLUMNS;
+    
+    const savedColumns = JSON.parse(saved) as ColumnConfig[];
+    const savedKeys = new Set(savedColumns.map(col => col.key));
+    
+    // Add any new columns from DEFAULT_COLUMNS that aren't in saved
+    const newColumns = DEFAULT_COLUMNS.filter(col => !savedKeys.has(col.key));
+    const merged = [...savedColumns, ...newColumns];
+    
+    // Save merged columns back to localStorage
+    localStorage.setItem('admin_users_columns', JSON.stringify(merged));
+    
+    return merged;
   });
 
   const fetchUsers = async () => {
