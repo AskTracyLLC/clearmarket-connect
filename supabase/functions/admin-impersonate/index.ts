@@ -9,13 +9,36 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+
+    if (!jwtSecret) {
+      return new Response(
+        JSON.stringify({ error: 'Missing SUPABASE_JWT_SECRET' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (!serviceKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing SUPABASE_SERVICE_ROLE_KEY' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (!supabaseUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Missing SUPABASE_URL' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      supabaseUrl,
+      serviceKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -111,13 +134,7 @@ serve(async (req) => {
     }
 
     // Generate short-lived JWT with impersonation claims
-    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET') || Deno.env.get('JWT_SECRET');
-    console.log('Available env vars:', Object.keys(Deno.env.toObject()));
-    if (!jwtSecret) {
-      throw new Error('JWT secret not configured');
-    }
-
-    const secret = new TextEncoder().encode(jwtSecret);
+    const secret = new TextEncoder().encode(jwtSecret!);
     
     const jwt = await new jose.SignJWT({
       sub: target_user_id,
