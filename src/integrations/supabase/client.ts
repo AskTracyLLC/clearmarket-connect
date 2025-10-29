@@ -8,10 +8,26 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Create a custom fetch that injects the impersonation token if present
+const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
+  const impersonationToken = localStorage.getItem('impersonation_token');
+  
+  if (impersonationToken && options?.headers) {
+    const headers = new Headers(options.headers);
+    headers.set('Authorization', `Bearer ${impersonationToken}`);
+    return fetch(url, { ...options, headers });
+  }
+  
+  return fetch(url, options);
+};
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  global: {
+    fetch: customFetch,
   }
 });

@@ -37,7 +37,6 @@ export const useImpersonation = () => {
     sessionId: null,
     expiresAt: null,
   });
-  const [originalSession, setOriginalSession] = useState<any>(null);
 
   // Parse JWT claims
   const parseJwtClaims = useCallback((token: string): ImpersonationClaims | null => {
@@ -56,55 +55,55 @@ export const useImpersonation = () => {
   // Check if current session is impersonation
   useEffect(() => {
     const checkImpersonation = async () => {
-      if (!session?.access_token) {
-        setState({
-          isImpersonating: false,
-          targetUserId: null,
-          targetUserName: null,
-          targetUserRole: null,
-          adminId: null,
-          isReadOnly: true,
-          scopes: [],
-          sessionId: null,
-          expiresAt: null,
-        });
-        return;
-      }
-
-      const claims = parseJwtClaims(session.access_token);
+      // Check for impersonation token in localStorage
+      const impersonationToken = localStorage.getItem('impersonation_token');
+      const sessionId = localStorage.getItem('impersonation_session_id');
       
-      if (claims?.act && claims?.sid) {
-        // This is an impersonation session
-        const scopes = claims.scope ? claims.scope.split(' ') : [];
+      if (impersonationToken && sessionId) {
+        const claims = parseJwtClaims(impersonationToken);
         
-        // Fetch target user info
-        const { data: targetUser } = await supabase
-          .from('users')
-          .select('display_name, anonymous_username, role')
-          .eq('id', claims.sub)
-          .single();
+        if (claims?.act && claims?.sid) {
+          // This is an impersonation session
+          const scopes = claims.scope ? claims.scope.split(' ') : [];
+          
+          // Fetch target user info
+          const { data: targetUser } = await supabase
+            .from('users')
+            .select('display_name, anonymous_username, role')
+            .eq('id', claims.sub)
+            .single();
 
-        setState({
-          isImpersonating: true,
-          targetUserId: claims.sub,
-          targetUserName: targetUser?.display_name || targetUser?.anonymous_username || 'Unknown User',
-          targetUserRole: targetUser?.role || null,
-          adminId: claims.act,
-          isReadOnly: claims.ro ?? true,
-          scopes,
-          sessionId: claims.sid,
-          expiresAt: claims.exp ? new Date(claims.exp * 1000) : null,
-        });
-      } else {
-        setState(prev => ({
-          ...prev,
-          isImpersonating: false,
-        }));
+          setState({
+            isImpersonating: true,
+            targetUserId: claims.sub,
+            targetUserName: targetUser?.display_name || targetUser?.anonymous_username || 'Unknown User',
+            targetUserRole: targetUser?.role || null,
+            adminId: claims.act,
+            isReadOnly: claims.ro ?? true,
+            scopes,
+            sessionId: claims.sid,
+            expiresAt: claims.exp ? new Date(claims.exp * 1000) : null,
+          });
+          return;
+        }
       }
+
+      // No impersonation active
+      setState({
+        isImpersonating: false,
+        targetUserId: null,
+        targetUserName: null,
+        targetUserRole: null,
+        adminId: null,
+        isReadOnly: true,
+        scopes: [],
+        sessionId: null,
+        expiresAt: null,
+      });
     };
 
     checkImpersonation();
-  }, [session, parseJwtClaims]);
+  }, [parseJwtClaims]);
 
   // Start impersonation
   const startImpersonation = useCallback(async (
@@ -114,10 +113,6 @@ export const useImpersonation = () => {
     scopes: string[] = []
   ) => {
     try {
-      // Store original session
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      setOriginalSession(currentSession);
-
       // Call edge function to start impersonation
       const { data, error } = await supabase.functions.invoke('admin-impersonate', {
         body: {
@@ -130,13 +125,9 @@ export const useImpersonation = () => {
 
       if (error) throw error;
 
-      // Set the impersonation session
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: '', // Impersonation sessions don't have refresh tokens
-      });
-
-      if (sessionError) throw sessionError;
+      // Store the impersonation token in localStorage so we can use it across the app
+      localStorage.setItem('impersonation_token', data.access_token);
+      localStorage.setItem('impersonation_session_id', data.session_id);
 
       toast({
         title: "Impersonation Started",
@@ -157,7 +148,7 @@ export const useImpersonation = () => {
 
   // End impersonation
   const endImpersonation = useCallback(async () => {
-    if (!state.sessionId || !originalSession) {
+    if (!state.sessionId) {
       toast({
         title: "Error",
         description: "No active impersonation session",
@@ -174,15 +165,9 @@ export const useImpersonation = () => {
 
       if (error) throw error;
 
-      // Restore original session
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: originalSession.access_token,
-        refresh_token: originalSession.refresh_token,
-      });
-
-      if (sessionError) throw sessionError;
-
-      setOriginalSession(null);
+      // Clear impersonation tokens
+      localStorage.removeItem('impersonation_token');
+      localStorage.removeItem('impersonation_session_id');
       
       toast({
         title: "Impersonation Ended",
@@ -199,7 +184,7 @@ export const useImpersonation = () => {
         variant: "destructive",
       });
     }
-  }, [state.sessionId, originalSession]);
+  }, [state.sessionId]);
 
   // Check if user can perform an action
   const canPerformAction = useCallback((action: string): boolean => {
