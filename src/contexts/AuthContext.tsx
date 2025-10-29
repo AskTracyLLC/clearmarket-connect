@@ -88,12 +88,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Don't force verified users to /nda - let protected routes handle their own NDA checks
     };
 
-    // Set up auth state listener FIRST
     // Set up auth state listener FIRST (synchronous callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Update last_active when user authenticates
+      if (session?.user && event === 'SIGNED_IN') {
+        (async () => {
+          try {
+            await supabase.rpc('update_my_last_active');
+            console.log('Last active updated');
+          } catch (err) {
+            console.error('Failed to update last active:', err);
+          }
+        })();
+      }
 
       // Defer any Supabase calls/redirects to avoid deadlocks
       setTimeout(() => {
@@ -108,6 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       
       if (session?.user) {
+        // Update last_active for existing session
+        (async () => {
+          try {
+            await supabase.rpc('update_my_last_active');
+            console.log('Last active updated');
+          } catch (err) {
+            console.error('Failed to update last active:', err);
+          }
+        })();
+        
         // Defer to avoid any potential deadlocks
         setTimeout(() => {
           handlePostAuthRedirect(null, session);

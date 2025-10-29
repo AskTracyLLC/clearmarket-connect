@@ -4957,6 +4957,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      update_my_last_active: { Args: never; Returns: undefined }
       update_trust_score: {
         Args: { target_user_id: string }
         Returns: undefined
