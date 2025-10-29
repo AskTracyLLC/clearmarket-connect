@@ -32,6 +32,10 @@ interface UserProfile {
   community_score: number;
   display_name: string;
   last_active: string | null;
+  city: string | null;
+  state: string | null;
+  background_check_status: string | null;
+  company_name: string | null;
 }
 
 type SortField = 'username' | 'email' | 'role' | 'trust_score' | 'community_score' | 'join_date' | 'last_active';
@@ -48,6 +52,9 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: 'user', label: 'User', enabled: true },
   { key: 'email', label: 'Email', enabled: true },
   { key: 'phone', label: 'Phone', enabled: false },
+  { key: 'location', label: 'User Location', enabled: false },
+  { key: 'company_name', label: 'Vendor Company Name', enabled: false },
+  { key: 'background_check', label: 'Background Check Status', enabled: false },
   { key: 'current_role', label: 'Current Role', enabled: true },
   { key: 'new_role', label: 'New Role', enabled: true },
   { key: 'trust_score', label: 'Trust Score', enabled: true },
@@ -101,7 +108,7 @@ export const RoleAssignment = () => {
       // Try to get additional profile data from user_profiles (optional)
       const { data: profilesData } = await supabase
         .from('user_profiles')
-        .select('user_id, first_name, last_name, phone, join_date, is_active');
+        .select('user_id, first_name, last_name, phone, join_date, is_active, city, state, background_check_status, company_name');
 
       // Combine the data - users table is the source of truth
       const combinedData = usersData?.map(user => {
@@ -120,7 +127,11 @@ export const RoleAssignment = () => {
           trust_score: user.trust_score || 0,
           community_score: user.community_score || 0,
           display_name: user.display_name || user.anonymous_username || 'Unknown',
-          last_active: user.last_active || null
+          last_active: user.last_active || null,
+          city: profile?.city || null,
+          state: profile?.state || null,
+          background_check_status: profile?.background_check_status || null,
+          company_name: profile?.company_name || null
         };
       }) || [];
 
@@ -597,6 +608,9 @@ export const RoleAssignment = () => {
                     {isColumnVisible('user') && <SortableHeader field="username">User</SortableHeader>}
                     {isColumnVisible('email') && <SortableHeader field="email">Email</SortableHeader>}
                     {isColumnVisible('phone') && <TableHead>Phone</TableHead>}
+                    {isColumnVisible('location') && <TableHead>Location</TableHead>}
+                    {isColumnVisible('company_name') && <TableHead>Company Name</TableHead>}
+                    {isColumnVisible('background_check') && <TableHead>Background Check</TableHead>}
                     {isColumnVisible('current_role') && <SortableHeader field="role">Current Role</SortableHeader>}
                     {isColumnVisible('new_role') && <TableHead>New Role</TableHead>}
                     {isColumnVisible('trust_score') && <SortableHeader field="trust_score">Trust Score</SortableHeader>}
@@ -632,6 +646,23 @@ export const RoleAssignment = () => {
                         )}
                         {isColumnVisible('email') && <TableCell>{user.email}</TableCell>}
                         {isColumnVisible('phone') && <TableCell>{user.phone || '-'}</TableCell>}
+                        {isColumnVisible('location') && (
+                          <TableCell>
+                            {user.city && user.state ? `${user.city}, ${user.state}` : user.city || user.state || '-'}
+                          </TableCell>
+                        )}
+                        {isColumnVisible('company_name') && (
+                          <TableCell>{user.company_name || '-'}</TableCell>
+                        )}
+                        {isColumnVisible('background_check') && (
+                          <TableCell>
+                            {user.background_check_status ? (
+                              <Badge variant={user.background_check_status === 'verified' ? 'default' : 'secondary'}>
+                                {user.background_check_status}
+                              </Badge>
+                            ) : '-'}
+                          </TableCell>
+                        )}
                         {isColumnVisible('current_role') && <TableCell>{getRoleBadge(user.role)}</TableCell>}
                         {isColumnVisible('new_role') && (
                           <TableCell>
