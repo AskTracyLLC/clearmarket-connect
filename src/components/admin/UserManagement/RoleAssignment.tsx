@@ -105,14 +105,32 @@ export const RoleAssignment = () => {
         return;
       }
 
-      // Try to get additional profile data from user_profiles (optional)
+      // Get additional profile data from user_profiles and field_rep_profiles
       const { data: profilesData } = await supabase
         .from('user_profiles')
-        .select('user_id, first_name, last_name, phone, join_date, is_active, city, state, background_check_status, company_name');
+        .select('user_id, first_name, last_name, phone, join_date, is_active');
+
+      const { data: fieldRepData } = await supabase
+        .from('field_rep_profiles')
+        .select('user_id, city, state');
+
+      // Get vendor company names via vendor_staff_members -> vendor_organizations join
+      const { data: vendorStaffData } = await supabase
+        .from('vendor_staff_members')
+        .select(`
+          user_id,
+          vendor_organizations (
+            company_name
+          )
+        `);
 
       // Combine the data - users table is the source of truth
       const combinedData = usersData?.map(user => {
         const profile = profilesData?.find(p => p.user_id === user.id);
+        const fieldRep = fieldRepData?.find(p => p.user_id === user.id);
+        const vendorStaff = vendorStaffData?.find(p => p.user_id === user.id);
+        const vendorOrg = vendorStaff?.vendor_organizations as any;
+        
         return {
           id: user.id,
           user_id: user.id,
@@ -128,10 +146,10 @@ export const RoleAssignment = () => {
           community_score: user.community_score || 0,
           display_name: user.display_name || user.anonymous_username || 'Unknown',
           last_active: user.last_active || null,
-          city: profile?.city || null,
-          state: profile?.state || null,
-          background_check_status: profile?.background_check_status || null,
-          company_name: profile?.company_name || null
+          city: fieldRep?.city || null,
+          state: fieldRep?.state || null,
+          background_check_status: null, // TODO: Add when background check table is available
+          company_name: vendorOrg?.company_name || null
         };
       }) || [];
 
@@ -353,6 +371,9 @@ export const RoleAssignment = () => {
         user: `"${user.first_name} ${user.last_name} (@${user.username || user.display_name})"`,
         email: user.email,
         phone: user.phone || '-',
+        location: user.city && user.state ? `${user.city}, ${user.state}` : user.city || user.state || '-',
+        company_name: user.company_name || '-',
+        background_check: user.background_check_status || '-',
         current_role: user.role,
         new_role: currentRole,
         trust_score: String(user.trust_score || 0),
