@@ -11,13 +11,12 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Create a custom fetch that injects the impersonation token if present
 const customFetch = (url: RequestInfo | URL, options?: RequestInit) => {
   const impersonationToken = localStorage.getItem('impersonation_token');
-  
-  if (impersonationToken && options?.headers) {
-    const headers = new Headers(options.headers);
+  const headers = new Headers(options?.headers || {});
+  // If impersonating, force the Authorization header to the impersonation token
+  if (impersonationToken) {
     headers.set('Authorization', `Bearer ${impersonationToken}`);
     return fetch(url, { ...options, headers });
   }
-  
   return fetch(url, options);
 };
 

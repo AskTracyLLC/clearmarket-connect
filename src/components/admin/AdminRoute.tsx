@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useImpersonation } from '@/hooks/useImpersonation';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { isImpersonating } = useImpersonation();
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -60,12 +62,16 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   if (!isAdmin) {
+    const message = isImpersonating
+      ? "Admin panel is disabled while impersonating another user."
+      : "You don't have permission to access the admin panel.";
+
     toast({
       title: "Access Denied",
-      description: "You don't have permission to access the admin panel.",
+      description: message,
       variant: "destructive"
     });
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={isImpersonating ? "/" : "/dashboard"} replace />;
   }
 
   return <>{children}</>;
