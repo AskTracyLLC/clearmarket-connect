@@ -399,7 +399,7 @@ export const RoleAssignment = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Users & Directory
+            Users
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -416,7 +416,7 @@ export const RoleAssignment = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Users & Directory
+          Users
         </CardTitle>
         <Button variant="outline" size="sm" onClick={fetchUsers}>
           <RefreshCw className="h-4 w-4 mr-2" />
