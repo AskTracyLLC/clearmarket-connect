@@ -151,6 +151,10 @@ serve(async (req) => {
       .setIssuer(Deno.env.get('SUPABASE_URL') ?? '')
       .sign(secret);
 
+    // Generate a refresh token (same as access token for impersonation - won't be refreshed)
+    // This is needed for supabase.auth.setSession() to work
+    const refreshToken = jwt;
+
     // Log to audit log
     await supabaseClient
       .from('audit_log')
@@ -172,6 +176,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         access_token: jwt,
+        refresh_token: refreshToken,
         expires_in: 900, // 15 minutes
         session_id: session.id,
         target_user_id,
