@@ -44,16 +44,11 @@ export const useFieldRepProfile = () => {
 
     setLoading(true);
     try {
-      // Get the actual authenticated user ID (handles impersonation correctly)
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError || !authUser) throw new Error("Failed to get authenticated user");
-      const currentUserId = authUser.id;
-
       // Check if profile exists
       const { data: existing, error: fetchError } = await supabase
         .from("field_rep_profiles")
         .select("*")
-        .eq("user_id", currentUserId)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
@@ -64,11 +59,11 @@ export const useFieldRepProfile = () => {
         const { error: updateError } = await supabase
           .from("field_rep_profiles")
           .update({ ...toDb, updated_at: new Date().toISOString() })
-          .eq("user_id", currentUserId);
+          .eq("user_id", user.id);
         if (updateError) throw updateError;
       } else {
         const insertPayload = {
-          user_id: currentUserId,
+          user_id: user.id,
           ...toDb,
         };
         const { error: insertError } = await supabase
@@ -81,11 +76,11 @@ export const useFieldRepProfile = () => {
       const { data: fullProfile, error: fullErr } = await supabase
         .from("field_rep_profiles")
         .select("*")
-        .eq("user_id", currentUserId)
+        .eq("user_id", user.id)
         .maybeSingle();
       if (!fullErr && fullProfile) {
         const completion = calculateCompleteness(mapFromDb(fullProfile));
-        await supabase.from("users").update({ profile_complete: completion }).eq("id", currentUserId);
+        await supabase.from("users").update({ profile_complete: completion }).eq("id", user.id);
       }
 
       return { success: true };
@@ -102,15 +97,10 @@ export const useFieldRepProfile = () => {
 
     setLoading(true);
     try {
-      // Get the actual authenticated user ID (handles impersonation correctly)
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError || !authUser) return null;
-      const currentUserId = authUser.id;
-
       const { data, error } = await supabase
         .from("field_rep_profiles")
         .select("*")
-        .eq("user_id", currentUserId)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
