@@ -3676,6 +3676,7 @@ export type Database = {
       user_profiles: {
         Row: {
           anonymous_username: string | null
+          city: string | null
           created_at: string
           email: string
           first_name: string | null
@@ -3684,12 +3685,14 @@ export type Database = {
           join_date: string
           last_name: string | null
           phone: string | null
+          state: string | null
           updated_at: string
           user_id: string
           username: string | null
         }
         Insert: {
           anonymous_username?: string | null
+          city?: string | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -3698,12 +3701,14 @@ export type Database = {
           join_date?: string
           last_name?: string | null
           phone?: string | null
+          state?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
         }
         Update: {
           anonymous_username?: string | null
+          city?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
@@ -3712,6 +3717,7 @@ export type Database = {
           join_date?: string
           last_name?: string | null
           phone?: string | null
+          state?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
