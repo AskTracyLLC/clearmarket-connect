@@ -116,7 +116,7 @@ export const useNDAStatus = () => {
 
   useEffect(() => {
     checkNDAStatus();
-  }, [user]);
+  }, [user?.id]);
 
   return {
     hasSignedNDA,

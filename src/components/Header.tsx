@@ -59,9 +59,10 @@ const Header = () => {
 
   // Fetch NDA signature data for user initials
   useEffect(() => {
+    const isFetching = { current: false } as { current: boolean };
     const fetchNDAData = async () => {
-      if (!user?.id) return;
-      
+      if (!user?.id || isFetching.current) return;
+      isFetching.current = true;
       try {
         const { data } = await supabase
           .from('nda_signatures')
@@ -70,18 +71,18 @@ const Header = () => {
           .order('signed_date', { ascending: false })
           .limit(1)
           .maybeSingle();
-        
         if (data) {
           setFirstName(data.first_name);
           setLastName(data.last_name);
         }
       } catch (error) {
         console.error('Failed to load NDA data for avatar:', error);
+      } finally {
+        isFetching.current = false;
       }
     };
-    
     fetchNDAData();
-  }, [user]);
+  }, [user?.id]);
 
   const handleSignOut = async () => {
     try {

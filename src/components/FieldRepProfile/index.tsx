@@ -38,6 +38,7 @@ const FieldRepProfile = () => {
     verificationComplete: false,
     coverageSetupComplete: false
   });
+  const loadedRef = useRef(false);
 
   const form = useForm<FieldRepFormData>({
     resolver: zodResolver(fieldRepSchema),
@@ -66,6 +67,10 @@ const FieldRepProfile = () => {
   // Update form when profile loads and fetch NDA data
   // Combined effect to load all profile data and calculate completion
   useEffect(() => {
+    if (loadedRef.current) return; // Prevent duplicate loads
+    loadedRef.current = true;
+    let cancelled = false;
+
     const loadAllProfileData = async () => {
       if (profile?.anonymous_username) {
         form.setValue('displayUsername', profile.anonymous_username);
@@ -83,6 +88,8 @@ const FieldRepProfile = () => {
             fetchProfile(),
             fetchCoverageAreas()
           ]);
+          
+          if (cancelled) return;
           
           if (savedProfile) {
             // Populate all saved fields
@@ -149,6 +156,8 @@ const FieldRepProfile = () => {
               .limit(1)
               .maybeSingle();
             
+            if (cancelled) return;
+            
             if (ndaData) {
               if (ndaData.first_name) form.setValue('firstName', ndaData.first_name);
               if (ndaData.last_name) form.setValue('lastName', ndaData.last_name);
@@ -161,6 +170,7 @@ const FieldRepProfile = () => {
     };
     
     loadAllProfileData();
+    return () => { cancelled = true; };
   }, [user?.id, profile?.anonymous_username]);
 
 
