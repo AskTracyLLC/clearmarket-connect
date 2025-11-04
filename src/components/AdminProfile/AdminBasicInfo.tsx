@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Mail, Calendar, Shield, Crown, Edit3, Save, X, MapPin } from "lucide-react";
+import { User, Mail, Calendar, Shield, Crown, Edit3, Save, X, MapPin, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { z } from "zod";
 
@@ -18,6 +18,7 @@ const adminProfileSchema = z.object({
   lastName: z.string().trim().max(50, "Last name must be less than 50 characters").optional(),
   city: z.string().trim().max(100, "City must be less than 100 characters").optional(),
   state: z.string().length(2, "State must be 2 characters").optional(),
+  phone: z.string().trim().regex(/^[\d\s\-\(\)\+\.]+$/, "Invalid phone number format").max(20, "Phone number must be less than 20 characters").optional().or(z.literal('')),
   displayName: z.string().trim().min(1, "Display name cannot be empty").max(50, "Display name must be less than 50 characters"),
   bio: z.string().trim().max(500, "Bio must be less than 500 characters").optional(),
 });
@@ -46,6 +47,7 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
   const [lastName, setLastName] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [phone, setPhone] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   
@@ -63,7 +65,7 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
       // Fetch user profile data
       const { data: profileData, error } = await supabase
         .from('user_profiles')
-        .select('first_name, last_name, city, state')
+        .select('first_name, last_name, city, state, phone')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -75,6 +77,7 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
       setLastName(profileData?.last_name || '');
       setCity(profileData?.city || '');
       setState(profileData?.state || '');
+      setPhone(profileData?.phone || '');
       setDisplayName(profile?.display_name || profile?.anonymous_username || '');
       setBio('System Administrator with full platform access and oversight responsibilities.');
     } catch (error) {
@@ -90,6 +93,7 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
         lastName: lastName || undefined,
         city: city || undefined,
         state: state || undefined,
+        phone: phone || undefined,
         displayName,
         bio: bio || undefined,
       });
@@ -122,6 +126,7 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
           last_name: lastName.trim() || null,
           city: city.trim() || null,
           state: state || null,
+          phone: phone.trim() || null,
           email: user.email,
         }, {
           onConflict: 'user_id'
@@ -283,6 +288,34 @@ export const AdminBasicInfo = ({ profile, user }: AdminBasicInfoProps) => {
                   </div>
                 ) : (
                   <p className="text-sm mt-1 p-2 bg-muted rounded">{state || 'Not set'}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                {isEditing ? (
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                        maxLength={20}
+                        className="flex-1"
+                      />
+                    </div>
+                    {errors.phone && (
+                      <p className="text-xs text-destructive mt-1">{errors.phone}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm">{phone || 'Not set'}</p>
+                  </div>
                 )}
               </div>
 
