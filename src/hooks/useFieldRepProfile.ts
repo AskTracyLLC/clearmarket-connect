@@ -72,15 +72,27 @@ export const useFieldRepProfile = () => {
         if (insertError) throw insertError;
       }
 
-      // Recalculate and persist profile completeness
-      const { data: fullProfile, error: fullErr } = await supabase
-        .from("field_rep_profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (!fullErr && fullProfile) {
-        const completion = calculateCompleteness(mapFromDb(fullProfile));
-        await supabase.from("users").update({ profile_complete: completion }).eq("id", user.id);
+      // Recalculate and persist profile completeness (non-blocking)
+      try {
+        const { data: fullProfile, error: fullErr } = await supabase
+          .from("field_rep_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!fullErr && fullProfile) {
+          const completion = calculateCompleteness(mapFromDb(fullProfile));
+          const { error: updErr } = await supabase
+            .from("users")
+            .update({ profile_complete: completion })
+            .eq("id", user.id);
+          // Swallow RLS or network errors here to avoid blocking the main save
+          if (updErr) {
+            // noop - profile saved successfully; completion can be recalculated later
+          }
+        }
+      } catch (_) {
+        // noop - do not block save on completeness update failures
       }
 
       return { success: true };
