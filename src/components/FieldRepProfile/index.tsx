@@ -196,39 +196,38 @@ const FieldRepProfile = () => {
     console.log('✅ Validation passed, starting save...');
     setIsSaving(true);
     
-    // Create abort controller for manual timeout
-    const abortController = new AbortController();
-    const abortTimeout = setTimeout(() => {
-      console.log('⏰ Timeout reached, aborting...');
-      abortController.abort();
-    }, 30000);
+    // Real timeout using Promise.race so the UI never hangs
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Save operation timed out. Please check your internet connection and try again.')), 25000);
+    });
     
     try {
       console.log('📤 Calling saveProfileToDb with user_id:', user?.id);
-      
-      const result = await saveProfileToDb({
-        first_name: values.firstName,
-        last_name: values.lastName,
-        phone: values.phone,
-        city: values.city,
-        state: values.state,
-        zip_code: values.zipCode,
-        bio: values.bio,
-        hasAspenGrove: values.hasAspenGrove,
-        aspen_grove_id: values.aspenGroveId,
-        aspen_grove_expiration: values.aspenGroveExpiration,
-        aspen_grove_image: values.aspenGroveImage,
-        hasHudKeys: values.hasHudKeys,
-        hud_keys: values.hudKeys,
-        other_hud_key: values.otherHudKey,
-        platforms: values.platforms,
-        other_platform: values.otherPlatform,
-        inspection_types: values.inspectionTypes,
-        interested_in_beta: values.interestedInBeta,
-      });
+      await Promise.race([
+        saveProfileToDb({
+          first_name: values.firstName,
+          last_name: values.lastName,
+          phone: values.phone,
+          city: values.city,
+          state: values.state,
+          zip_code: values.zipCode,
+          bio: values.bio,
+          hasAspenGrove: values.hasAspenGrove,
+          aspen_grove_id: values.aspenGroveId,
+          aspen_grove_expiration: values.aspenGroveExpiration,
+          aspen_grove_image: values.aspenGroveImage,
+          hasHudKeys: values.hasHudKeys,
+          hud_keys: values.hudKeys,
+          other_hud_key: values.otherHudKey,
+          platforms: values.platforms,
+          other_platform: values.otherPlatform,
+          inspection_types: values.inspectionTypes,
+          interested_in_beta: values.interestedInBeta,
+        }),
+        timeoutPromise
+      ]);
 
-      clearTimeout(abortTimeout);
-      console.log('✅ Save successful:', result);
+      console.log('✅ Save successful');
 
       // Update personal info and verification completion
       setProfileCompletionStatus(prev => ({
@@ -242,7 +241,6 @@ const FieldRepProfile = () => {
         description: 'Your personal information has been saved successfully!',
       });
     } catch (error: any) {
-      clearTimeout(abortTimeout);
       console.error('❌ Save profile error:', error);
       console.error('Error details:', {
         message: error?.message,
@@ -253,17 +251,10 @@ const FieldRepProfile = () => {
       });
       
       let msg = 'Failed to save profile. Please try again.';
-      
-      // Provide specific error messages
-      if (error?.message?.includes('timeout') || error?.message?.includes('timed out')) {
-        msg = 'Save timed out. Please check your internet connection and try again.';
-      } else if (error?.message?.includes('fetch')) {
-        msg = 'Network error. Please check your connection and try again.';
-      } else if (error?.code === 'PGRST116') {
-        msg = 'Permission denied. Please contact support.';
-      } else if (error?.message) {
-        msg = error.message;
-      }
+      if (error?.message?.includes('timed out')) msg = 'Save timed out. Please check your internet connection and try again.';
+      else if (error?.message?.toLowerCase?.().includes('fetch')) msg = 'Network error. Please check your connection and try again.';
+      else if (error?.code === 'PGRST116') msg = 'Permission denied. Please contact support.';
+      else if (error?.message) msg = error.message;
       
       toast({
         title: 'Save Failed',
