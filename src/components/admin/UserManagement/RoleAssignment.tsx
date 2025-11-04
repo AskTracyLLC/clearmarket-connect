@@ -25,7 +25,7 @@ interface UserProfile {
   username: string;
   email: string;
   phone: string;
-  join_date: string;
+  join_date: string | null;
   is_active: boolean;
   role: string;
   trust_score: number;
@@ -151,7 +151,7 @@ export const RoleAssignment = () => {
           username: user.anonymous_username || user.display_name || 'Unknown',
           email: user.email || 'No email',
           phone: profile?.phone || null,
-          join_date: profile?.join_date || new Date().toISOString(),
+          join_date: profile?.join_date || null,
           is_active: profile?.is_active ?? true,
           role: user.role,
           trust_score: user.trust_score || 0,
@@ -390,7 +390,7 @@ export const RoleAssignment = () => {
         new_role: currentRole,
         trust_score: String(user.trust_score || 0),
         pulse_score: String(user.community_score || 0),
-        join_date: format(new Date(user.join_date), 'MMM dd, yyyy'),
+        join_date: user.join_date ? format(new Date(user.join_date), 'MMM dd, yyyy') : 'Not set',
         last_active: user.last_active ? format(new Date(user.last_active), 'MMM dd, yyyy') : 'Never',
         status: currentStatus ? 'Active' : 'Deactivated',
         active_toggle: currentStatus ? 'Yes' : 'No',
@@ -727,7 +727,11 @@ export const RoleAssignment = () => {
                         )}
                         {isColumnVisible('join_date') && (
                           <TableCell>
-                            {format(new Date(user.join_date), 'MMM dd, yyyy')}
+                            {user.join_date ? (
+                              format(new Date(user.join_date), 'MMM dd, yyyy')
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Not set</span>
+                            )}
                           </TableCell>
                         )}
                         {isColumnVisible('last_active') && (
