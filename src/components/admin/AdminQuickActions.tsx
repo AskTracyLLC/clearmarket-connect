@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 import { 
   Shield, 
   Users, 
@@ -13,7 +14,9 @@ import {
   BarChart3,
   Wrench,
   Network,
-  Coins
+  Coins,
+  Crown,
+  User
 } from "lucide-react";
 
 interface AdminQuickActionsProps {
@@ -21,6 +24,8 @@ interface AdminQuickActionsProps {
 }
 
 export const AdminQuickActions = ({ onTabChange }: AdminQuickActionsProps) => {
+  const navigate = useNavigate();
+
   return (
     <Card>
       <CardHeader>
@@ -30,6 +35,19 @@ export const AdminQuickActions = ({ onTabChange }: AdminQuickActionsProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Admin Profile */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start bg-purple-50 hover:bg-purple-100 border-purple-200 dark:bg-purple-950 dark:hover:bg-purple-900 dark:border-purple-800"
+          onClick={() => navigate('/admin/profile')}
+        >
+          <Crown className="h-4 w-4 mr-2 text-purple-600 dark:text-purple-400" />
+          My Admin Profile
+        </Button>
+
+        <Separator />
+
         {/* Content & Community */}
         <Button 
           variant="outline" 

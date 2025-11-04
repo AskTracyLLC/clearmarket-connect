@@ -46,6 +46,7 @@ import NotFound from "./pages/NotFound";
 import AdminRoute from "@/components/admin/AdminRoute";
 import AdminGiveawayDashboard from "./pages/AdminGiveawayDashboard";
 import AdminUserDetailPage from "./pages/AdminUserDetailPage";
+import AdminProfilePage from "./pages/AdminProfilePage";
 import NetworkPage from "./pages/NetworkPage";
 import PasswordResetGateway from "./pages/PasswordResetGateway";
 
@@ -137,6 +138,13 @@ const App = () => (
                   <ProtectedRouteWithNDA>
                     <AdminRoute>
                       <AdminUserDetailPage />
+                    </AdminRoute>
+                  </ProtectedRouteWithNDA>
+                } />
+                <Route path="/admin/profile" element={
+                  <ProtectedRouteWithNDA>
+                    <AdminRoute>
+                      <AdminProfilePage />
                     </AdminRoute>
                   </ProtectedRouteWithNDA>
                 } />
