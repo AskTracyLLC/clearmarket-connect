@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { FieldRepProfile as FieldRepDbProfile } from "@/components/FieldRepProfile/types";
@@ -39,7 +39,7 @@ export const useFieldRepProfile = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const saveProfile = async (profileData: Partial<FieldRepDbProfile>): Promise<{ success: boolean }> => {
+  const saveProfile = useCallback(async (profileData: Partial<FieldRepDbProfile>): Promise<{ success: boolean }> => {
     console.log('🔵 useFieldRepProfile.saveProfile called');
     if (!user) {
       console.error('❌ No user found');
@@ -138,9 +138,9 @@ export const useFieldRepProfile = () => {
       console.log('🔄 Setting loading to false');
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const fetchProfile = async (): Promise<FieldRepDbProfile | null> => {
+  const fetchProfile = useCallback(async (): Promise<FieldRepDbProfile | null> => {
     if (!user) return null;
 
     setLoading(true);
@@ -158,7 +158,7 @@ export const useFieldRepProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const calculateCompleteness = (profile: FieldRepDbProfile): number => {
     const requiredFields: (keyof FieldRepDbProfile)[] = [

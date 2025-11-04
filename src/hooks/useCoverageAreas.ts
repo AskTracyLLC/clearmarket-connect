@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CoverageArea } from "@/components/FieldRepProfile/types";
@@ -7,7 +7,7 @@ export const useCoverageAreas = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const saveCoverageAreas = async (
+  const saveCoverageAreas = useCallback(async (
     coverageAreas: CoverageArea[]
   ): Promise<{ success: boolean; stats?: { inserted: number; updated: number; deleted: number } }> => {
     if (!user) throw new Error("User not authenticated");
@@ -58,17 +58,28 @@ export const useCoverageAreas = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const fetchCoverageAreas = async (): Promise<CoverageArea[]> => {
+  const fetchCoverageAreas = useCallback(async (): Promise<CoverageArea[]> => {
     if (!user) return [];
     
     setLoading(true);
     try {
+      // Get user's anonymous_username
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("anonymous_username")
+        .eq("id", user.id)
+        .single();
+
+      if (userError || !userData?.anonymous_username) {
+        throw new Error("Could not retrieve user information");
+      }
+
       const { data, error } = await supabase
         .from("coverage_areas")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("anonymous_username", userData.anonymous_username)
         .order("created_at", { ascending: true });
       
       if (error) throw error;
@@ -91,8 +102,7 @@ export const useCoverageAreas = () => {
     } finally {
       setLoading(false);
     }
-  };
-
+  }, [user?.id]);
   return {
     saveCoverageAreas,
     fetchCoverageAreas,

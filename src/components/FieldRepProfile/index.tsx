@@ -4,7 +4,7 @@ import { Form } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useFieldRepProfile } from "@/hooks/useFieldRepProfile";
@@ -161,7 +161,7 @@ const FieldRepProfile = () => {
     };
     
     loadAllProfileData();
-  }, [profile, user, form, fetchProfile, fetchCoverageAreas]);
+  }, [user?.id, profile?.anonymous_username]);
 
 
   // Save profile data only (excluding coverage areas)
