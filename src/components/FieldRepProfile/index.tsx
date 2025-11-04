@@ -166,7 +166,11 @@ const FieldRepProfile = () => {
 
   // Save profile data only (excluding coverage areas)
   const handleSaveProfile = async () => {
-    if (isSaving) return;
+    console.log('🔵 handleSaveProfile called, isSaving:', isSaving);
+    if (isSaving) {
+      console.log('⚠️ Already saving, ignoring duplicate call');
+      return;
+    }
     
     // Validate all required personal info fields
     const requiredFields: (keyof FieldRepFormData)[] = [
@@ -184,42 +188,47 @@ const FieldRepProfile = () => {
         description: `Please complete all required fields: ${invalid.join(', ')}`,
         variant: 'destructive',
       });
+      console.log('❌ Validation failed:', invalid);
       return;
     }
 
     const values = form.getValues();
+    console.log('✅ Validation passed, starting save...');
     setIsSaving(true);
     
-    // Add timeout protection (30 seconds)
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Save operation timed out. Please check your internet connection and try again.')), 30000);
-    });
+    // Create abort controller for manual timeout
+    const abortController = new AbortController();
+    const abortTimeout = setTimeout(() => {
+      console.log('⏰ Timeout reached, aborting...');
+      abortController.abort();
+    }, 30000);
     
     try {
-      // Save profile data with timeout protection (NO coverage areas)
-      await Promise.race([
-        saveProfileToDb({
-          first_name: values.firstName,
-          last_name: values.lastName,
-          phone: values.phone,
-          city: values.city,
-          state: values.state,
-          zip_code: values.zipCode,
-          bio: values.bio,
-          hasAspenGrove: values.hasAspenGrove,
-          aspen_grove_id: values.aspenGroveId,
-          aspen_grove_expiration: values.aspenGroveExpiration,
-          aspen_grove_image: values.aspenGroveImage,
-          hasHudKeys: values.hasHudKeys,
-          hud_keys: values.hudKeys,
-          other_hud_key: values.otherHudKey,
-          platforms: values.platforms,
-          other_platform: values.otherPlatform,
-          inspection_types: values.inspectionTypes,
-          interested_in_beta: values.interestedInBeta,
-        }),
-        timeoutPromise
-      ]);
+      console.log('📤 Calling saveProfileToDb with user_id:', user?.id);
+      
+      const result = await saveProfileToDb({
+        first_name: values.firstName,
+        last_name: values.lastName,
+        phone: values.phone,
+        city: values.city,
+        state: values.state,
+        zip_code: values.zipCode,
+        bio: values.bio,
+        hasAspenGrove: values.hasAspenGrove,
+        aspen_grove_id: values.aspenGroveId,
+        aspen_grove_expiration: values.aspenGroveExpiration,
+        aspen_grove_image: values.aspenGroveImage,
+        hasHudKeys: values.hasHudKeys,
+        hud_keys: values.hudKeys,
+        other_hud_key: values.otherHudKey,
+        platforms: values.platforms,
+        other_platform: values.otherPlatform,
+        inspection_types: values.inspectionTypes,
+        interested_in_beta: values.interestedInBeta,
+      });
+
+      clearTimeout(abortTimeout);
+      console.log('✅ Save successful:', result);
 
       // Update personal info and verification completion
       setProfileCompletionStatus(prev => ({
@@ -233,14 +242,36 @@ const FieldRepProfile = () => {
         description: 'Your personal information has been saved successfully!',
       });
     } catch (error: any) {
-      console.error('Save profile error:', error);
-      const msg = typeof error?.message === 'string' ? error.message : 'Failed to save. Please check your connection and try again.';
+      clearTimeout(abortTimeout);
+      console.error('❌ Save profile error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        name: error?.name,
+      });
+      
+      let msg = 'Failed to save profile. Please try again.';
+      
+      // Provide specific error messages
+      if (error?.message?.includes('timeout') || error?.message?.includes('timed out')) {
+        msg = 'Save timed out. Please check your internet connection and try again.';
+      } else if (error?.message?.includes('fetch')) {
+        msg = 'Network error. Please check your connection and try again.';
+      } else if (error?.code === 'PGRST116') {
+        msg = 'Permission denied. Please contact support.';
+      } else if (error?.message) {
+        msg = error.message;
+      }
+      
       toast({
         title: 'Save Failed',
         description: msg,
         variant: 'destructive',
       });
     } finally {
+      console.log('🔄 Resetting isSaving to false');
       setIsSaving(false);
     }
   };

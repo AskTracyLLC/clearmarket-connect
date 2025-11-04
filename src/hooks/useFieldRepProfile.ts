@@ -40,40 +40,69 @@ export const useFieldRepProfile = () => {
   const { user } = useAuth();
 
   const saveProfile = async (profileData: Partial<FieldRepDbProfile>): Promise<{ success: boolean }> => {
-    if (!user) throw new Error("User not authenticated");
+    console.log('🔵 useFieldRepProfile.saveProfile called');
+    if (!user) {
+      console.error('❌ No user found');
+      throw new Error("User not authenticated");
+    }
+
+    console.log('📝 Saving profile for user:', user.id);
+    console.log('📦 Profile data:', profileData);
 
     setLoading(true);
     try {
       // Check if profile exists
+      console.log('🔍 Checking if profile exists...');
       const { data: existing, error: fetchError } = await supabase
         .from("field_rep_profiles")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('❌ Error fetching existing profile:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('📊 Existing profile:', existing ? 'Found' : 'Not found');
 
       const toDb = mapToDb(profileData);
+      console.log('🔄 Mapped data for DB:', toDb);
 
       if (existing) {
+        console.log('📝 Updating existing profile...');
         const { error: updateError } = await supabase
           .from("field_rep_profiles")
           .update({ ...toDb, updated_at: new Date().toISOString() })
           .eq("user_id", user.id);
-        if (updateError) throw updateError;
+        
+        if (updateError) {
+          console.error('❌ Update error:', updateError);
+          throw updateError;
+        }
+        console.log('✅ Profile updated successfully');
       } else {
+        console.log('📝 Inserting new profile...');
         const insertPayload = {
           user_id: user.id,
           ...toDb,
         };
+        console.log('📦 Insert payload:', insertPayload);
+        
         const { error: insertError } = await supabase
           .from("field_rep_profiles")
           .insert(insertPayload);
-        if (insertError) throw insertError;
+        
+        if (insertError) {
+          console.error('❌ Insert error:', insertError);
+          throw insertError;
+        }
+        console.log('✅ Profile inserted successfully');
       }
 
       // Recalculate and persist profile completeness (non-blocking)
       try {
+        console.log('📊 Updating profile completeness...');
         const { data: fullProfile, error: fullErr } = await supabase
           .from("field_rep_profiles")
           .select("*")
@@ -82,24 +111,31 @@ export const useFieldRepProfile = () => {
 
         if (!fullErr && fullProfile) {
           const completion = calculateCompleteness(mapFromDb(fullProfile));
+          console.log('📈 Calculated completion:', completion);
+          
           const { error: updErr } = await supabase
             .from("users")
             .update({ profile_complete: completion })
             .eq("id", user.id);
-          // Swallow RLS or network errors here to avoid blocking the main save
+          
           if (updErr) {
-            // noop - profile saved successfully; completion can be recalculated later
+            console.warn('⚠️ Could not update profile_complete (non-critical):', updErr);
+          } else {
+            console.log('✅ Profile completeness updated');
           }
         }
-      } catch (_) {
-        // noop - do not block save on completeness update failures
+      } catch (err) {
+        console.warn('⚠️ Profile completeness update failed (non-critical):', err);
       }
 
+      console.log('✅ Save profile completed successfully');
       return { success: true };
     } catch (error) {
+      console.error('❌ Save profile failed:', error);
       // Let caller handle user-friendly messaging
       throw error;
     } finally {
+      console.log('🔄 Setting loading to false');
       setLoading(false);
     }
   };
