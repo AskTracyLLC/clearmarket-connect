@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -58,11 +58,12 @@ const Header = () => {
   const [lastName, setLastName] = useState<string | null>(null);
 
   // Fetch NDA signature data for user initials
+  const ndaFetchRef = useRef(false);
   useEffect(() => {
-    const isFetching = { current: false } as { current: boolean };
+    if (!user?.id || ndaFetchRef.current) return;
+    ndaFetchRef.current = true;
+    let cancelled = false;
     const fetchNDAData = async () => {
-      if (!user?.id || isFetching.current) return;
-      isFetching.current = true;
       try {
         const { data } = await supabase
           .from('nda_signatures')
@@ -71,17 +72,16 @@ const Header = () => {
           .order('signed_date', { ascending: false })
           .limit(1)
           .maybeSingle();
-        if (data) {
+        if (!cancelled && data) {
           setFirstName(data.first_name);
           setLastName(data.last_name);
         }
       } catch (error) {
-        console.error('Failed to load NDA data for avatar:', error);
-      } finally {
-        isFetching.current = false;
+        if (!cancelled) console.error('Failed to load NDA data for avatar:', error);
       }
     };
     fetchNDAData();
+    return () => { cancelled = true; };
   }, [user?.id]);
 
   const handleSignOut = async () => {

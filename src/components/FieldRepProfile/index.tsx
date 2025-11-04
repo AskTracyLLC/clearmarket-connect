@@ -67,6 +67,7 @@ const FieldRepProfile = () => {
   // Update form when profile loads and fetch NDA data
   // Combined effect to load all profile data and calculate completion
   useEffect(() => {
+    if (!user?.id) return; // wait until user is available
     if (loadedRef.current) return; // Prevent duplicate loads
     loadedRef.current = true;
     let cancelled = false;
@@ -81,91 +82,88 @@ const FieldRepProfile = () => {
         form.setValue('email', user.email);
       }
       
-      // Fetch saved field rep profile data from database
-      if (user?.id) {
-        try {
-          const [savedProfile, areas] = await Promise.all([
-            fetchProfile(),
-            fetchCoverageAreas()
-          ]);
+      try {
+        const [savedProfile, areas] = await Promise.all([
+          fetchProfile(),
+          fetchCoverageAreas()
+        ]);
+        
+        if (cancelled) return;
+        
+        if (savedProfile) {
+          // Populate all saved fields
+          if (savedProfile.first_name) form.setValue('firstName', savedProfile.first_name);
+          if (savedProfile.last_name) form.setValue('lastName', savedProfile.last_name);
+          if (savedProfile.phone) form.setValue('phone', savedProfile.phone);
+          if (savedProfile.city) form.setValue('city', savedProfile.city);
+          if (savedProfile.state) form.setValue('state', savedProfile.state);
+          if (savedProfile.zip_code) form.setValue('zipCode', savedProfile.zip_code);
+          if (savedProfile.bio) form.setValue('bio', savedProfile.bio);
+          if (typeof savedProfile.hasAspenGrove === 'boolean') form.setValue('hasAspenGrove', savedProfile.hasAspenGrove);
+          if (savedProfile.aspen_grove_id) form.setValue('aspenGroveId', savedProfile.aspen_grove_id);
+          if (savedProfile.aspen_grove_expiration) form.setValue('aspenGroveExpiration', savedProfile.aspen_grove_expiration);
+          if (savedProfile.aspen_grove_image) form.setValue('aspenGroveImage', savedProfile.aspen_grove_image);
+          if (savedProfile.platforms) form.setValue('platforms', savedProfile.platforms);
+          if (savedProfile.other_platform) form.setValue('otherPlatform', savedProfile.other_platform);
+          if (savedProfile.inspection_types) form.setValue('inspectionTypes', savedProfile.inspection_types);
+          if (typeof savedProfile.hasHudKeys === 'boolean') form.setValue('hasHudKeys', savedProfile.hasHudKeys);
+          if (savedProfile.hud_keys) form.setValue('hudKeys', savedProfile.hud_keys);
+          if (savedProfile.other_hud_key) form.setValue('otherHudKey', savedProfile.other_hud_key);
+          if (typeof savedProfile.interested_in_beta === 'boolean') {
+            form.setValue('interestedInBeta', savedProfile.interested_in_beta);
+          }
+
+          // Set coverage areas
+          setCoverageAreas(areas);
+
+          // Calculate completion status for all sections
+          const personalInfoComplete = Boolean(
+            savedProfile.first_name && 
+            savedProfile.last_name && 
+            savedProfile.city && 
+            savedProfile.state && 
+            savedProfile.zip_code && 
+            savedProfile.bio
+          );
+
+          const verificationComplete = Boolean(
+            // AspenGrove is complete if: answered "no" OR (answered "yes" AND has ID)
+            (savedProfile.hasAspenGrove === false || (savedProfile.hasAspenGrove === true && savedProfile.aspen_grove_id)) ||
+            // HUD Keys is complete if: answered "no" OR (answered "yes" AND has keys)
+            (savedProfile.hasHudKeys === false || (savedProfile.hasHudKeys === true && savedProfile.hud_keys?.length))
+          );
+
+          const coverageSetupComplete = Boolean(
+            areas.length > 0 &&
+            savedProfile.platforms?.length &&
+            savedProfile.inspection_types?.length
+          );
+
+          // Update all completion status at once
+          setProfileCompletionStatus({
+            personalInfoComplete,
+            verificationComplete,
+            coverageSetupComplete
+          });
+        } else {
+          // If no saved profile, try to load from NDA signature
+          const { data: ndaData } = await supabase
+            .from('nda_signatures')
+            .select('first_name, last_name')
+            .eq('user_id', user.id)
+            .order('signed_date', { ascending: false })
+            .limit(1)
+            .maybeSingle();
           
           if (cancelled) return;
           
-          if (savedProfile) {
-            // Populate all saved fields
-            if (savedProfile.first_name) form.setValue('firstName', savedProfile.first_name);
-            if (savedProfile.last_name) form.setValue('lastName', savedProfile.last_name);
-            if (savedProfile.phone) form.setValue('phone', savedProfile.phone);
-            if (savedProfile.city) form.setValue('city', savedProfile.city);
-            if (savedProfile.state) form.setValue('state', savedProfile.state);
-            if (savedProfile.zip_code) form.setValue('zipCode', savedProfile.zip_code);
-            if (savedProfile.bio) form.setValue('bio', savedProfile.bio);
-            if (typeof savedProfile.hasAspenGrove === 'boolean') form.setValue('hasAspenGrove', savedProfile.hasAspenGrove);
-            if (savedProfile.aspen_grove_id) form.setValue('aspenGroveId', savedProfile.aspen_grove_id);
-            if (savedProfile.aspen_grove_expiration) form.setValue('aspenGroveExpiration', savedProfile.aspen_grove_expiration);
-            if (savedProfile.aspen_grove_image) form.setValue('aspenGroveImage', savedProfile.aspen_grove_image);
-            if (savedProfile.platforms) form.setValue('platforms', savedProfile.platforms);
-            if (savedProfile.other_platform) form.setValue('otherPlatform', savedProfile.other_platform);
-            if (savedProfile.inspection_types) form.setValue('inspectionTypes', savedProfile.inspection_types);
-            if (typeof savedProfile.hasHudKeys === 'boolean') form.setValue('hasHudKeys', savedProfile.hasHudKeys);
-            if (savedProfile.hud_keys) form.setValue('hudKeys', savedProfile.hud_keys);
-            if (savedProfile.other_hud_key) form.setValue('otherHudKey', savedProfile.other_hud_key);
-            if (typeof savedProfile.interested_in_beta === 'boolean') {
-              form.setValue('interestedInBeta', savedProfile.interested_in_beta);
-            }
-
-            // Set coverage areas
-            setCoverageAreas(areas);
-
-            // Calculate completion status for all sections
-            const personalInfoComplete = Boolean(
-              savedProfile.first_name && 
-              savedProfile.last_name && 
-              savedProfile.city && 
-              savedProfile.state && 
-              savedProfile.zip_code && 
-              savedProfile.bio
-            );
-
-            const verificationComplete = Boolean(
-              // AspenGrove is complete if: answered "no" OR (answered "yes" AND has ID)
-              (savedProfile.hasAspenGrove === false || (savedProfile.hasAspenGrove === true && savedProfile.aspen_grove_id)) ||
-              // HUD Keys is complete if: answered "no" OR (answered "yes" AND has keys)
-              (savedProfile.hasHudKeys === false || (savedProfile.hasHudKeys === true && savedProfile.hud_keys?.length))
-            );
-
-            const coverageSetupComplete = Boolean(
-              areas.length > 0 &&
-              savedProfile.platforms?.length &&
-              savedProfile.inspection_types?.length
-            );
-
-            // Update all completion status at once
-            setProfileCompletionStatus({
-              personalInfoComplete,
-              verificationComplete,
-              coverageSetupComplete
-            });
-          } else {
-            // If no saved profile, try to load from NDA signature
-            const { data: ndaData } = await supabase
-              .from('nda_signatures')
-              .select('first_name, last_name')
-              .eq('user_id', user.id)
-              .order('signed_date', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            
-            if (cancelled) return;
-            
-            if (ndaData) {
-              if (ndaData.first_name) form.setValue('firstName', ndaData.first_name);
-              if (ndaData.last_name) form.setValue('lastName', ndaData.last_name);
-            }
+          if (ndaData) {
+            if (ndaData.first_name) form.setValue('firstName', ndaData.first_name);
+            if (ndaData.last_name) form.setValue('lastName', ndaData.last_name);
           }
-        } catch (error) {
-          console.error('Failed to load profile data:', error);
         }
+      } catch (error) {
+        console.error('Failed to load profile data:', error);
       }
     };
     
