@@ -214,14 +214,27 @@ const VendorPublicProfile: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {vendor.serviceAreas.map((area, index) => (
-                <div key={index}>
-                  <div className="font-medium">{area.state}</div>
-                  <div className="text-sm text-muted-foreground ml-4">
-                    {area.counties.join(', ')}
-                  </div>
-                </div>
-              ))}
+              {(() => {
+                // Group service areas by state
+                const grouped = vendor.serviceAreas.reduce((acc, area) => {
+                  if (!acc[area.state]) {
+                    acc[area.state] = [];
+                  }
+                  acc[area.state] = [...new Set([...acc[area.state], ...area.counties])];
+                  return acc;
+                }, {} as Record<string, string[]>);
+
+                return Object.entries(grouped)
+                  .sort(([stateA], [stateB]) => stateA.localeCompare(stateB))
+                  .map(([state, counties]) => (
+                    <div key={state}>
+                      <div className="font-medium">{state}</div>
+                      <div className="text-sm text-muted-foreground ml-4">
+                        {counties.sort().join(', ')}
+                      </div>
+                    </div>
+                  ));
+              })()}
             </CardContent>
           </Card>
 
