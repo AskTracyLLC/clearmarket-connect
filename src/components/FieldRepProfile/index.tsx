@@ -39,6 +39,7 @@ const FieldRepProfile = () => {
     coverageSetupComplete: false
   });
   const loadedRef = useRef(false);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const form = useForm<FieldRepFormData>({
     resolver: zodResolver(fieldRepSchema),
@@ -64,6 +65,28 @@ const FieldRepProfile = () => {
     },
   });
 
+  // Auto-save form to localStorage
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const subscription = form.watch((data) => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+      
+      autoSaveTimerRef.current = setTimeout(() => {
+        localStorage.setItem(`fieldrep_draft_${user.id}`, JSON.stringify(data));
+      }, 1000);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [user?.id, form]);
+
   // Update form when profile loads and fetch NDA data
   // Combined effect to load all profile data and calculate completion
   useEffect(() => {
@@ -81,6 +104,10 @@ const FieldRepProfile = () => {
       if (user?.email) {
         form.setValue('email', user.email);
       }
+      
+      // Check for localStorage draft first
+      const draftKey = `fieldrep_draft_${user.id}`;
+      const savedDraft = localStorage.getItem(draftKey);
       
       try {
         const [savedProfile, areas] = await Promise.all([
@@ -145,6 +172,22 @@ const FieldRepProfile = () => {
             verificationComplete,
             coverageSetupComplete
           });
+        } else if (savedDraft) {
+          // Load from localStorage draft if no DB profile
+          try {
+            const draft = JSON.parse(savedDraft);
+            Object.entries(draft).forEach(([key, value]) => {
+              if (value !== undefined && value !== null) {
+                form.setValue(key as any, value as any);
+              }
+            });
+            toast({
+              title: "Draft Restored",
+              description: "Your unsaved changes have been restored.",
+            });
+          } catch (e) {
+            console.error("Failed to parse draft:", e);
+          }
         } else {
           // If no saved profile, try to load from NDA signature
           const { data: ndaData } = await supabase
@@ -236,6 +279,11 @@ const FieldRepProfile = () => {
       ]);
 
       console.log('✅ Save successful');
+
+      // Clear localStorage draft after successful save
+      if (user?.id) {
+        localStorage.removeItem(`fieldrep_draft_${user.id}`);
+      }
 
       // Update personal info and verification completion
       setProfileCompletionStatus(prev => ({
