@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Info, Plus, Download } from "lucide-react";
+import { Trash2, Info, Plus, Download, Pencil } from "lucide-react";
 import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
 import { useToast } from "@/hooks/use-toast";
 import { CoverageArea, InspectionTypePricing } from "./types";
@@ -27,6 +27,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
   const [standardPrice, setStandardPrice] = useState("");
   const [rushPrice, setRushPrice] = useState("");
   const [inspectionTypes, setInspectionTypes] = useState<InspectionTypePricing[]>([]);
+  const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
 
   // Create a mapping from profile inspection types to coverage area inspection types
   const getAvailableInspectionTypes = () => {
@@ -104,6 +105,34 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
     setInspectionTypes(prev => prev.filter(item => item.id !== id));
   };
 
+  const editCoverageArea = (area: CoverageArea) => {
+    // Find the state object
+    const state = states.find(s => s.code === area.stateCode);
+    setSelectedState(state || null);
+    
+    // Set if all counties selected
+    const isAllCounties = area.counties.includes("All Counties");
+    setSelectAllCounties(isAllCounties);
+    
+    // Convert county names back to IDs
+    if (!isAllCounties) {
+      const countyIds = area.counties
+        .map(countyName => counties.find(c => c.name === countyName)?.id)
+        .filter(Boolean) as string[];
+      setSelectedCounties(countyIds);
+    } else {
+      setSelectedCounties([]);
+    }
+    
+    setStandardPrice(area.standardPrice || "");
+    setRushPrice(area.rushPrice || "");
+    setInspectionTypes(area.inspectionTypes || []);
+    setEditingAreaId(area.id);
+    
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const addCoverageArea = async () => {
     if (!selectedState || selectedCounties.length === 0 || !standardPrice || !rushPrice) {
       toast({
@@ -114,8 +143,8 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       return;
     }
 
-    const newCoverage: CoverageArea = {
-      id: `${selectedState.code}-${Date.now()}`,
+    const coverageData: CoverageArea = {
+      id: editingAreaId || `${selectedState.code}-${Date.now()}`,
       state: selectedState.name,
       stateCode: selectedState.code,
       counties: selectAllCounties 
@@ -128,7 +157,9 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       inspectionTypes: inspectionTypes.filter(item => item.inspectionType && item.price),
     };
 
-    const updatedAreas = [...coverageAreas, newCoverage];
+    const updatedAreas = editingAreaId
+      ? coverageAreas.map(area => area.id === editingAreaId ? coverageData : area)
+      : [...coverageAreas, coverageData];
     setCoverageAreas(updatedAreas);
     
     try {
@@ -140,10 +171,13 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       setStandardPrice("");
       setRushPrice("");
       setInspectionTypes([]);
+      setEditingAreaId(null);
       
       toast({
-        title: "Coverage Saved",
-        description: "Coverage area and pricing have been saved to the database.",
+        title: editingAreaId ? "Coverage Updated" : "Coverage Saved",
+        description: editingAreaId 
+          ? "Coverage area has been updated in the database."
+          : "Coverage area and pricing have been saved to the database.",
       });
     } catch (error) {
       // Rollback on error
@@ -238,7 +272,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       </div>
       
       <div className="border border-border rounded-lg p-4 space-y-4">
-        <h4 className="font-medium">Add Coverage Area</h4>
+        <h4 className="font-medium">{editingAreaId ? "Edit Coverage Area" : "Add Coverage Area"}</h4>
         
         <div className="space-y-2">
           <Label>Select State</Label>
@@ -419,7 +453,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
             </div>
 
             <Button type="button" onClick={addCoverageArea} className="w-full">
-              Save Coverage Area
+              {editingAreaId ? "Update Coverage Area" : "Save Coverage Area"}
             </Button>
           </div>
         )}
@@ -493,14 +527,24 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
                       )}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeCoverageArea(area.id)}
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editCoverageArea(area)}
+                          className="h-8 w-8 p-0 text-primary hover:text-primary"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeCoverageArea(area.id)}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
