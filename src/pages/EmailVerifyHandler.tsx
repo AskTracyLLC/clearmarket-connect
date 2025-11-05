@@ -122,11 +122,53 @@ const EmailVerifyHandler = () => {
       }
     });
 
+    // Check if there's an error in the URL (from Supabase auth)
+    const checkUrlError = () => {
+      const params = new URLSearchParams(window.location.search);
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
+      
+      if (error) {
+        if (errorDescription?.includes('Email link is invalid') || errorDescription?.includes('expired')) {
+          setStatus('error');
+          setMessage('This verification link has expired or is invalid. Please request a new one.');
+          toast({
+            variant: "destructive",
+            title: "Link Expired",
+            description: "Please sign up again to receive a new verification email.",
+            duration: 8000,
+          });
+        } else if (errorDescription?.includes('Email') && errorDescription?.includes('disabled')) {
+          setStatus('error');
+          setMessage('Email verification is currently disabled. Please contact support.');
+          toast({
+            variant: "destructive",
+            title: "Service Configuration Issue",
+            description: "Email authentication is not enabled. If you're the administrator, please enable email provider in Supabase.",
+            duration: 10000,
+          });
+        } else {
+          setStatus('error');
+          setMessage(errorDescription || 'An authentication error occurred.');
+        }
+        
+        setTimeout(() => navigate('/auth'), 5000);
+        return true;
+      }
+      return false;
+    };
+
+    // Check for errors first
+    if (checkUrlError()) {
+      return;
+    }
+
     // Set a timeout to show error if verification doesn't complete
     timeoutId = setTimeout(() => {
       if (!isProcessed) {
         setStatus('error');
-        setMessage('Verification is taking longer than expected.');
+        setMessage('Verification is taking longer than expected. The link may have expired.');
+        setTimeout(() => navigate('/auth'), 3000);
       }
     }, 8000);
 
@@ -161,11 +203,20 @@ const EmailVerifyHandler = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">{message}</p>
+          <p className="text-muted-foreground mb-4">{message}</p>
           {status === 'error' && (
-            <p className="text-sm text-muted-foreground mt-4">
-              You will be redirected to the sign-in page shortly.
-            </p>
+            <>
+              <p className="text-sm text-muted-foreground mb-4">
+                You will be redirected to the sign-in page shortly.
+              </p>
+              <Button 
+                onClick={() => navigate('/auth?tab=signup')}
+                variant="outline"
+                className="w-full"
+              >
+                Return to Sign Up
+              </Button>
+            </>
           )}
         </CardContent>
       </Card>

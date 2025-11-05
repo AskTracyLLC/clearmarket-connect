@@ -137,11 +137,31 @@ const AuthPage = () => {
       });
 
       if (error) {
-        toast({
-          title: "Error creating account",
-          description: error.message,
-          variant: "destructive",
-        });
+        // Detect email signups disabled error
+        const isEmailDisabled = 
+          error.message.toLowerCase().includes('email') && 
+          (error.message.toLowerCase().includes('disabled') || 
+           error.message.toLowerCase().includes('not enabled'));
+        
+        if (isEmailDisabled) {
+          toast({
+            title: "Sign-ups Temporarily Unavailable",
+            description: (
+              <div className="space-y-2">
+                <p>Email signups are currently disabled in our system configuration.</p>
+                <p className="text-xs">If you're the site administrator, please enable email authentication in your Supabase dashboard under Authentication → Providers.</p>
+              </div>
+            ),
+            variant: "destructive",
+            duration: 8000,
+          });
+        } else {
+          toast({
+            title: "Error creating account",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
         // Get the user's anonymous username from the users table
         if (authData.user) {
