@@ -232,13 +232,6 @@ const VendorProfile = () => {
                       setCoverageAreas={setCoverageAreas} 
                     />
                   </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                    <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
-                      {isSaving ? 'SAVING COVERAGE...' : 'SAVE COVERAGE'}
-                    </Button>
-                  </div>
                 </form>
               </Form>
             </TabsContent>
