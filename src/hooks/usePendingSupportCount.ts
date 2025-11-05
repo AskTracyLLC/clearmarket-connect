@@ -9,10 +9,10 @@ export const usePendingSupportCount = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Initial fetch
+    // Initial fetch - count pending feedback posts
     const fetchCount = async () => {
       const { count: pendingCount } = await supabase
-        .from('platform_worktype_requests')
+        .from('feedback_posts')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
       
@@ -29,7 +29,7 @@ export const usePendingSupportCount = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'platform_worktype_requests'
+          table: 'feedback_posts'
         },
         () => {
           fetchCount();
