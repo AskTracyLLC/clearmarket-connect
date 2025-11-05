@@ -447,16 +447,6 @@ const FieldRepProfile = () => {
                     <HudKeys form={form} />
                   </div>
 
-                  {/* Section 3: Platforms */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Platforms</h2>
-                      <p className="text-sm text-muted-foreground">Software platforms you're experienced with</p>
-                    </div>
-                    <Separator />
-                    <PlatformsUsed form={form} />
-                  </div>
-
                   {/* Profile Save Button */}
                   <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
                     <Button 
@@ -476,6 +466,16 @@ const FieldRepProfile = () => {
             <TabsContent value="coverage" className="mt-6">
               <Form {...form}>
                 <div className="space-y-8">
+                  {/* Platforms */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Platforms Used</h2>
+                      <p className="text-sm text-muted-foreground">Software platforms you're experienced with</p>
+                    </div>
+                    <Separator />
+                    <PlatformsUsed form={form} />
+                  </div>
+
                   {/* Inspection Types */}
                   <div className="space-y-6">
                     <div>
