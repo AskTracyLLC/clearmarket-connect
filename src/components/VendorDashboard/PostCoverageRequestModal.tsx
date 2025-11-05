@@ -26,7 +26,8 @@ interface CoverageRequestForm {
   title: string;
   description: string;
   estimatedMonthlyVolume: string;
-  budgetRange: string;
+  budgetMin: string;
+  budgetMax: string;
   selectedState: string;
   selectedCounties: string[];
   selectedCities: string[];
@@ -47,16 +48,6 @@ const cities = [
   "Chicago", "Rockford", "Peoria", "Springfield", "Naperville"
 ];
 
-const budgetRanges = [
-  "$25-35 per inspection",
-  "$35-45 per inspection", 
-  "$45-55 per inspection",
-  "$55-65 per inspection",
-  "$65-75 per inspection",
-  "$75-85 per inspection",
-  "$85-95 per inspection",
-  "$95+ per inspection"
-];
 
 const experienceOptions = [
   "No minimum experience",
@@ -77,7 +68,8 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
     title: "",
     description: "",
     estimatedMonthlyVolume: "",
-    budgetRange: "",
+    budgetMin: "",
+    budgetMax: "",
     selectedState: "",
     selectedCounties: [],
     selectedCities: [],
@@ -188,12 +180,19 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
 
     setSubmitting(true);
     try {
+      // Construct budget range string
+      const budgetRange = form.budgetMin && form.budgetMax 
+        ? `$${form.budgetMin}-${form.budgetMax} per inspection`
+        : form.budgetMin 
+          ? `$${form.budgetMin}+ per inspection`
+          : "";
+
       const requestData = {
         vendor_id: user.id,
         title: form.title,
         description: form.description,
         estimated_monthly_volume: form.estimatedMonthlyVolume,
-        budget_range: form.budgetRange,
+        budget_range: budgetRange,
         selected_state: form.selectedState,
         selected_counties: form.selectedCounties,
         selected_cities: form.selectedCities,
@@ -244,7 +243,8 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         title: "",
         description: "",
         estimatedMonthlyVolume: "",
-        budgetRange: "",
+        budgetMin: "",
+        budgetMax: "",
         selectedState: "",
         selectedCounties: [],
         selectedCities: [],
@@ -307,29 +307,46 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="volume">Estimated Monthly Volume *</Label>
-                  <Input
-                    id="volume"
-                    value={form.estimatedMonthlyVolume}
-                    onChange={(e) => setForm(prev => ({ ...prev, estimatedMonthlyVolume: e.target.value }))}
-                    placeholder="e.g., 15-20 inspections per month"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="volume">Estimated Monthly Volume *</Label>
+                <Input
+                  id="volume"
+                  value={form.estimatedMonthlyVolume}
+                  onChange={(e) => setForm(prev => ({ ...prev, estimatedMonthlyVolume: e.target.value }))}
+                  placeholder="e.g., 15-20 inspections per month"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label>Budget Range *</Label>
-                  <Select value={form.budgetRange} onValueChange={(value) => setForm(prev => ({ ...prev, budgetRange: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select budget range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {budgetRanges.map((range) => (
-                        <SelectItem key={range} value={range}>{range}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Budget Range (per inspection)
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="budgetMin" className="text-xs text-muted-foreground">Minimum $</Label>
+                    <Input
+                      id="budgetMin"
+                      type="number"
+                      min="0"
+                      step="5"
+                      value={form.budgetMin}
+                      onChange={(e) => setForm(prev => ({ ...prev, budgetMin: e.target.value }))}
+                      placeholder="25"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="budgetMax" className="text-xs text-muted-foreground">Maximum $</Label>
+                    <Input
+                      id="budgetMax"
+                      type="number"
+                      min="0"
+                      step="5"
+                      value={form.budgetMax}
+                      onChange={(e) => setForm(prev => ({ ...prev, budgetMax: e.target.value }))}
+                      placeholder="35"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
