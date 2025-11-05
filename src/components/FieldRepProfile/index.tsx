@@ -23,6 +23,7 @@ import { InspectionTypes } from "./InspectionTypes";
 import { ProfessionalBio } from "./ProfessionalBio";
 import { HudKeys } from "./HudKeys";
 import { AspenGroveVerification } from "./AspenGroveVerification";
+import { useBlocker } from "react-router-dom";
 
 const FieldRepProfile = () => {
   const { toast } = useToast();
@@ -87,6 +88,29 @@ const FieldRepProfile = () => {
       }
     };
   }, [user?.id, form]);
+
+  // Track unsaved changes for browser navigation
+  useEffect(() => {
+    const isDirty = form.formState.isDirty;
+    
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty && !isSaving) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [form.formState.isDirty, isSaving]);
+
+  // Block navigation within the app when there are unsaved changes
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      form.formState.isDirty &&
+      !isSaving &&
+      currentLocation.pathname !== nextLocation.pathname
+  );
 
   // Update form when profile loads and fetch NDA data
   // Combined effect to load all profile data and calculate completion
@@ -299,6 +323,9 @@ const FieldRepProfile = () => {
         verificationComplete: true,
       }));
       
+      // Mark form as pristine after successful save
+      form.reset(form.getValues());
+      
       toast({
         title: 'Profile Saved',
         description: 'Your personal information has been saved successfully!',
@@ -394,7 +421,37 @@ const FieldRepProfile = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <ProfileProgress 
+      {/* Unsaved Changes Warning Dialog */}
+      {blocker.state === "blocked" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <Card className="max-w-md">
+            <CardHeader>
+              <CardTitle>Unsaved Changes</CardTitle>
+              <CardDescription>
+                You have unsaved changes. Are you sure you want to leave this page?
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => blocker.reset()}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => blocker.proceed()}
+                className="flex-1"
+              >
+                Leave Without Saving
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <ProfileProgress
         steps={profileSteps} 
         userType="fieldrep" 
         className="max-w-md mx-auto"
