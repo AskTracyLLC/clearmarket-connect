@@ -114,8 +114,11 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       return;
     }
 
+    // Check if coverage area already exists for this state
+    const existingAreaIndex = coverageAreas.findIndex(area => area.stateCode === selectedState.code);
+    
     const newCoverage: CoverageArea = {
-      id: `${selectedState.code}-${Date.now()}`,
+      id: existingAreaIndex >= 0 ? coverageAreas[existingAreaIndex].id : `${selectedState.code}-${Date.now()}`,
       state: selectedState.name,
       stateCode: selectedState.code,
       counties: selectAllCounties 
@@ -128,7 +131,10 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       inspectionTypes: inspectionTypes.filter(item => item.inspectionType && item.price),
     };
 
-    const updatedAreas = [...coverageAreas, newCoverage];
+    // Update existing or add new
+    const updatedAreas = existingAreaIndex >= 0
+      ? coverageAreas.map((area, idx) => idx === existingAreaIndex ? newCoverage : area)
+      : [...coverageAreas, newCoverage];
     setCoverageAreas(updatedAreas);
     
     try {
