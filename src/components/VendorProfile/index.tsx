@@ -148,8 +148,9 @@ const VendorProfile = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="profile">Company Profile</TabsTrigger>
+              <TabsTrigger value="coverage">Coverage & Pricing</TabsTrigger>
               <TabsTrigger value="network" className="flex items-center gap-2">
                 My Network 
                 <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
@@ -176,31 +177,17 @@ const VendorProfile = () => {
                     <VendorCompanyBio form={form} />
                   </div>
 
-                  {/* Section 2: Service Coverage */}
+                  {/* Section 2: Platforms */}
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-semibold text-foreground">Service Coverage</h2>
-                      <p className="text-sm text-muted-foreground">Areas where you need field rep coverage</p>
+                      <h2 className="text-xl font-semibold text-foreground">Platforms</h2>
+                      <p className="text-sm text-muted-foreground">Software platforms you use</p>
                     </div>
                     <Separator />
-                    <VendorCoverageAreas 
-                      coverageAreas={coverageAreas} 
-                      setCoverageAreas={setCoverageAreas} 
-                    />
-                  </div>
-
-                  {/* Section 3: Work Details */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Work Details</h2>
-                      <p className="text-sm text-muted-foreground">Services you need and platforms you use</p>
-                    </div>
-                    <Separator />
-                    <VendorWorkTypes form={form} />
                     <VendorPlatforms form={form} />
                   </div>
 
-                  {/* Section 4: Additional Information */}
+                  {/* Section 3: Additional Information */}
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-semibold text-foreground">Additional Information</h2>
@@ -214,6 +201,42 @@ const VendorProfile = () => {
                   <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
                     <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
                       {isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE'}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </TabsContent>
+
+            <TabsContent value="coverage" className="mt-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Work Types */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Work Types</h2>
+                      <p className="text-sm text-muted-foreground">Types of work you need coverage for</p>
+                    </div>
+                    <Separator />
+                    <VendorWorkTypes form={form} />
+                  </div>
+
+                  {/* Service Coverage */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Service Coverage Areas</h2>
+                      <p className="text-sm text-muted-foreground">Areas where you need field rep coverage</p>
+                    </div>
+                    <Separator />
+                    <VendorCoverageAreas 
+                      coverageAreas={coverageAreas} 
+                      setCoverageAreas={setCoverageAreas} 
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
+                    <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
+                      {isSaving ? 'SAVING COVERAGE...' : 'SAVE COVERAGE'}
                     </Button>
                   </div>
                 </form>

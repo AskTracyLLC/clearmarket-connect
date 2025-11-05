@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, useRef } from "react";
@@ -403,96 +404,120 @@ const FieldRepProfile = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <div className="space-y-8">
-              {/* Section 1: Personal Information */}
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">Personal Information</h2>
-                  <p className="text-sm text-muted-foreground">Basic information about yourself</p>
-                </div>
-                <Separator />
-                <PersonalInfo form={form} />
-                <ContactVerification form={form} />
-                <ProfessionalBio form={form} />
-                <LocationInfo form={form} />
-              </div>
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="coverage">Coverage & Pricing</TabsTrigger>
+            </TabsList>
 
-              {/* Section 2: Verification & Credentials */}
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">Verification & Credentials</h2>
-                  <p className="text-sm text-muted-foreground">Optional credentials that can help you stand out</p>
-                </div>
-                <Separator />
-                <AspenGroveVerification form={form} />
-                <HudKeys form={form} />
-              </div>
+            <TabsContent value="profile" className="mt-6">
+              <Form {...form}>
+                <div className="space-y-8">
+                  {/* Section 1: Personal Information */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Personal Information</h2>
+                      <p className="text-sm text-muted-foreground">Basic information about yourself</p>
+                    </div>
+                    <Separator />
+                    <PersonalInfo form={form} />
+                    <ContactVerification form={form} />
+                    <ProfessionalBio form={form} />
+                    <LocationInfo form={form} />
+                  </div>
 
-              {/* Section 3: Services */}
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">Services</h2>
-                  <p className="text-sm text-muted-foreground">What services you provide</p>
-                </div>
-                <Separator />
-                <PlatformsUsed form={form} />
-                <InspectionTypes form={form} />
-              </div>
+                  {/* Section 2: Verification & Credentials */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Verification & Credentials</h2>
+                      <p className="text-sm text-muted-foreground">Optional credentials that can help you stand out</p>
+                    </div>
+                    <Separator />
+                    <AspenGroveVerification form={form} />
+                    <HudKeys form={form} />
+                  </div>
 
-              {/* Profile Save Button */}
-              <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                <Button 
-                  onClick={handleSaveProfile} 
-                  variant="hero" 
-                  size="lg" 
-                  className="w-full"
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'Saving Profile...' : 'SAVE PROFILE'}
-                </Button>
-              </div>
+                  {/* Section 3: Platforms */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Platforms</h2>
+                      <p className="text-sm text-muted-foreground">Software platforms you're experienced with</p>
+                    </div>
+                    <Separator />
+                    <PlatformsUsed form={form} />
+                  </div>
 
-              {/* Section 4: Coverage Areas & Pricing - Below Save Profile */}
-              <div className="space-y-6 pt-8">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground">Coverage Areas & Pricing</h2>
-                  <p className="text-sm text-muted-foreground">Where you work and your pricing for each area</p>
+                  {/* Profile Save Button */}
+                  <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
+                    <Button 
+                      onClick={handleSaveProfile} 
+                      variant="hero" 
+                      size="lg" 
+                      className="w-full"
+                      disabled={isSaving}
+                    >
+                      {isSaving ? 'Saving Profile...' : 'SAVE PROFILE'}
+                    </Button>
+                  </div>
                 </div>
-                <Separator />
-                <CoverageAreas 
-                  coverageAreas={coverageAreas}
-                  setCoverageAreas={setCoverageAreas}
-                  selectedInspectionTypes={form.watch("inspectionTypes")}
-                  onSaveCoverageAreas={async (areas) => {
-                    await saveCoverageAreas(areas);
-                  }}
-                />
-                
-                {/* Coverage Areas Save Button */}
-                <div className="rounded-lg border border-muted bg-card p-4 space-y-3">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-foreground">Save Coverage Areas</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        ⏱️ This may take 30-60 seconds depending on the number of counties selected. 
-                        Your profile data will be saved separately.
-                      </p>
+              </Form>
+            </TabsContent>
+
+            <TabsContent value="coverage" className="mt-6">
+              <Form {...form}>
+                <div className="space-y-8">
+                  {/* Inspection Types */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Inspection Types</h2>
+                      <p className="text-sm text-muted-foreground">Types of inspections you perform</p>
+                    </div>
+                    <Separator />
+                    <InspectionTypes form={form} />
+                  </div>
+
+                  {/* Coverage Areas & Pricing */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Coverage Areas & Pricing</h2>
+                      <p className="text-sm text-muted-foreground">Where you work and your pricing for each area</p>
+                    </div>
+                    <Separator />
+                    <CoverageAreas 
+                      coverageAreas={coverageAreas}
+                      setCoverageAreas={setCoverageAreas}
+                      selectedInspectionTypes={form.watch("inspectionTypes")}
+                      onSaveCoverageAreas={async (areas) => {
+                        await saveCoverageAreas(areas);
+                      }}
+                    />
+                    
+                    {/* Coverage Areas Save Button */}
+                    <div className="rounded-lg border border-muted bg-card p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-foreground">Save Coverage Areas</h3>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            ⏱️ This may take 30-60 seconds depending on the number of counties selected. 
+                            Your profile data will be saved separately.
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleSaveCoverageAreas} 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        disabled={isSavingCoverage}
+                      >
+                        {isSavingCoverage ? 'Saving Coverage Areas...' : 'SAVE COVERAGE AREAS'}
+                      </Button>
                     </div>
                   </div>
-                  <Button 
-                    onClick={handleSaveCoverageAreas} 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    disabled={isSavingCoverage}
-                  >
-                    {isSavingCoverage ? 'Saving Coverage Areas...' : 'SAVE COVERAGE AREAS'}
-                  </Button>
                 </div>
-              </div>
-            </div>
-          </Form>
+              </Form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
