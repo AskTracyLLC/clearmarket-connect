@@ -30,19 +30,30 @@ export const useVendorProfile = () => {
 
     setLoading(true);
     try {
-      // Note: vendor_profiles table doesn't exist yet in the database
-      // For now, store in users metadata or create the table via migration
-      console.log("Saving vendor profile:", profileData);
-      
-      // Temporary: Just return success until table is created
-      const existing = null;
+      const { data: existing, error: fetchError } = await supabase
+        .from("vendor_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-      // TODO: Once vendor_profiles table is created via migration, use it
-      // For now, just log the data
+      if (fetchError) throw fetchError;
+
       if (existing) {
-        console.log("Would update vendor profile");
+        const { error: updateError } = await supabase
+          .from("vendor_profiles")
+          .update({ ...profileData, updated_at: new Date().toISOString() })
+          .eq("user_id", user.id);
+        
+        if (updateError) throw updateError;
       } else {
-        console.log("Would insert vendor profile");
+        const { error: insertError } = await supabase
+          .from("vendor_profiles")
+          .insert({
+            user_id: user.id,
+            ...profileData,
+          });
+        
+        if (insertError) throw insertError;
       }
 
       return { success: true };
@@ -58,9 +69,14 @@ export const useVendorProfile = () => {
 
     setLoading(true);
     try {
-      // TODO: Once vendor_profiles table is created, fetch from it
-      console.log("Would fetch vendor profile for user:", user.id);
-      return null;
+      const { data, error } = await supabase
+        .from("vendor_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
     } catch (error) {
       throw error;
     } finally {

@@ -4143,6 +4143,60 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_profiles: {
+        Row: {
+          avg_jobs_per_month: string | null
+          company_abbreviation: string | null
+          company_bio: string | null
+          company_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          other_platform: string | null
+          payment_terms: string | null
+          phone: string | null
+          platforms: string[] | null
+          updated_at: string
+          user_id: string
+          website: string | null
+          work_types: string[] | null
+        }
+        Insert: {
+          avg_jobs_per_month?: string | null
+          company_abbreviation?: string | null
+          company_bio?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          other_platform?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          platforms?: string[] | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          work_types?: string[] | null
+        }
+        Update: {
+          avg_jobs_per_month?: string | null
+          company_abbreviation?: string | null
+          company_bio?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          other_platform?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          platforms?: string[] | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          work_types?: string[] | null
+        }
+        Relationships: []
+      }
       vendor_staff_members: {
         Row: {
           anonymous_username: string | null
