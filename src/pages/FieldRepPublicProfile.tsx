@@ -258,14 +258,31 @@ const FieldRepPublicProfile: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {fieldRep.coverageAreas.length > 0 ? (
-                fieldRep.coverageAreas.map((area, index) => (
-                  <div key={index}>
-                    <div className="font-medium">{area.state}</div>
-                    <div className="text-sm text-muted-foreground ml-4">
-                      {area.isAllCounties ? 'All counties' : area.counties.join(', ')}
-                    </div>
-                  </div>
-                ))
+                (() => {
+                  // Group coverage areas by state
+                  const grouped = fieldRep.coverageAreas.reduce((acc, area) => {
+                    if (!acc[area.state]) {
+                      acc[area.state] = { isAllCounties: false, counties: [] };
+                    }
+                    if (area.isAllCounties) {
+                      acc[area.state].isAllCounties = true;
+                    } else {
+                      acc[area.state].counties = [...new Set([...acc[area.state].counties, ...area.counties])];
+                    }
+                    return acc;
+                  }, {} as Record<string, { isAllCounties: boolean; counties: string[] }>);
+
+                  return Object.entries(grouped)
+                    .sort(([stateA], [stateB]) => stateA.localeCompare(stateB))
+                    .map(([state, data]) => (
+                      <div key={state}>
+                        <div className="font-medium">{state}</div>
+                        <div className="text-sm text-muted-foreground ml-4">
+                          {data.isAllCounties ? 'All counties' : data.counties.sort().join(', ')}
+                        </div>
+                      </div>
+                    ));
+                })()
               ) : (
                 <p className="text-sm text-muted-foreground">No coverage areas specified</p>
               )}
