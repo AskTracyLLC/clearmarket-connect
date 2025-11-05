@@ -14,6 +14,7 @@ import { CreditOverrides } from "@/components/admin/CreditOverrides";
 import { UserActivityLog } from "@/components/admin/UserActivityLog";
 import { ConnectionLimitManager } from "@/components/admin/ConnectionLimitManager";
 import { PasswordResetTester } from "@/components/admin/PasswordResetTester";
+import { PasswordChangeVerifier } from "@/components/admin/PasswordChangeVerifier";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -248,7 +249,10 @@ const AdminDashboard = () => {
               </TabsContent>
 
               <TabsContent value="password-reset">
-                <PasswordResetTester />
+                <div className="space-y-6">
+                  <PasswordResetTester />
+                  <PasswordChangeVerifier />
+                </div>
               </TabsContent>
             </Tabs>
           </TabsContent>

@@ -221,16 +221,27 @@ const ResetPasswordPage = () => {
           variant: 'destructive',
         });
       } else {
+        console.log('✅ Password update successful');
+        
+        // CRITICAL: Store the user email before signing out
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const userEmail = currentUser?.email;
+        
         toast({
           title: "Password Updated!",
-          description: "Your password has been successfully updated. Please log in with your new password.",
+          description: "Your password has been successfully updated. You'll be redirected to log in.",
         });
         
-        // Sign out the user and redirect to login
+        // Sign out to clear the recovery session
         await supabase.auth.signOut();
+        
+        // Redirect with email pre-filled after a delay
         setTimeout(() => {
-          window.location.href = '/auth';
-        }, 2000);
+          const loginUrl = userEmail 
+            ? `/auth?email=${encodeURIComponent(userEmail)}`
+            : '/auth';
+          window.location.href = loginUrl;
+        }, 2500);
       }
     } catch (error: any) {
       console.error('Unexpected error:', error);

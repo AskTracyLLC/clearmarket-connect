@@ -144,9 +144,9 @@ export const PasswordResetTester = () => {
       // Final summary
       const hasErrors = logs.some(log => log.status === 'error');
       if (!hasErrors && !resetError) {
-        addLog("Summary", "success", "✅ Password reset flow initiated successfully! Check email for reset link.");
+        addLog("Summary", "success", "✅ Password reset flow initiated successfully! User should check email and use the gateway link.");
       } else {
-        addLog("Summary", "error", "❌ Password reset flow encountered errors. Review logs above.");
+        addLog("Summary", "error", "❌ Password reset flow encountered errors. Review logs above for details.");
       }
 
     } catch (error: any) {
