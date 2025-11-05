@@ -16,6 +16,7 @@ import ProtectedRouteWithNDA from "@/components/ProtectedRouteWithNDA";
 import Index from "./pages/Index";
 import VendorSearchPage from "./pages/VendorSearchPage";
 import VendorPublicProfile from "./pages/VendorPublicProfile";
+import VendorCoverageRequestsPage from "./pages/VendorCoverageRequestsPage";
 import CommunityBoard from "./pages/CommunityBoard";
 import VendorProfilePage from "./pages/VendorProfilePage";
 import FieldRepProfilePage from "./pages/FieldRepProfilePage";
@@ -74,6 +75,7 @@ const App = () => (
                 <Route path="/vendor/search" element={<VendorSearchPage />} />
                 <Route path="/vendor/profile" element={<VendorProfilePage />} />
                 <Route path="/vendor/public/:id" element={<VendorPublicProfile />} />
+                <Route path="/vendor/:vendorId/coverage-requests" element={<VendorCoverageRequestsPage />} />
                 <Route path="/fieldrep/search" element={<FieldRepSearchPage />} />
                 <Route path="/fieldrep/profile" element={
                   <ProtectedRouteWithNDA>

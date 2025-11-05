@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Share2, Check, MapPin, Briefcase, Monitor, Award, Building } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, MessageCircle, Share2, Check, MapPin, Briefcase, Monitor, Award, Building, Layers } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +47,7 @@ const mockVendorData = {
 
 const VendorPublicProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
 
   const vendor = mockVendorData; // Replace with actual data fetch based on id
@@ -140,13 +141,17 @@ const VendorPublicProfile: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button onClick={handleMessage} className="flex-1 sm:flex-none">
+                  <Button onClick={() => navigate(`/vendor/${id}/coverage-requests`)} className="flex-1 sm:flex-none">
+                    <Layers className="h-4 w-4 mr-2" />
+                    View Coverage Requests
+                  </Button>
+                  <Button variant="outline" onClick={handleMessage}>
                     <MessageCircle className="h-4 w-4 mr-2" />
-                    Message This Vendor
+                    Message
                   </Button>
                   <Button variant="outline" onClick={handleShare} disabled={isSharing}>
                     <Share2 className="h-4 w-4 mr-2" />
-                    {isSharing ? 'Sharing...' : 'Share Profile'}
+                    {isSharing ? 'Sharing...' : 'Share'}
                   </Button>
                 </div>
               </div>
