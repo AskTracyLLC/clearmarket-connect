@@ -23,6 +23,7 @@ import NotificationBell from '@/components/ui/NotificationBell';
 import SendFieldRepNetworkAlert from '@/components/FieldRepDashboard/SendFieldRepNetworkAlert';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { usePendingSupportCount } from '@/hooks/usePendingSupportCount';
+import { useUnreadMessageCount } from '@/hooks/useUnreadMessageCount';
 import { 
   User, 
   LogOut, 
@@ -58,6 +59,7 @@ const Header = () => {
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
   const pendingCount = usePendingSupportCount();
+  const unreadMessagesCount = useUnreadMessageCount();
 
   // Fetch NDA signature data for user initials
   const ndaFetchRef = useRef(false);
@@ -156,9 +158,14 @@ const Header = () => {
                   </Link>
                   <Link 
                     to="/messages" 
-                    className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50"
+                    className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50 relative inline-flex items-center"
                   >
                     Messages
+                    {unreadMessagesCount > 0 && (
+                      <span className="ml-1.5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 min-w-[20px] px-1 inline-flex items-center justify-center">
+                        {unreadMessagesCount}
+                      </span>
+                    )}
                   </Link>
                   <Link 
                     to="/support" 
@@ -320,11 +327,16 @@ const Header = () => {
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-12"
+                        className="w-full justify-start h-12 relative"
                         onClick={() => handleMobileNavClick('/messages')}
                       >
                         <Mail className="h-5 w-5 mr-3" />
                         Messages
+                        {unreadMessagesCount > 0 && (
+                          <span className="ml-auto bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 min-w-[20px] px-1 inline-flex items-center justify-center">
+                            {unreadMessagesCount}
+                          </span>
+                        )}
                       </Button>
                       <Button
                         variant="ghost"
