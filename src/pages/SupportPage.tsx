@@ -1,6 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
+import { PlatformWorkTypeRequests } from "@/components/admin/PlatformWorkTypeRequests";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SupportPage = () => {
   return (
@@ -15,7 +17,21 @@ const SupportPage = () => {
               Track what we're working on and share your feedback.
             </p>
           </div>
-          <FeedbackBoardNew />
+          
+          <Tabs defaultValue="feedback" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="feedback">Feedback & Issues</TabsTrigger>
+              <TabsTrigger value="requests">Platform/Inspection Requests</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="feedback">
+              <FeedbackBoardNew />
+            </TabsContent>
+            
+            <TabsContent value="requests">
+              <PlatformWorkTypeRequests />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
       <Footer />
