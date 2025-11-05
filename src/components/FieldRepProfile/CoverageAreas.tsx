@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Info, Plus, Download } from "lucide-react";
 import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
 import { useToast } from "@/hooks/use-toast";
@@ -455,53 +455,57 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
             </div>
           </div>
           
-          <div className="grid gap-3">
-            {coverageAreas.map((area) => (
-              <Card key={area.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
-                      {area.stateCode} - {area.counties.length === 1 && area.counties[0] === "All Counties" 
+          <div className="border border-border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>State</TableHead>
+                  <TableHead>Counties</TableHead>
+                  <TableHead className="w-24">Standard</TableHead>
+                  <TableHead className="w-24">Rush</TableHead>
+                  <TableHead>Inspection Types</TableHead>
+                  <TableHead className="w-16"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {coverageAreas.map((area) => (
+                  <TableRow key={area.id}>
+                    <TableCell className="font-medium">{area.stateCode}</TableCell>
+                    <TableCell>
+                      {area.counties.length === 1 && area.counties[0] === "All Counties" 
                         ? "All Counties" 
-                        : area.counties.length > 3 
-                          ? `${area.counties.slice(0, 3).join(", ")} +${area.counties.length - 3} more`
-                          : area.counties.join(", ")
+                        : area.counties.join(", ")
                       }
-                    </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCoverageArea(area.id)}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Standard:</span> {area.standardPrice}
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Rush:</span> {area.rushPrice}
-                    </div>
-                  </div>
-                  {area.inspectionTypes.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <div className="text-xs text-muted-foreground mb-2">Inspection Types:</div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {area.inspectionTypes.map((type) => (
-                          <div key={type.id}>
-                            <span className="text-muted-foreground">{type.inspectionType}:</span> {type.price}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    </TableCell>
+                    <TableCell>${area.standardPrice}</TableCell>
+                    <TableCell>${area.rushPrice}</TableCell>
+                    <TableCell>
+                      {area.inspectionTypes.length > 0 ? (
+                        <div className="text-sm space-y-0.5">
+                          {area.inspectionTypes.map((type) => (
+                            <div key={type.id} className="text-muted-foreground">
+                              {type.inspectionType}: ${type.price}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCoverageArea(area.id)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
