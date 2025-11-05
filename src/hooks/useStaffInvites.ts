@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface InviteStaffData {
   email: string;
-  role: 'admin' | 'manager' | 'staff';
+  role: 'admin' | 'staff';
   personalMessage?: string;
 }
 

@@ -7,7 +7,7 @@ export interface VendorStaffMember {
   id: string;
   user_id: string;
   vendor_org_id: string;
-  role: 'admin' | 'manager' | 'staff';
+  role: 'admin' | 'staff';
   is_active: boolean;
   created_at: string;
   users: {

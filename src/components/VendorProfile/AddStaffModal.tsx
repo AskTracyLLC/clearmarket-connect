@@ -13,7 +13,7 @@ import { UserPlus, Mail, Shield } from 'lucide-react';
 
 const addStaffSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  role: z.enum(['admin', 'manager', 'staff'], {
+  role: z.enum(['admin', 'staff'], {
     required_error: 'Please select a role',
   }),
   personalMessage: z.string().optional(),
@@ -111,19 +111,10 @@ export const AddStaffModal = ({ isOpen, onClose, vendorOrgId, onSuccess }: AddSt
                     <SelectContent>
                       <SelectItem value="staff">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                          <div>
-                            <div className="font-medium">Staff</div>
-                            <div className="text-xs text-muted-foreground">Basic access to messaging and tools</div>
-                          </div>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="manager">
-                        <div className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           <div>
-                            <div className="font-medium">Manager</div>
-                            <div className="text-xs text-muted-foreground">Can manage projects and view reports</div>
+                            <div className="font-medium">Staff</div>
+                            <div className="text-xs text-muted-foreground">View profile, post requests, message field reps</div>
                           </div>
                         </div>
                       </SelectItem>
@@ -132,7 +123,7 @@ export const AddStaffModal = ({ isOpen, onClose, vendorOrgId, onSuccess }: AddSt
                           <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
                           <div>
                             <div className="font-medium">Admin</div>
-                            <div className="text-xs text-muted-foreground">Full access including staff management</div>
+                            <div className="text-xs text-muted-foreground">Full access including profile editing and staff management</div>
                           </div>
                         </div>
                       </SelectItem>

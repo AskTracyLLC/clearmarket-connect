@@ -21,13 +21,17 @@ import VendorStaffTab from "./VendorStaffTab";
 import { useVendorProfile } from "@/hooks/useVendorProfile";
 import { useNetworkConnections } from "@/hooks/useNetworkConnections";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVendorPermissions } from "@/hooks/useVendorPermissions";
 import { useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const VendorProfile = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { saveProfile, fetchProfile, loading: profileLoading } = useVendorProfile();
   const { connections } = useNetworkConnections();
+  const { canEdit, canView, loading: permissionsLoading } = useVendorPermissions();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -129,8 +133,40 @@ const VendorProfile = () => {
     networkSize: connections.length
   });
 
+  // Show loading state while checking permissions
+  if (permissionsLoading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6 text-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show error if user is not staff
+  if (!canView) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You do not have permission to access the vendor dashboard. Please contact your vendor administrator.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {!canEdit && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You are viewing this profile as staff. Only admins can edit company information.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <ProfileProgress 
         steps={profileSteps} 
         userType="vendor" 
@@ -187,12 +223,14 @@ const VendorProfile = () => {
                     <VendorAdditionalInfo form={form} />
                   </div>
 
-                  {/* Submit Button */}
-                  <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                    <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
-                      {isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE'}
-                    </Button>
-                  </div>
+                  {/* Submit Button - Only for admins */}
+                  {canEdit && (
+                    <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
+                      <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
+                        {isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE'}
+                      </Button>
+                    </div>
+                  )}
                 </form>
               </Form>
             </TabsContent>

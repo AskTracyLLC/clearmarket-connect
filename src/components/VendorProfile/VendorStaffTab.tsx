@@ -17,10 +17,8 @@ const VendorStaffTab = () => {
     switch (role) {
       case 'admin':
         return <Crown className="h-4 w-4 text-amber-500" />;
-      case 'manager':
-        return <Shield className="h-4 w-4 text-blue-500" />;
       case 'staff':
-        return <User className="h-4 w-4 text-gray-500" />;
+        return <User className="h-4 w-4 text-blue-500" />;
       default:
         return <User className="h-4 w-4 text-gray-500" />;
     }
@@ -30,8 +28,6 @@ const VendorStaffTab = () => {
     switch (role) {
       case 'admin':
         return 'default';
-      case 'manager':
-        return 'secondary';
       case 'staff':
         return 'outline';
       default:
@@ -151,12 +147,6 @@ const VendorStaffTab = () => {
                                 disabled={member.role === 'admin'}
                               >
                                 Make Admin
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => updateStaffRole(member.id, 'manager')}
-                                disabled={member.role === 'manager'}
-                              >
-                                Make Manager
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => updateStaffRole(member.id, 'staff')}

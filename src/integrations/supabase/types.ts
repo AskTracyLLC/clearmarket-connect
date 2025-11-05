@@ -4943,14 +4943,17 @@ export type Database = {
         Returns: boolean
       }
       is_in_network_with: { Args: { target_user_id: string }; Returns: boolean }
-      is_vendor_admin: {
-        Args: { _user_id: string; _vendor_org_id: string }
-        Returns: boolean
-      }
+      is_vendor_admin:
+        | { Args: { check_user_id: string }; Returns: boolean }
+        | {
+            Args: { _user_id: string; _vendor_org_id: string }
+            Returns: boolean
+          }
       is_vendor_member: {
         Args: { _user_id: string; _vendor_org_id: string }
         Returns: boolean
       }
+      is_vendor_staff: { Args: { check_user_id: string }; Returns: boolean }
       log_document_access: {
         Args: {
           access_type_param: string
