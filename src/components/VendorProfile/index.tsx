@@ -177,17 +177,7 @@ const VendorProfile = () => {
                     <VendorCompanyBio form={form} />
                   </div>
 
-                  {/* Section 2: Platforms */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Platforms</h2>
-                      <p className="text-sm text-muted-foreground">Software platforms you use</p>
-                    </div>
-                    <Separator />
-                    <VendorPlatforms form={form} />
-                  </div>
-
-                  {/* Section 3: Additional Information */}
+                  {/* Section 2: Additional Information */}
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-semibold text-foreground">Additional Information</h2>
@@ -210,6 +200,16 @@ const VendorProfile = () => {
             <TabsContent value="coverage" className="mt-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  {/* Platforms */}
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-foreground">Platforms Used</h2>
+                      <p className="text-sm text-muted-foreground">Software platforms you use</p>
+                    </div>
+                    <Separator />
+                    <VendorPlatforms form={form} />
+                  </div>
+
                   {/* Work Types */}
                   <div className="space-y-6">
                     <div>
