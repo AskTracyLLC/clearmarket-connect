@@ -92,11 +92,14 @@ const FieldRepProfile = () => {
   // Combined effect to load all profile data and calculate completion
   useEffect(() => {
     if (!user?.id) return; // wait until user is available
-    if (loadedRef.current) return; // Prevent duplicate loads
-    loadedRef.current = true;
+    
     let cancelled = false;
+    loadedRef.current = false; // Reset on user change
 
     const loadAllProfileData = async () => {
+      if (loadedRef.current) return; // Prevent duplicate loads within same mount
+      loadedRef.current = true;
+
       if (profile?.anonymous_username) {
         form.setValue('displayUsername', profile.anonymous_username);
       }
@@ -212,7 +215,10 @@ const FieldRepProfile = () => {
     };
     
     loadAllProfileData();
-    return () => { cancelled = true; };
+    
+    return () => { 
+      cancelled = true;
+    };
   }, [user?.id, profile?.anonymous_username]);
 
 
