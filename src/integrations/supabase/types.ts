@@ -4171,16 +4171,19 @@ export type Database = {
         Row: {
           company_name: string
           created_at: string
+          created_by: string | null
           id: string
         }
         Insert: {
           company_name: string
           created_at?: string
+          created_by?: string | null
           id?: string
         }
         Update: {
           company_name?: string
           created_at?: string
+          created_by?: string | null
           id?: string
         }
         Relationships: []
