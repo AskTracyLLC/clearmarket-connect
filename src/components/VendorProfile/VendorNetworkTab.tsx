@@ -1,80 +1,12 @@
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { MapPin, Calendar, Eye, Unlock, UserPlus, Gift, Star } from "lucide-react";
-import { mockCurrentVendor } from "@/data/mockVendorData";
-import { mockResults } from "@/data/mockData";
-import { formatDistanceToNow } from "date-fns";
-import { Link } from "react-router-dom";
-
-const getRepName = (initials: string) => {
-  const nameMap: { [key: string]: string } = {
-    "T.M.": "Tom Mitchell",
-    "J.D.": "Jane Davis", 
-    "M.R.": "Mike Rodriguez",
-    "S.L.": "Sarah Lee",
-    "A.S.": "Alex Smith",
-    "M.J.": "Mike Johnson"
-  };
-  return nameMap[initials] || initials;
-};
+import { UserPlus, Users, MessageSquare } from "lucide-react";
+import { useNetworkConnections } from "@/hooks/useNetworkConnections";
+import { useNavigate } from "react-router-dom";
 
 const VendorNetworkTab = () => {
-  const networkReps = mockCurrentVendor.network.map(networkRep => {
-    // Find the full rep data from mockResults
-    const fullRepData = mockResults.find(rep => rep.id === networkRep.repId);
-    return {
-      ...networkRep,
-      ...fullRepData,
-    };
-  });
-
-  const getMethodIcon = (method: string) => {
-    switch (method) {
-      case 'unlocked':
-        return <Unlock className="h-4 w-4 text-blue-600" />;
-      case 'referred':
-        return <Gift className="h-4 w-4 text-green-600" />;
-      case 'confirmed':
-        return <UserPlus className="h-4 w-4 text-purple-600" />;
-      default:
-        return <UserPlus className="h-4 w-4 text-muted-foreground" />;
-    }
-  };
-
-  const getMethodLabel = (method: string) => {
-    switch (method) {
-      case 'unlocked':
-        return 'Credit Unlock';
-      case 'referred':
-        return 'Referral';
-      case 'confirmed':
-        return 'Manual Add';
-      default:
-        return method;
-    }
-  };
-
-  const getMethodBadgeVariant = (method: string) => {
-    switch (method) {
-      case 'unlocked':
-        return 'secondary';
-      case 'referred':
-        return 'default';
-      case 'confirmed':
-        return 'outline';
-      default:
-        return 'outline';
-    }
-  };
+  const { connections, isLoading } = useNetworkConnections();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-6">
@@ -87,8 +19,8 @@ const VendorNetworkTab = () => {
                 <UserPlus className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{networkReps.length}</p>
-                <p className="text-sm text-muted-foreground">Total Network Reps</p>
+                <p className="text-2xl font-bold">{connections.length}</p>
+                <p className="text-xs text-muted-foreground">Total Network Reps</p>
               </div>
             </div>
           </CardContent>
@@ -97,140 +29,93 @@ const VendorNetworkTab = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <Unlock className="h-4 w-4 text-blue-600" />
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {networkReps.filter(rep => rep.addedMethod === 'unlocked').length}
-                </p>
-                <p className="text-sm text-muted-foreground">Unlocked with Credits</p>
+                <p className="text-2xl font-bold">{connections.length}</p>
+                <p className="text-xs text-muted-foreground">Active Connections</p>
               </div>
             </div>
           </CardContent>
         </Card>
-
+        
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <Gift className="h-4 w-4 text-green-600" />
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {networkReps.filter(rep => rep.addedMethod === 'referred').length}
+                <p className="text-2xl font-bold">
+                  {connections.filter(c => c.connection_method === 'unlocked').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Referred Reps</p>
+                <p className="text-xs text-muted-foreground">Via Search/Unlock</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Network Table */}
+      {/* Network Management */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            My Network ({networkReps.length} reps)
-          </CardTitle>
+          <CardTitle>My Network</CardTitle>
+          <CardDescription>
+            Field representatives in your network
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {networkReps.length === 0 ? (
-            <div className="text-center py-8">
-              <UserPlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Reps in Your Network Yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Start building your network by searching for field reps and unlocking their contact information.
-              </p>
-              <Button variant="outline" asChild>
-                <Link to="/vendor/search">Search for Reps</Link>
-              </Button>
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading network...
+            </div>
+          ) : connections.length === 0 ? (
+            <div className="text-center py-12 space-y-4">
+              <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+                <Users className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-2">No network connections yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Start building your network by searching for field reps in your coverage areas
+                </p>
+                <Button onClick={() => navigate('/field-rep-search')}>
+                  Search Field Reps
+                </Button>
+              </div>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Rep Name</TableHead>
-                  <TableHead>Trust Score</TableHead>
-                  <TableHead>Platforms</TableHead>
-                  <TableHead>How Added</TableHead>
-                  <TableHead>Date Added</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {networkReps.map((rep) => (
-                  <TableRow key={rep.repId}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="font-semibold text-primary text-sm">{rep.repInitials}</span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{getRepName(rep.repInitials)}</p>
-                          <div className="flex items-center gap-1 text-muted-foreground text-xs">
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <UserPlus className="h-3 w-3" />
-                              In Network
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center">
-                          <span className="text-xs font-semibold text-muted-foreground">-</span>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">No scores earned yet</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {rep.platforms?.slice(0, 2).map((platform) => (
-                          <Badge key={platform} variant="secondary" className="text-xs">
-                            {platform.replace('inspections', '').replace('Inspector', '')}
-                          </Badge>
-                        ))}
-                        {rep.platforms && rep.platforms.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{rep.platforms.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getMethodIcon(rep.addedMethod)}
-                        <Badge variant={getMethodBadgeVariant(rep.addedMethod)} className="text-xs">
-                          {getMethodLabel(rep.addedMethod)}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span>{formatDistanceToNow(rep.addedDate, { addSuffix: true })}</span>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
-                        <Eye className="h-3 w-3" />
-                        View Profile
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-4">
+              {connections.map((connection) => (
+                <div
+                  key={connection.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {connection.display_name || connection.anonymous_username}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {connection.role === 'field_rep' ? 'Field Rep' : 'Vendor'} • 
+                        {connection.connection_method === 'unlocked' ? ' Unlocked' : 
+                         connection.connection_method === 'referral' ? ' Referral' : 
+                         ' Invitation'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => navigate('/messages')}>
+                      Message
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

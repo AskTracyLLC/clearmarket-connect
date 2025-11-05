@@ -18,11 +18,18 @@ import { VendorAdditionalInfo } from "./VendorAdditionalInfo";
 import VendorNetworkTab from "./VendorNetworkTab";
 import VendorReferralTab from "./VendorReferralTab";
 import VendorStaffTab from "./VendorStaffTab";
-import { mockCurrentVendor } from "@/data/mockVendorData";
+import { useVendorProfile } from "@/hooks/useVendorProfile";
+import { useNetworkConnections } from "@/hooks/useNetworkConnections";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const VendorProfile = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { saveProfile, fetchProfile, loading: profileLoading } = useVendorProfile();
+  const { connections } = useNetworkConnections();
   const [coverageAreas, setCoverageAreas] = useState<CoverageArea[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<VendorFormData>({
     resolver: zodResolver(vendorFormSchema),
@@ -41,7 +48,37 @@ const VendorProfile = () => {
     },
   });
 
+  // Load existing profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profile = await fetchProfile();
+        if (profile) {
+          if (profile.company_name) form.setValue('companyName', profile.company_name);
+          if (profile.company_abbreviation) form.setValue('companyAbbreviation', profile.company_abbreviation);
+          if (profile.phone) form.setValue('phone', profile.phone);
+          if (profile.email) form.setValue('email', profile.email);
+          if (profile.website) form.setValue('website', profile.website);
+          if (profile.company_bio) form.setValue('companyBio', profile.company_bio);
+          if (profile.work_types) form.setValue('workTypes', profile.work_types);
+          if (profile.platforms) form.setValue('platforms', profile.platforms);
+          if (profile.other_platform) form.setValue('otherPlatform', profile.other_platform);
+          if (profile.avg_jobs_per_month) form.setValue('avgJobs', profile.avg_jobs_per_month);
+          if (profile.payment_terms) form.setValue('paymentTerms', profile.payment_terms);
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      }
+    };
+
+    if (user?.id) {
+      loadProfile();
+    }
+  }, [user?.id]);
+
   const onSubmit = async (values: VendorFormData) => {
+    if (isSaving) return;
+    
     // Check for coverage areas first
     if (coverageAreas.length === 0) {
       toast({
@@ -52,11 +89,25 @@ const VendorProfile = () => {
       return;
     }
 
+    setIsSaving(true);
     try {
-      console.log("Form submitted:", { ...values, coverageAreas });
+      await saveProfile({
+        company_name: values.companyName,
+        company_abbreviation: values.companyAbbreviation,
+        phone: values.phone,
+        email: values.email,
+        website: values.website,
+        company_bio: values.companyBio,
+        work_types: values.workTypes,
+        platforms: values.platforms,
+        other_platform: values.otherPlatform,
+        avg_jobs_per_month: values.avgJobs,
+        payment_terms: values.paymentTerms,
+      });
+      
       toast({
-        title: "Profile Created",
-        description: "Your vendor profile has been created successfully!",
+        title: "Profile Saved",
+        description: "Your vendor profile has been saved successfully!",
       });
     } catch (error: any) {
       console.error('Save vendor profile error:', error);
@@ -66,6 +117,8 @@ const VendorProfile = () => {
         description: msg,
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -73,7 +126,7 @@ const VendorProfile = () => {
     serviceAreas: coverageAreas,
     platforms: form.watch("platforms"),
     workTypes: form.watch("workTypes"),
-    networkSize: mockCurrentVendor.network.length
+    networkSize: connections.length
   });
 
   return (
@@ -100,14 +153,11 @@ const VendorProfile = () => {
               <TabsTrigger value="network" className="flex items-center gap-2">
                 My Network 
                 <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                  {mockCurrentVendor.network.length}
+                  {connections.length}
                 </span>
               </TabsTrigger>
-              <TabsTrigger value="referrals" className="flex items-center gap-2">
-                Referrals 
-                <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {mockCurrentVendor.referrals.filter(ref => ref.creditEarned).length}
-                </span>
+              <TabsTrigger value="referrals">
+                Referrals
               </TabsTrigger>
               <TabsTrigger value="staff">Staff</TabsTrigger>
             </TabsList>
@@ -162,8 +212,8 @@ const VendorProfile = () => {
 
                   {/* Submit Button */}
                   <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                    <Button type="submit" variant="hero" size="lg" className="w-full">
-                      SAVE PROFILE
+                    <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
+                      {isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE'}
                     </Button>
                   </div>
                 </form>
