@@ -1,9 +1,15 @@
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
 import { usePlatforms } from "@/hooks/usePlatforms";
+import { Save } from "lucide-react";
+import { useState } from "react";
+import { useFieldRepProfile } from "@/hooks/useFieldRepProfile";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlatformsUsedProps {
   form: UseFormReturn<FieldRepFormData>;
@@ -13,6 +19,33 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
   const { platforms, loading } = usePlatforms();
   const selectedPlatforms = form.watch("platforms") || [];
   const isOtherSelected = selectedPlatforms.includes("Other");
+  const { saveProfile } = useFieldRepProfile();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSavePlatforms = async () => {
+    if (isSaving || !user) return;
+    setIsSaving(true);
+    try {
+      await saveProfile({
+        platforms: form.watch("platforms"),
+        other_platform: form.watch("otherPlatform"),
+      });
+      toast({
+        title: "Platforms Saved",
+        description: "Your platform preferences have been saved.",
+      });
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save platforms. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -25,7 +58,19 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Platforms Used</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Platforms Used</h3>
+        <Button
+          onClick={handleSavePlatforms}
+          size="sm"
+          variant="outline"
+          disabled={isSaving}
+          className="gap-2"
+        >
+          <Save className="h-4 w-4" />
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+      </div>
       <FormField
         control={form.control}
         name="platforms"

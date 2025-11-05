@@ -501,28 +501,6 @@ const FieldRepProfile = () => {
                         await saveCoverageAreas(areas);
                       }}
                     />
-                    
-                    {/* Coverage Areas Save Button */}
-                    <div className="rounded-lg border border-muted bg-card p-4 space-y-3">
-                      <div className="flex items-start gap-2">
-                        <div className="flex-1">
-                          <h3 className="text-sm font-semibold text-foreground">Save Coverage Areas</h3>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            ⏱️ This may take 30-60 seconds depending on the number of counties selected. 
-                            Your profile data will be saved separately.
-                          </p>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={handleSaveCoverageAreas} 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        disabled={isSavingCoverage}
-                      >
-                        {isSavingCoverage ? 'Saving Coverage Areas...' : 'SAVE COVERAGE AREAS'}
-                      </Button>
-                    </div>
                   </div>
                 </div>
               </Form>
