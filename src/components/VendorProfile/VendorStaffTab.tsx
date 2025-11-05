@@ -6,12 +6,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useVendorStaff } from '@/hooks/useVendorStaff';
 import { AddStaffModal } from './AddStaffModal';
+import { TransferAdminModal } from './TransferAdminModal';
 import { UserPlus, MoreHorizontal, Shield, User, Crown } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VendorStaffTab = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { staff, vendorOrg, currentUserRole, loading, refetch, updateStaffRole, removeStaffMember } = useVendorStaff();
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const { staff, vendorOrg, currentUserRole, primaryAdminId, loading, refetch, updateStaffRole, removeStaffMember } = useVendorStaff();
+  const { user } = useAuth();
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -36,8 +40,10 @@ const VendorStaffTab = () => {
   };
 
   const isAdmin = currentUserRole === 'admin';
+  const isPrimaryAdmin = user?.id === primaryAdminId;
   const activeStaff = staff.filter(member => member.is_active);
   const inactiveStaff = staff.filter(member => !member.is_active);
+  const adminStaffMembers = activeStaff.filter(s => s.role === 'admin');
 
   if (!vendorOrg) {
     return (
@@ -65,15 +71,27 @@ const VendorStaffTab = () => {
                 Manage your team members for {vendorOrg.company_name}
               </CardDescription>
             </div>
-            {isAdmin && (
-              <Button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                Add Staff Member
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {isPrimaryAdmin && adminStaffMembers.length > 1 && (
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsTransferModalOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Crown className="h-4 w-4" />
+                  Transfer Admin
+                </Button>
+              )}
+              {isAdmin && (
+                <Button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Add Staff Member
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -106,25 +124,36 @@ const VendorStaffTab = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activeStaff.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            {getRoleIcon(member.role)}
+                  {activeStaff.map((member) => {
+                    const isPrimary = member.user_id === primaryAdminId;
+                    
+                    return (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                              {getRoleIcon(member.role)}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {member.users.display_name || member.users.anonymous_username}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">
-                              {member.users.display_name || member.users.anonymous_username}
-                            </p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={getRoleBadgeVariant(member.role)}>
+                              {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                            </Badge>
+                            {isPrimary && (
+                              <Badge variant="outline" className="text-xs">
+                                <Crown className="h-3 w-3 mr-1" />
+                                Primary
+                              </Badge>
+                            )}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getRoleBadgeVariant(member.role)}>
-                          {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                        </Badge>
-                      </TableCell>
+                        </TableCell>
                       <TableCell>
                         <Badge variant={member.is_active ? 'default' : 'secondary'}>
                           {member.is_active ? 'Active' : 'Inactive'}
@@ -133,39 +162,48 @@ const VendorStaffTab = () => {
                       <TableCell>
                         {format(new Date(member.created_at), 'MMM dd, yyyy')}
                       </TableCell>
-                      {isAdmin && (
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem 
-                                onClick={() => updateStaffRole(member.id, 'admin')}
-                                disabled={member.role === 'admin'}
-                              >
-                                Make Admin
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => updateStaffRole(member.id, 'staff')}
-                                disabled={member.role === 'staff'}
-                              >
-                                Make Staff
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => removeStaffMember(member.id)}
-                                className="text-destructive"
-                              >
-                                Remove from team
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                        {isAdmin && !isPrimary && (
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  onClick={() => updateStaffRole(member.id, 'admin')}
+                                  disabled={member.role === 'admin'}
+                                >
+                                  Make Admin
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => updateStaffRole(member.id, 'staff')}
+                                  disabled={member.role === 'staff'}
+                                >
+                                  Make Staff
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => removeStaffMember(member.id)}
+                                  className="text-destructive"
+                                >
+                                  Remove from team
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
+                        {isPrimary && (
+                          <TableCell className="text-right">
+                            <Badge variant="outline" className="text-xs">Owner</Badge>
+                          </TableCell>
+                        )}
+                        {!isAdmin && (
+                          <TableCell></TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -229,6 +267,17 @@ const VendorStaffTab = () => {
           refetch();
         }}
       />
+      
+      {vendorOrg && primaryAdminId && (
+        <TransferAdminModal
+          open={isTransferModalOpen}
+          onOpenChange={setIsTransferModalOpen}
+          vendorOrgId={vendorOrg.id}
+          currentPrimaryAdminId={primaryAdminId}
+          adminStaffMembers={adminStaffMembers}
+          onTransferComplete={refetch}
+        />
+      )}
     </div>
   );
 };

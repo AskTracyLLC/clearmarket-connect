@@ -22,6 +22,7 @@ export interface VendorOrganization {
   id: string;
   company_name: string;
   created_at: string;
+  created_by?: string;
 }
 
 export const useVendorStaff = () => {
@@ -29,6 +30,7 @@ export const useVendorStaff = () => {
   const [vendorOrg, setVendorOrg] = useState<VendorOrganization | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [primaryAdminId, setPrimaryAdminId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -45,7 +47,8 @@ export const useVendorStaff = () => {
           vendor_organizations (
             id,
             company_name,
-            created_at
+            created_at,
+            created_by
           )
         `)
         .eq('user_id', user.id)
@@ -58,8 +61,10 @@ export const useVendorStaff = () => {
       }
 
       if (staffData) {
-        setVendorOrg(staffData.vendor_organizations as VendorOrganization);
+        const org = staffData.vendor_organizations as VendorOrganization;
+        setVendorOrg(org);
         setCurrentUserRole(staffData.role);
+        setPrimaryAdminId(org.created_by || null);
       }
     } catch (error) {
       console.error('Error in fetchVendorOrg:', error);
@@ -187,6 +192,7 @@ export const useVendorStaff = () => {
     staff,
     vendorOrg,
     currentUserRole,
+    primaryAdminId,
     loading,
     refetch: fetchStaff,
     updateStaffRole,

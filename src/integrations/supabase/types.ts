@@ -5069,6 +5069,10 @@ export type Database = {
         Args: { is_active_param: boolean; target_user_id: string }
         Returns: boolean
       }
+      transfer_vendor_primary_admin: {
+        Args: { new_admin_user_id: string; target_vendor_org_id: string }
+        Returns: boolean
+      }
       update_communication_badges: {
         Args: { target_user_id: string }
         Returns: undefined
