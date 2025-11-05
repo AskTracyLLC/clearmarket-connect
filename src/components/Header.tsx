@@ -58,8 +58,26 @@ const Header = () => {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pendingCount = usePendingSupportCount();
   const unreadMessagesCount = useUnreadMessageCount();
+
+  // Check if user is admin
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const checkAdminStatus = async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      setIsAdmin(data?.role === 'admin');
+    };
+    
+    checkAdminStatus();
+  }, [user?.id]);
 
   // Fetch NDA signature data for user initials
   const ndaFetchRef = useRef(false);
@@ -172,7 +190,7 @@ const Header = () => {
                     className="text-muted-foreground hover:text-primary transition-colors font-medium px-3 py-2 rounded-md hover:bg-muted/50 relative inline-flex items-center"
                   >
                     Support
-                    {pendingCount > 0 && (
+                    {isAdmin && pendingCount > 0 && (
                       <span className="ml-1.5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 min-w-[20px] px-1 inline-flex items-center justify-center">
                         {pendingCount}
                       </span>
@@ -345,7 +363,7 @@ const Header = () => {
                       >
                         <HelpCircle className="h-5 w-5 mr-3" />
                         Support
-                        {pendingCount > 0 && (
+                        {isAdmin && pendingCount > 0 && (
                           <span className="ml-auto bg-destructive text-destructive-foreground text-xs font-bold rounded-full h-5 min-w-[20px] px-1 inline-flex items-center justify-center">
                             {pendingCount}
                           </span>
