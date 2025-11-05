@@ -36,6 +36,7 @@ export const InspectionTypes = ({ form }: InspectionTypesProps) => {
                   control={form.control}
                   name="inspectionTypes"
                   render={({ field }) => {
+                    const currentValue = field.value || [];
                     return (
                       <FormItem
                         key={type}
@@ -43,12 +44,12 @@ export const InspectionTypes = ({ form }: InspectionTypesProps) => {
                       >
                         <FormControl>
                           <Checkbox
-                            checked={field.value?.includes(type)}
+                            checked={currentValue.includes(type)}
                             onCheckedChange={(checked) => {
                               return checked
-                                ? field.onChange([...field.value, type])
+                                ? field.onChange([...currentValue, type])
                                 : field.onChange(
-                                    field.value?.filter(
+                                    currentValue.filter(
                                       (value) => value !== type
                                     )
                                   )
