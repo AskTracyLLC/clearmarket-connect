@@ -10,6 +10,7 @@ import LoadingBar from "@/components/ui/loading-bar";
 import BackToTop from "@/components/ui/back-to-top";
 import PWAInstallPrompt from "@/components/ui/pwa-install-prompt";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
+import { SupabaseDebugPanel } from "@/components/ui/SupabaseDebugPanel";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProtectedRouteWithNDA from "@/components/ProtectedRouteWithNDA";
 import Index from "./pages/Index";
@@ -61,6 +62,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ImpersonationBanner />
+            <SupabaseDebugPanel />
             <LoadingBar />
             <ErrorBoundary>
               <Routes>
