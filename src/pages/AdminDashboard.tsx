@@ -13,6 +13,7 @@ import { ContentModeration } from "@/components/admin/ContentModeration";
 import { CreditOverrides } from "@/components/admin/CreditOverrides";
 import { UserActivityLog } from "@/components/admin/UserActivityLog";
 import { ConnectionLimitManager } from "@/components/admin/ConnectionLimitManager";
+import { PasswordResetTester } from "@/components/admin/PasswordResetTester";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -228,6 +229,10 @@ const AdminDashboard = () => {
                   <Mail className="h-4 w-4" />
                   Email Templates
                 </TabsTrigger>
+                <TabsTrigger value="password-reset" className="flex items-center gap-2">
+                  <Wrench className="h-4 w-4" />
+                  Password Reset Test
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="settings">
@@ -240,6 +245,10 @@ const AdminDashboard = () => {
 
               <TabsContent value="email">
                 <EmailTemplateManager />
+              </TabsContent>
+
+              <TabsContent value="password-reset">
+                <PasswordResetTester />
               </TabsContent>
             </Tabs>
           </TabsContent>
