@@ -16,6 +16,7 @@ import { ConnectionLimitManager } from "@/components/admin/ConnectionLimitManage
 import { PasswordResetTester } from "@/components/admin/PasswordResetTester";
 import { PasswordChangeVerifier } from "@/components/admin/PasswordChangeVerifier";
 import { PlatformWorkTypeManager } from "@/components/admin/PlatformWorkTypeManager";
+import { PlatformWorkTypeRequests } from "@/components/admin/PlatformWorkTypeRequests";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -246,7 +247,10 @@ const AdminDashboard = () => {
               </TabsContent>
 
               <TabsContent value="platforms-types">
-                <PlatformWorkTypeManager />
+                <div className="space-y-6">
+                  <PlatformWorkTypeRequests />
+                  <PlatformWorkTypeManager />
+                </div>
               </TabsContent>
 
               <TabsContent value="zip-county">

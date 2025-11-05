@@ -100,6 +100,16 @@ export const useFieldRepProfile = () => {
         console.log('✅ Profile inserted successfully');
       }
 
+      // Track "Other" platform/work type requests
+      if (profileData.platforms?.includes("Other") && profileData.other_platform) {
+        await supabase.from("platform_worktype_requests").insert({
+          user_id: user.id,
+          request_type: "platform",
+          requested_name: profileData.other_platform,
+          user_role: "field_rep"
+        });
+      }
+
       // Recalculate and persist profile completeness (non-blocking)
       try {
         console.log('📊 Updating profile completeness...');
