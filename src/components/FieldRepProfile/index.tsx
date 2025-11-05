@@ -429,11 +429,35 @@ const FieldRepProfile = () => {
                 <HudKeys form={form} />
               </div>
 
-              {/* Section 3: Coverage & Services */}
+              {/* Section 3: Services */}
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Coverage & Services</h2>
-                  <p className="text-sm text-muted-foreground">Where you work and what services you provide</p>
+                  <h2 className="text-xl font-semibold text-foreground">Services</h2>
+                  <p className="text-sm text-muted-foreground">What services you provide</p>
+                </div>
+                <Separator />
+                <PlatformsUsed form={form} />
+                <InspectionTypes form={form} />
+              </div>
+
+              {/* Profile Save Button */}
+              <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
+                <Button 
+                  onClick={handleSaveProfile} 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full"
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving Profile...' : 'SAVE PROFILE'}
+                </Button>
+              </div>
+
+              {/* Section 4: Coverage Areas & Pricing - Below Save Profile */}
+              <div className="space-y-6 pt-8">
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">Coverage Areas & Pricing</h2>
+                  <p className="text-sm text-muted-foreground">Where you work and your pricing for each area</p>
                 </div>
                 <Separator />
                 <CoverageAreas 
@@ -444,10 +468,8 @@ const FieldRepProfile = () => {
                     await saveCoverageAreas(areas);
                   }}
                 />
-                <PlatformsUsed form={form} />
-                <InspectionTypes form={form} />
                 
-                {/* Coverage Areas Save Button - Separate from profile save */}
+                {/* Coverage Areas Save Button */}
                 <div className="rounded-lg border border-muted bg-card p-4 space-y-3">
                   <div className="flex items-start gap-2">
                     <div className="flex-1">
@@ -468,19 +490,6 @@ const FieldRepProfile = () => {
                     {isSavingCoverage ? 'Saving Coverage Areas...' : 'SAVE COVERAGE AREAS'}
                   </Button>
                 </div>
-              </div>
-
-              {/* Profile Save Button */}
-              <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                <Button 
-                  onClick={handleSaveProfile} 
-                  variant="hero" 
-                  size="lg" 
-                  className="w-full"
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'Saving Profile...' : 'SAVE PROFILE'}
-                </Button>
               </div>
             </div>
           </Form>
