@@ -6,10 +6,30 @@ import { PlatformWorkTypeRequests } from "@/components/admin/PlatformWorkTypeReq
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SupportPage = () => {
   const [feedbackCount, setFeedbackCount] = useState(0);
   const [requestsCount, setRequestsCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { user } = useAuth();
+
+  // Check if user is admin
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const checkAdminStatus = async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      setIsAdmin(data?.role === 'admin');
+    };
+    
+    checkAdminStatus();
+  }, [user?.id]);
 
   useEffect(() => {
     fetchCounts();
@@ -58,7 +78,7 @@ const SupportPage = () => {
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="feedback" className="gap-2">
                 Feedback & Issues
-                {feedbackCount > 0 && (
+                {isAdmin && feedbackCount > 0 && (
                   <Badge variant="destructive" className="ml-2">
                     {feedbackCount}
                   </Badge>
@@ -66,7 +86,7 @@ const SupportPage = () => {
               </TabsTrigger>
               <TabsTrigger value="requests" className="gap-2">
                 Platform/Inspection Requests
-                {requestsCount > 0 && (
+                {isAdmin && requestsCount > 0 && (
                   <Badge variant="destructive" className="ml-2">
                     {requestsCount}
                   </Badge>
