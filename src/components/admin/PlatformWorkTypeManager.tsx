@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, GripVertical, Save } from "lucide-react";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +30,8 @@ export const PlatformWorkTypeManager = () => {
   const [newPlatformName, setNewPlatformName] = useState("");
   const [newWorkTypeName, setNewWorkTypeName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [draggedPlatformIndex, setDraggedPlatformIndex] = useState<number | null>(null);
+  const [draggedWorkTypeIndex, setDraggedWorkTypeIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -38,8 +40,8 @@ export const PlatformWorkTypeManager = () => {
   const fetchData = async () => {
     try {
       const [platformsRes, workTypesRes] = await Promise.all([
-        supabase.from("platforms").select("*").order("name", { ascending: true }),
-        supabase.from("work_types").select("*").order("name", { ascending: true })
+        supabase.from("platforms").select("*").order("display_order", { ascending: true }),
+        supabase.from("work_types").select("*").order("display_order", { ascending: true })
       ]);
 
       if (platformsRes.data) setPlatforms(platformsRes.data);
@@ -247,6 +249,120 @@ export const PlatformWorkTypeManager = () => {
     }
   };
 
+  const handlePlatformDragStart = (index: number) => {
+    setDraggedPlatformIndex(index);
+  };
+
+  const handlePlatformDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handlePlatformDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedPlatformIndex === null || draggedPlatformIndex === dropIndex) {
+      setDraggedPlatformIndex(null);
+      return;
+    }
+
+    const reordered = [...platforms];
+    const [draggedItem] = reordered.splice(draggedPlatformIndex, 1);
+    reordered.splice(dropIndex, 0, draggedItem);
+
+    // Update display_order for all items
+    const updatedPlatforms = reordered.map((platform, index) => ({
+      ...platform,
+      display_order: index + 1
+    }));
+
+    setPlatforms(updatedPlatforms);
+    setDraggedPlatformIndex(null);
+
+    // Save to database
+    try {
+      const updates = updatedPlatforms.map(p => ({
+        id: p.id,
+        display_order: p.display_order
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("platforms")
+          .update({ display_order: update.display_order })
+          .eq("id", update.id);
+      }
+
+      toast({
+        title: "Success",
+        description: "Platform order updated"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update platform order",
+        variant: "destructive"
+      });
+      fetchData(); // Reload on error
+    }
+  };
+
+  const handleWorkTypeDragStart = (index: number) => {
+    setDraggedWorkTypeIndex(index);
+  };
+
+  const handleWorkTypeDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleWorkTypeDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedWorkTypeIndex === null || draggedWorkTypeIndex === dropIndex) {
+      setDraggedWorkTypeIndex(null);
+      return;
+    }
+
+    const reordered = [...workTypes];
+    const [draggedItem] = reordered.splice(draggedWorkTypeIndex, 1);
+    reordered.splice(dropIndex, 0, draggedItem);
+
+    // Update display_order for all items
+    const updatedWorkTypes = reordered.map((workType, index) => ({
+      ...workType,
+      display_order: index + 1
+    }));
+
+    setWorkTypes(updatedWorkTypes);
+    setDraggedWorkTypeIndex(null);
+
+    // Save to database
+    try {
+      const updates = updatedWorkTypes.map(w => ({
+        id: w.id,
+        display_order: w.display_order
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("work_types")
+          .update({ display_order: update.display_order })
+          .eq("id", update.id);
+      }
+
+      toast({
+        title: "Success",
+        description: "Inspection type order updated"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update inspection type order",
+        variant: "destructive"
+      });
+      fetchData(); // Reload on error
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -290,10 +406,17 @@ export const PlatformWorkTypeManager = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {platforms.map((platform) => (
-                  <TableRow key={platform.id}>
+                {platforms.map((platform, index) => (
+                  <TableRow 
+                    key={platform.id}
+                    draggable
+                    onDragStart={() => handlePlatformDragStart(index)}
+                    onDragOver={(e) => handlePlatformDragOver(e, index)}
+                    onDrop={(e) => handlePlatformDrop(e, index)}
+                    className={draggedPlatformIndex === index ? "opacity-50" : "cursor-move"}
+                  >
                     <TableCell>
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
                     </TableCell>
                     <TableCell>
                       <Input
@@ -354,10 +477,17 @@ export const PlatformWorkTypeManager = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {workTypes.map((workType) => (
-                  <TableRow key={workType.id}>
+                {workTypes.map((workType, index) => (
+                  <TableRow 
+                    key={workType.id}
+                    draggable
+                    onDragStart={() => handleWorkTypeDragStart(index)}
+                    onDragOver={(e) => handleWorkTypeDragOver(e, index)}
+                    onDrop={(e) => handleWorkTypeDrop(e, index)}
+                    className={draggedWorkTypeIndex === index ? "opacity-50" : "cursor-move"}
+                  >
                     <TableCell>
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
                     </TableCell>
                     <TableCell>
                       <Input
