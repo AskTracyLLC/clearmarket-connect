@@ -196,12 +196,18 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
       
       if (insertError) throw insertError;
 
+      // Convert county IDs to county names for notification matching
+      const countyNames = form.selectedCounties.map(countyId => {
+        const county = counties.find(c => c.id === countyId);
+        return county?.name || countyId;
+      });
+
       // Call edge function to notify matching field reps
       const { error: notifyError } = await supabase.functions.invoke('notify-coverage-request', {
         body: {
           requestId: insertedRequest.id,
           state: form.selectedState,
-          counties: form.selectedCounties,
+          counties: countyNames,
           inspectionTypes: form.selectedInspectionTypes,
           platforms: form.selectedPlatforms
         }

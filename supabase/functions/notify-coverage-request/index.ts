@@ -48,7 +48,12 @@ serve(async (req) => {
           matchingUserIds.add(area.user_id);
         } else if (area.counties && Array.isArray(area.counties)) {
           // Check if there's any overlap between requested counties and field rep's counties
-          const hasOverlap = counties.some((county: string) => area.counties.includes(county));
+          // Both should be county names now (e.g., "Milwaukee County")
+          const hasOverlap = counties.some((requestedCounty: string) => 
+            area.counties.some((repCounty: string) => 
+              repCounty.toLowerCase() === requestedCounty.toLowerCase()
+            )
+          );
           if (hasOverlap) {
             matchingUserIds.add(area.user_id);
           }
