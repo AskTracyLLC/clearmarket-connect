@@ -23,7 +23,7 @@ export const SupabaseDebugPanel = () => {
         onClick={() => setIsOpen(true)}
         size="sm"
         variant="outline"
-        className="fixed bottom-4 right-4 z-[9999] shadow-lg border-2"
+        className="fixed bottom-4 left-4 z-[9999] shadow-lg border-2"
         title="Open Supabase Debug Panel"
       >
         <Database className="h-4 w-4 mr-2" />
@@ -41,7 +41,7 @@ export const SupabaseDebugPanel = () => {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 z-[9999] shadow-2xl border-2 bg-background/95 backdrop-blur">
+    <Card className="fixed bottom-4 left-4 z-[9999] shadow-2xl border-2 bg-background/95 backdrop-blur">
       <div className="flex items-center justify-between p-3 border-b">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4" />
