@@ -9,21 +9,28 @@ export const usePendingSupportCount = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Initial fetch - count pending feedback posts
+    // Initial fetch - count pending items from both tables
     const fetchCount = async () => {
-      const { count: pendingCount } = await supabase
-        .from('feedback_posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
+      const [feedbackResult, worktypeResult] = await Promise.all([
+        supabase
+          .from('feedback_posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending'),
+        supabase
+          .from('platform_worktype_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+      ]);
       
-      setCount(pendingCount || 0);
+      const totalCount = (feedbackResult.count || 0) + (worktypeResult.count || 0);
+      setCount(totalCount);
     };
 
     fetchCount();
 
-    // Real-time subscription
-    const channel = supabase
-      .channel('support_count_changes')
+    // Real-time subscriptions for both tables
+    const feedbackChannel = supabase
+      .channel('feedback_posts_changes')
       .on(
         'postgres_changes',
         {
@@ -31,14 +38,26 @@ export const usePendingSupportCount = () => {
           schema: 'public',
           table: 'feedback_posts'
         },
-        () => {
-          fetchCount();
-        }
+        () => fetchCount()
+      )
+      .subscribe();
+
+    const worktypeChannel = supabase
+      .channel('worktype_requests_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'platform_worktype_requests'
+        },
+        () => fetchCount()
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(feedbackChannel);
+      supabase.removeChannel(worktypeChannel);
     };
   }, [user]);
 
