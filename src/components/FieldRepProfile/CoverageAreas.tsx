@@ -42,6 +42,11 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
       "Appt-Based Inspections": "Appt-Based"
     };
 
+    // If no inspection types selected in profile, show all available types
+    if (!selectedInspectionTypes || selectedInspectionTypes.length === 0) {
+      return Object.values(typeMapping).filter((type, index, array) => array.indexOf(type) === index);
+    }
+
     // Filter available types based on what's selected in the profile
     return selectedInspectionTypes
       .map(profileType => typeMapping[profileType])
@@ -246,7 +251,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
               <SelectTrigger className="w-full md:w-64">
                 <SelectValue placeholder="Choose a state" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover z-50">
                 {states.map((state) => (
                   <SelectItem key={state.code} value={state.code}>
                     {state.name}
@@ -345,14 +350,20 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
                       <SelectTrigger className="text-sm">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                       <SelectContent>
-                         {availableInspectionTypes.filter(type => 
-                           !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
-                         ).map((type) => (
-                           <SelectItem key={type} value={type}>
-                             {type}
+                       <SelectContent className="bg-popover z-50">
+                         {availableInspectionTypes.length === 0 ? (
+                           <SelectItem value="none" disabled>
+                             No inspection types available - add them in Profile tab
                            </SelectItem>
-                         ))}
+                         ) : (
+                           availableInspectionTypes.filter(type => 
+                             !inspectionTypes.some(existing => existing.inspectionType === type && existing.id !== item.id)
+                           ).map((type) => (
+                             <SelectItem key={type} value={type}>
+                               {type}
+                             </SelectItem>
+                           ))
+                         )}
                        </SelectContent>
                     </Select>
                     <div className="flex gap-1">
