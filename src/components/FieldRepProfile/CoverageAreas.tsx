@@ -59,8 +59,43 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
   const handleStateChange = (stateCode: string) => {
     const state = states.find(s => s.code === stateCode);
     setSelectedState(state || null);
-    setSelectedCounties([]);
-    setSelectAllCounties(false);
+    
+    if (!state) return;
+    
+    // Check if this state already has coverage
+    const existingCoverage = coverageAreas.find(area => area.stateCode === stateCode);
+    
+    if (existingCoverage) {
+      // Auto-populate with existing data
+      const isAllCounties = existingCoverage.counties.includes("All Counties");
+      setSelectAllCounties(isAllCounties);
+      
+      if (!isAllCounties) {
+        // Convert county names back to IDs
+        const countyIds = existingCoverage.counties
+          .map(countyName => counties.find(c => c.name === countyName)?.id)
+          .filter(Boolean) as string[];
+        setSelectedCounties(countyIds);
+      } else {
+        setSelectedCounties([]);
+      }
+      
+      setStandardPrice(existingCoverage.standardPrice || "");
+      setRushPrice(existingCoverage.rushPrice || "");
+      setInspectionTypes(existingCoverage.inspectionTypes || []);
+      
+      toast({
+        title: "Existing Coverage Loaded",
+        description: `You already have coverage for ${state.name}. Add more counties or update pricing below.`,
+      });
+    } else {
+      // New state - reset everything
+      setSelectedCounties([]);
+      setSelectAllCounties(false);
+      setStandardPrice("");
+      setRushPrice("");
+      setInspectionTypes([]);
+    }
   };
 
   const handleSelectAllCounties = (checked: boolean) => {
