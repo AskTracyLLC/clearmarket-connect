@@ -25,10 +25,12 @@ export const VendorAdditionalInfo = ({ form }: VendorAdditionalInfoProps) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1-25">1-25 jobs</SelectItem>
-                  <SelectItem value="26-50">26-50 jobs</SelectItem>
-                  <SelectItem value="51-100">51-100 jobs</SelectItem>
-                  <SelectItem value="100+">100+ jobs</SelectItem>
+                  <SelectItem value="less-than-100">Less than 100</SelectItem>
+                  <SelectItem value="250+">250+</SelectItem>
+                  <SelectItem value="500+">500+</SelectItem>
+                  <SelectItem value="1000+">1,000+</SelectItem>
+                  <SelectItem value="5000+">5,000+</SelectItem>
+                  <SelectItem value="10000+">10,000+</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
