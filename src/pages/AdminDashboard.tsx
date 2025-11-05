@@ -15,12 +15,13 @@ import { UserActivityLog } from "@/components/admin/UserActivityLog";
 import { ConnectionLimitManager } from "@/components/admin/ConnectionLimitManager";
 import { PasswordResetTester } from "@/components/admin/PasswordResetTester";
 import { PasswordChangeVerifier } from "@/components/admin/PasswordChangeVerifier";
+import { PlatformWorkTypeManager } from "@/components/admin/PlatformWorkTypeManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Users, Database, Settings, Coins, Mail, Calendar, Network, BarChart3, Wrench, MessageSquare } from "lucide-react";
+import { Shield, Users, Database, Settings, Coins, Mail, Calendar, Network, BarChart3, Wrench, MessageSquare, ListTodo } from "lucide-react";
 import { AIDiscussionCreator } from "@/components/admin/AIDiscussionCreator";
 
 const AdminDashboard = () => {
@@ -222,6 +223,10 @@ const AdminDashboard = () => {
                   <Settings className="h-4 w-4" />
                   System Settings
                 </TabsTrigger>
+                <TabsTrigger value="platforms-types" className="flex items-center gap-2">
+                  <ListTodo className="h-4 w-4" />
+                  Platforms & Types
+                </TabsTrigger>
                 <TabsTrigger value="zip-county" className="flex items-center gap-2">
                   <Database className="h-4 w-4" />
                   ZIP/County Data
@@ -238,6 +243,10 @@ const AdminDashboard = () => {
 
               <TabsContent value="settings">
                 <SystemSettings />
+              </TabsContent>
+
+              <TabsContent value="platforms-types">
+                <PlatformWorkTypeManager />
               </TabsContent>
 
               <TabsContent value="zip-county">
