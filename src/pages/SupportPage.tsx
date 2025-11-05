@@ -1,10 +1,46 @@
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
 import { PlatformWorkTypeRequests } from "@/components/admin/PlatformWorkTypeRequests";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
 const SupportPage = () => {
+  const [feedbackCount, setFeedbackCount] = useState(0);
+  const [requestsCount, setRequestsCount] = useState(0);
+
+  useEffect(() => {
+    fetchCounts();
+
+    // Real-time subscriptions
+    const feedbackChannel = supabase
+      .channel('feedback_posts_count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_posts' }, fetchCounts)
+      .subscribe();
+
+    const requestsChannel = supabase
+      .channel('requests_count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'platform_worktype_requests' }, fetchCounts)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(feedbackChannel);
+      supabase.removeChannel(requestsChannel);
+    };
+  }, []);
+
+  const fetchCounts = async () => {
+    const [feedbackResult, requestsResult] = await Promise.all([
+      supabase.from('feedback_posts').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('platform_worktype_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+    ]);
+
+    setFeedbackCount(feedbackResult.count || 0);
+    setRequestsCount(requestsResult.count || 0);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -20,8 +56,22 @@ const SupportPage = () => {
           
           <Tabs defaultValue="feedback" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="feedback">Feedback & Issues</TabsTrigger>
-              <TabsTrigger value="requests">Platform/Inspection Requests</TabsTrigger>
+              <TabsTrigger value="feedback" className="gap-2">
+                Feedback & Issues
+                {feedbackCount > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {feedbackCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="requests" className="gap-2">
+                Platform/Inspection Requests
+                {requestsCount > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {requestsCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="feedback">
