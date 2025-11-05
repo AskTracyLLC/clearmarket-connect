@@ -30,7 +30,7 @@ interface CoverageRequestForm {
   budgetMax: string;
   selectedState: string;
   selectedCounties: string[];
-  selectedCities: string[];
+  citiesText: string;
   selectedPlatforms: string[];
   selectedInspectionTypes: string[];
   abcRequired: boolean | null;
@@ -39,15 +39,6 @@ interface CoverageRequestForm {
   hideFromAllNetwork: boolean;
   hideFromCurrentNetwork: boolean;
 }
-
-const cities = [
-  "Los Angeles", "San Francisco", "San Diego", "Sacramento", "Oakland",
-  "Houston", "Dallas", "Austin", "San Antonio", "Fort Worth",
-  "Miami", "Tampa", "Orlando", "Jacksonville", "Tallahassee",
-  "New York City", "Buffalo", "Rochester", "Syracuse", "Albany",
-  "Chicago", "Rockford", "Peoria", "Springfield", "Naperville"
-];
-
 
 const experienceOptions = [
   "No minimum experience",
@@ -72,7 +63,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
     budgetMax: "",
     selectedState: "",
     selectedCounties: [],
-    selectedCities: [],
+    citiesText: "",
     selectedPlatforms: [],
     selectedInspectionTypes: [],
     abcRequired: null,
@@ -90,7 +81,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
       ...prev,
       selectedState: stateCode,
       selectedCounties: [],
-      selectedCities: []
+      citiesText: ""
     }));
   };
 
@@ -100,15 +91,6 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
       selectedCounties: prev.selectedCounties.includes(countyId)
         ? prev.selectedCounties.filter(id => id !== countyId)
         : [...prev.selectedCounties, countyId]
-    }));
-  };
-
-  const toggleCity = (city: string) => {
-    setForm(prev => ({
-      ...prev,
-      selectedCities: prev.selectedCities.includes(city)
-        ? prev.selectedCities.filter(c => c !== city)
-        : [...prev.selectedCities, city]
     }));
   };
 
@@ -134,13 +116,6 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
     setForm(prev => ({
       ...prev,
       selectedCounties: prev.selectedCounties.filter(id => id !== countyId)
-    }));
-  };
-
-  const removeCity = (city: string) => {
-    setForm(prev => ({
-      ...prev,
-      selectedCities: prev.selectedCities.filter(c => c !== city)
     }));
   };
 
@@ -187,6 +162,12 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
           ? `$${form.budgetMin}+ per inspection`
           : "";
 
+      // Parse cities from text input
+      const selectedCities = form.citiesText
+        .split(',')
+        .map(city => city.trim())
+        .filter(Boolean);
+
       const requestData = {
         vendor_id: user.id,
         title: form.title,
@@ -195,7 +176,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         budget_range: budgetRange,
         selected_state: form.selectedState,
         selected_counties: form.selectedCounties,
-        selected_cities: form.selectedCities,
+        selected_cities: selectedCities,
         selected_platforms: form.selectedPlatforms,
         selected_inspection_types: form.selectedInspectionTypes,
         abc_required: form.abcRequired,
@@ -247,7 +228,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         budgetMax: "",
         selectedState: "",
         selectedCounties: [],
-        selectedCities: [],
+        citiesText: "",
         selectedPlatforms: [],
         selectedInspectionTypes: [],
         abcRequired: null,
@@ -408,35 +389,20 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label>Specific Cities (Optional)</Label>
-                <p className="text-xs text-muted-foreground">Select specific cities if coverage is needed in particular areas</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-md p-2">
-                  {cities.map((city) => (
-                    <div key={city} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={city}
-                        checked={form.selectedCities.includes(city)}
-                        onCheckedChange={() => toggleCity(city)}
-                      />
-                      <Label htmlFor={city} className="text-sm cursor-pointer">{city}</Label>
-                    </div>
-                  ))}
+              {form.selectedState && (
+                <div className="space-y-2">
+                  <Label htmlFor="citiesText">Specific Cities (Optional)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Enter city names separated by commas (e.g., "Las Vegas, Reno, Henderson")
+                  </p>
+                  <Input
+                    id="citiesText"
+                    value={form.citiesText}
+                    onChange={(e) => setForm(prev => ({ ...prev, citiesText: e.target.value }))}
+                    placeholder="Enter cities separated by commas"
+                  />
                 </div>
-                
-                {form.selectedCities.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {form.selectedCities.map((city) => (
-                      <Badge key={city} variant="outline" className="text-xs">
-                        {city}
-                        <button onClick={() => removeCity(city)} className="ml-1">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
+              )}
             </CardContent>
           </Card>
 
