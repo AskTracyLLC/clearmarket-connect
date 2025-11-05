@@ -417,7 +417,7 @@ const FieldRepProfile = () => {
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="coverage">Coverage & Pricing</TabsTrigger>
+              <TabsTrigger value="coverage">Services & Coverage</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="mt-6">

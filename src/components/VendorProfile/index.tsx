@@ -150,7 +150,7 @@ const VendorProfile = () => {
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="profile">Company Profile</TabsTrigger>
-              <TabsTrigger value="coverage">Coverage & Pricing</TabsTrigger>
+              <TabsTrigger value="coverage">Services & Coverage</TabsTrigger>
               <TabsTrigger value="network" className="flex items-center gap-2">
                 My Network 
                 <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
