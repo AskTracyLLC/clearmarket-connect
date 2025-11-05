@@ -16,9 +16,10 @@ interface CoverageAreasProps {
   setCoverageAreas: React.Dispatch<React.SetStateAction<CoverageArea[]>>;
   selectedInspectionTypes?: string[];
   onSaveCoverageAreas: (areas: CoverageArea[]) => Promise<void>;
+  fieldRepName?: string;
 }
 
-export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [], onSaveCoverageAreas }: CoverageAreasProps) => {
+export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspectionTypes = [], onSaveCoverageAreas, fieldRepName }: CoverageAreasProps) => {
   const { toast } = useToast();
   const { states, loading: statesLoading } = useStates();
   const [selectedState, setSelectedState] = useState<State | null>(null);
@@ -221,7 +222,8 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
   };
 
   const exportToCSV = () => {
-    const fieldRepName = "John Smith";
+    const repName = fieldRepName || "Field_Rep";
+    const sanitizedName = repName.replace(/\s+/g, "_");
     const today = new Date();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
@@ -239,7 +241,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
     ];
     
     const rows = coverageAreas.map(area => [
-      fieldRepName,
+      repName,
       area.state,
       area.stateCode,
       area.counties.length === 1 && area.counties[0] === "All Counties" 
@@ -260,7 +262,7 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
     const url = URL.createObjectURL(blob);
     
     link.setAttribute("href", url);
-    link.setAttribute("download", `${fieldRepName.replace(/\s+/g, '_')}_Coverage_Areas_asof${dateString}.csv`);
+    link.setAttribute("download", `${sanitizedName}_Coverage_Areas_asof${dateString}.csv`);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);

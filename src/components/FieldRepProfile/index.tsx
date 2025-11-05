@@ -497,6 +497,7 @@ const FieldRepProfile = () => {
                       coverageAreas={coverageAreas}
                       setCoverageAreas={setCoverageAreas}
                       selectedInspectionTypes={form.watch("inspectionTypes")}
+                      fieldRepName={`${form.watch("firstName")} ${form.watch("lastName")}`.trim() || profile?.display_name || profile?.anonymous_username}
                       onSaveCoverageAreas={async (areas) => {
                         await saveCoverageAreas(areas);
                       }}
