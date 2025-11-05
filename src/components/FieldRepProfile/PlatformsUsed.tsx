@@ -38,6 +38,7 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
                   control={form.control}
                   name="platforms"
                   render={({ field }) => {
+                    const currentValue = field.value || [];
                     return (
                       <FormItem
                         key={platform.id}
@@ -45,13 +46,13 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
                       >
                         <FormControl>
                            <Checkbox
-                            checked={field.value?.includes(platform.name)}
+                            checked={currentValue.includes(platform.name)}
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                field.onChange([...field.value, platform.name])
+                                field.onChange([...currentValue, platform.name])
                               } else {
                                 field.onChange(
-                                  field.value?.filter(
+                                  currentValue.filter(
                                     (value) => value !== platform.name
                                   )
                                 )

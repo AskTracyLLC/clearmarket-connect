@@ -92,6 +92,7 @@ export const HudKeys = ({ form }: HudKeysProps) => {
                   control={form.control}
                   name="hudKeys"
                   render={({ field }) => {
+                    const currentValue = field.value || [];
                     return (
                       <FormItem
                         key={key}
@@ -99,15 +100,14 @@ export const HudKeys = ({ form }: HudKeysProps) => {
                       >
                         <FormControl>
                           <Checkbox
-                            checked={field.value?.includes(key)}
+                            checked={currentValue.includes(key)}
                             onCheckedChange={(checked) => {
                               if (key === "None") {
                                 // If None is checked, clear all other selections
                                 return checked ? field.onChange(["None"]) : field.onChange([]);
                               } else {
                                 // If any other key is checked, remove None
-                                const currentValues = field.value || [];
-                                const withoutNone = currentValues.filter(v => v !== "None");
+                                const withoutNone = currentValue.filter(v => v !== "None");
                                 return checked
                                   ? field.onChange([...withoutNone, key])
                                   : field.onChange(withoutNone.filter((value) => value !== key));
