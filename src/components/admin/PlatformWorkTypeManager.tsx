@@ -38,8 +38,8 @@ export const PlatformWorkTypeManager = () => {
   const fetchData = async () => {
     try {
       const [platformsRes, workTypesRes] = await Promise.all([
-        supabase.from("platforms").select("*").order("display_order"),
-        supabase.from("work_types").select("*").order("display_order")
+        supabase.from("platforms").select("*").order("name", { ascending: true }),
+        supabase.from("work_types").select("*").order("name", { ascending: true })
       ]);
 
       if (platformsRes.data) setPlatforms(platformsRes.data);

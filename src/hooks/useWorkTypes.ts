@@ -23,7 +23,7 @@ export const useWorkTypes = () => {
         .from("work_types")
         .select("*")
         .eq("is_active", true)
-        .order("display_order", { ascending: true });
+        .order("name", { ascending: true });
 
       if (fetchError) {
         throw fetchError;

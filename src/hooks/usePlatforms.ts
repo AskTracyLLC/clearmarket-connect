@@ -28,7 +28,7 @@ export const usePlatforms = () => {
         .from("platforms")
         .select("id, name, description, category, is_active, display_order")
         .eq("is_active", true)
-        .order("display_order", { ascending: true });
+        .order("name", { ascending: true });
 
       if (error) throw error;
       
