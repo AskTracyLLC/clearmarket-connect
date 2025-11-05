@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2, Info, Plus, Download, Pencil } from "lucide-react";
 import { useStates, useCountiesByState, type State } from "@/hooks/useLocationData";
@@ -188,6 +189,14 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
         variant: "destructive",
       });
     }
+  };
+
+  const toggleAvailability = async (id: string, currentStatus: boolean) => {
+    const updatedAreas = coverageAreas.map((area) =>
+      area.id === id ? { ...area, isAvailable: !currentStatus } : area
+    );
+    setCoverageAreas(updatedAreas);
+    await onSaveCoverageAreas(updatedAreas);
   };
 
   const removeCoverageArea = async (id: string) => {
@@ -498,7 +507,8 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
                   <TableHead className="w-24">Standard</TableHead>
                   <TableHead className="w-24">Rush</TableHead>
                   <TableHead>Inspection Types</TableHead>
-                  <TableHead className="w-16"></TableHead>
+                  <TableHead className="w-32">Availability</TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -525,6 +535,17 @@ export const CoverageAreas = ({ coverageAreas, setCoverageAreas, selectedInspect
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={area.isAvailable ?? true}
+                          onCheckedChange={() => toggleAvailability(area.id, area.isAvailable ?? true)}
+                        />
+                        <span className={`text-sm font-medium ${area.isAvailable ?? true ? 'text-green-600' : 'text-red-600'}`}>
+                          {area.isAvailable ?? true ? 'Open' : 'Closed'}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

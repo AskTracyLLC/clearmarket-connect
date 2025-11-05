@@ -41,6 +41,7 @@ export interface CoverageArea {
   standardPrice: string;
   rushPrice: string;
   inspectionTypes: InspectionTypePricing[];
+  isAvailable?: boolean;
 }
 
 export interface FieldRepProfile {
