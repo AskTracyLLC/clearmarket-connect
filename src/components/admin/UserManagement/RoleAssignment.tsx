@@ -212,11 +212,19 @@ export const RoleAssignment = () => {
 
     setIsDeleting(true);
     try {
-      const { error } = await supabase.rpc('admin_delete_user_completely', {
+      const { data, error } = await supabase.rpc('admin_delete_user_completely', {
         target_user_id: userToDelete.userId
       });
 
       if (error) throw error;
+
+      // Check if the function returned an error in the response
+      if (data && typeof data === 'object' && 'success' in data) {
+        if (data.success === false) {
+          const errorMsg = typeof data.error === 'string' ? data.error : 'Failed to delete user';
+          throw new Error(errorMsg);
+        }
+      }
 
       sonnerToast.success("User deleted completely", {
         description: `${userToDelete.name} has been permanently removed from the system.`
@@ -229,8 +237,9 @@ export const RoleAssignment = () => {
     } catch (error: any) {
       console.error('Error deleting user:', error);
       sonnerToast.error("Failed to delete user", {
-        description: error.message
+        description: error.message || "An unexpected error occurred"
       });
+      // Keep dialog open on error so user can see the message
     } finally {
       setIsDeleting(false);
     }

@@ -261,27 +261,33 @@ const AdminUserDetailPage = () => {
 
       if (error) throw error;
 
-      const result = data as any;
-      if (result?.success) {
-        sonnerToast.success(`User ${user.email} and all data deleted successfully`);
+      // Check if the function returned an error in the response
+      if (data && typeof data === 'object' && 'success' in data) {
+        const result = data as any;
+        if (result.success === false) {
+          const errorMsg = typeof result.error === 'string' ? result.error : 'Failed to delete user';
+          throw new Error(errorMsg);
+        }
         
-        // Log the action
-        await supabase.from('audit_log').insert({
-          user_id: null,
-          action: 'admin_delete_user_completely',
-          target_table: 'users',
-          target_id: userId,
-          metadata: {
-            deleted_user_email: user.email,
-            deleted_by: currentUserEmail
-          },
-          performed_by_admin: true
-        });
-        
-        // Navigate back to user directory
-        navigate('/admin/users');
-      } else {
-        sonnerToast.error(result?.error || "Failed to delete user");
+        if (result.success === true) {
+          sonnerToast.success(`User ${user.email} and all data deleted successfully`);
+          
+          // Log the action
+          await supabase.from('audit_log').insert({
+            user_id: null,
+            action: 'admin_delete_user_completely',
+            target_table: 'users',
+            target_id: userId,
+            metadata: {
+              deleted_user_email: user.email,
+              deleted_by: currentUserEmail
+            },
+            performed_by_admin: true
+          });
+          
+          // Navigate back to user directory
+          navigate('/admin/users');
+        }
       }
     } catch (error: any) {
       console.error('Error deleting user:', error);
