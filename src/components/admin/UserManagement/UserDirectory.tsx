@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Save, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface UserProfile {
@@ -20,13 +21,20 @@ interface UserProfile {
   phone: string;
   join_date: string;
   is_active: boolean;
-  role: string;
+  role: "admin" | "moderator" | "field_rep" | "vendor";
 }
 
 export const UserDirectory = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pendingChanges, setPendingChanges] = useState<Record<string, boolean>>({});
+  const [pendingChanges, setPendingChanges] = useState<Record<string, { 
+    role?: "admin" | "moderator" | "field_rep" | "vendor"; 
+    is_active?: boolean 
+  }>>({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ userId: string; name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -84,54 +92,99 @@ export const UserDirectory = () => {
     fetchUsers();
   });
 
-  const handleToggleActive = (userId: string, currentStatus: boolean) => {
+  const handleRoleChange = (userId: string, value: string, userName: string) => {
+    if (value === 'DELETE') {
+      setUserToDelete({ userId, name: userName });
+      setDeleteDialogOpen(true);
+      return;
+    }
+
+    const isInactive = value === 'inactive';
+    
     setPendingChanges(prev => ({
       ...prev,
-      [userId]: !currentStatus
+      [userId]: {
+        ...prev[userId],
+        ...(isInactive ? {} : { role: value as "admin" | "moderator" | "field_rep" | "vendor" }),
+        is_active: !isInactive
+      }
     }));
+  };
+
+  const handleDeleteUser = async () => {
+    if (deleteConfirmText !== "DELETE" || !userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.rpc('admin_delete_user_completely', {
+        target_user_id: userToDelete.userId
+      });
+
+      if (error) throw error;
+
+      sonnerToast.success("User deleted completely", {
+        description: `${userToDelete.name} has been permanently removed from the system.`
+      });
+
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      setDeleteConfirmText("");
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      sonnerToast.error("Failed to delete user", {
+        description: error.message
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const saveChanges = async () => {
     try {
-      for (const [userId, newStatus] of Object.entries(pendingChanges)) {
-        const { error } = await supabase.rpc('toggle_user_activation', {
-          target_user_id: userId,
-          is_active_param: newStatus
-        });
+      for (const [userId, changes] of Object.entries(pendingChanges)) {
+        // Update role if changed
+        if (changes.role !== undefined) {
+          const { error: roleError } = await supabase
+            .from('users')
+            .update({ role: changes.role })
+            .eq('id', userId);
 
-        if (error) {
-          throw error;
+          if (roleError) throw roleError;
+        }
+
+        // Update is_active if changed
+        if (changes.is_active !== undefined) {
+          const { error: statusError } = await supabase.rpc('toggle_user_activation', {
+            target_user_id: userId,
+            is_active_param: changes.is_active
+          });
+
+          if (statusError) throw statusError;
         }
       }
 
-      toast({
-        title: "Success",
-        description: "User statuses updated successfully",
+      sonnerToast.success("Changes saved successfully", {
+        description: "User roles and statuses updated"
       });
 
       setPendingChanges({});
-      fetchUsers(); // Refresh the data
+      fetchUsers();
     } catch (error: any) {
-      console.error('Error updating user statuses:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update user statuses",
-        variant: "destructive"
+      console.error('Error updating users:', error);
+      sonnerToast.error("Failed to save changes", {
+        description: error.message
       });
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    const variant = role === 'admin' ? 'destructive' : 'secondary';
-    return <Badge variant={variant}>{role.toUpperCase()}</Badge>;
-  };
-
-  const getStatusBadge = (isActive: boolean) => {
-    return (
-      <Badge variant={isActive ? 'default' : 'secondary'}>
-        {isActive ? 'Active' : 'Deactivated'}
-      </Badge>
-    );
+  const getCurrentRole = (user: UserProfile) => {
+    const changes = pendingChanges[user.user_id];
+    if (changes) {
+      if (changes.is_active === false) return 'inactive';
+      if (changes.role !== undefined) return changes.role;
+    }
+    return user.is_active ? user.role : 'inactive';
   };
 
   const hasChanges = Object.keys(pendingChanges).length > 0;
@@ -188,36 +241,45 @@ export const UserDirectory = () => {
                   <TableHead>Username</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Role</TableHead>
                   <TableHead>Join Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Active</TableHead>
+                  <TableHead>Role / Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.map((user) => {
-                  const currentStatus = pendingChanges[user.user_id] !== undefined 
-                    ? pendingChanges[user.user_id] 
-                    : user.is_active;
+                  const currentRole = getCurrentRole(user);
+                  const userName = `${user.first_name} ${user.last_name}`;
                   
                   return (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">
-                        {user.first_name} {user.last_name}
+                        {userName}
                       </TableCell>
                       <TableCell>{user.username || '-'}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.phone || '-'}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>
                         {format(new Date(user.join_date), 'MMM dd, yyyy')}
                       </TableCell>
-                      <TableCell>{getStatusBadge(currentStatus)}</TableCell>
                       <TableCell>
-                        <Switch
-                          checked={currentStatus}
-                          onCheckedChange={() => handleToggleActive(user.user_id, user.is_active)}
-                        />
+                        <Select 
+                          value={currentRole}
+                          onValueChange={(value) => handleRoleChange(user.user_id, value, userName)}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="field_rep">Field Rep</SelectItem>
+                            <SelectItem value="vendor">Vendor</SelectItem>
+                            <SelectItem value="moderator">Moderator</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="DELETE" className="text-destructive font-semibold">
+                              DELETE
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                     </TableRow>
                   );
@@ -227,6 +289,59 @@ export const UserDirectory = () => {
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Delete User Permanently</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="font-semibold">
+                You are about to permanently delete: {userToDelete?.name}
+              </p>
+              <p className="text-sm">
+                This will immediately and permanently remove:
+              </p>
+              <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+                <li>User account and authentication</li>
+                <li>Profile information</li>
+                <li>All messages and communications</li>
+                <li>Network connections</li>
+                <li>All activity history</li>
+              </ul>
+              <p className="font-semibold text-destructive mt-4">
+                ⚠️ THIS ACTION CANNOT BE UNDONE
+              </p>
+              <p className="text-sm mt-4">
+                Type <span className="font-mono font-bold">DELETE</span> to confirm:
+              </p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="font-mono"
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setDeleteConfirmText("");
+                setUserToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={deleteConfirmText !== "DELETE" || isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete Permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
