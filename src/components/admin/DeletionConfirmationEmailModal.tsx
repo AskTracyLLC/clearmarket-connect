@@ -27,7 +27,7 @@ export const DeletionConfirmationEmailModal = ({
   deletedUserEmail,
   deletedUserUsername,
 }: DeletionConfirmationEmailModalProps) => {
-  const [subject, setSubject] = useState("Your user data has been deleted from ClearMarket");
+  const [subject, setSubject] = useState(`${deletedUserUsername} - Your user data has been deleted from ClearMarket`);
   const [body, setBody] = useState(
     `Hello,
 
