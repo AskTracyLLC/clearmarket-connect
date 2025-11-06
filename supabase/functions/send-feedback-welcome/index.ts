@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send welcome email
     const emailResponse = await resend.emails.send({
-      from: "ClearMarket <onboarding@resend.dev>",
+      from: "ClearMarket <hello@useclearmarket.io>",
       to: [email],
       subject: "Welcome to the ClearMarket Feedback Group!",
       html: `

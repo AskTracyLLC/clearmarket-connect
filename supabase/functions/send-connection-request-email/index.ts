@@ -81,7 +81,7 @@ serve(async (req) => {
     `;
 
     const { error } = await resend.emails.send({
-      from: "ClearMarket <onboarding@resend.dev>",
+      from: "ClearMarket <hello@useclearmarket.io>",
       to: [recipientEmail],
       subject: `${senderUsername} wants to connect with you`,
       html: emailHtml,
