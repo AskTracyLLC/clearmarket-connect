@@ -5,15 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield, Key, Copy, Check, Download, Settings } from "lucide-react";
+import { Users, Save, Eye, Search, RefreshCw, ChevronUp, ChevronDown, Filter, Shield, Key, Download, Settings } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 import { format } from "date-fns";
 import { ConnectionLimitManager } from "./ConnectionLimitManager";
 
@@ -62,7 +63,6 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
   { key: 'join_date', label: 'Join Date', enabled: true },
   { key: 'last_active', label: 'Last Active', enabled: true },
   { key: 'status', label: 'Status', enabled: false },
-  { key: 'active_toggle', label: 'Active Toggle', enabled: true },
   { key: 'actions', label: 'Actions', enabled: true },
 ];
 
@@ -71,14 +71,20 @@ export const RoleAssignment = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({});
-  const [statusChanges, setStatusChanges] = useState<Record<string, boolean>>({});
+  const [pendingChanges, setPendingChanges] = useState<Record<string, { 
+    role?: "admin" | "moderator" | "field_rep" | "vendor";
+    is_active?: boolean;
+  }>>({});
   const [impersonateUser, setImpersonateUser] = useState<UserProfile | null>(null);
   const [sortField, setSortField] = useState<SortField>('username');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedUserForLimit, setSelectedUserForLimit] = useState<UserProfile | null>(null);
   const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ userId: string; name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Column visibility management - merge saved with defaults to include new columns
   const [visibleColumns, setVisibleColumns] = useState<ColumnConfig[]>(() => {
@@ -182,18 +188,61 @@ export const RoleAssignment = () => {
     fetchUsers();
   }, []);
 
-  const handleRoleChange = (userId: string, newRole: string) => {
+  const handleRoleChange = (userId: string, value: string, userName: string) => {
+    if (value === 'DELETE') {
+      setUserToDelete({ userId, name: userName });
+      setDeleteDialogOpen(true);
+      return;
+    }
+
+    const isInactive = value === 'inactive';
+    
     setPendingChanges(prev => ({
       ...prev,
-      [userId]: newRole
+      [userId]: {
+        ...prev[userId],
+        ...(isInactive ? {} : { role: value as "admin" | "moderator" | "field_rep" | "vendor" }),
+        is_active: !isInactive
+      }
     }));
   };
 
-  const handleStatusChange = (userId: string, currentStatus: boolean) => {
-    setStatusChanges(prev => ({
-      ...prev,
-      [userId]: !currentStatus
-    }));
+  const handleDeleteUser = async () => {
+    if (deleteConfirmText !== "DELETE" || !userToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.rpc('admin_delete_user_completely', {
+        target_user_id: userToDelete.userId
+      });
+
+      if (error) throw error;
+
+      sonnerToast.success("User deleted completely", {
+        description: `${userToDelete.name} has been permanently removed from the system.`
+      });
+
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      setDeleteConfirmText("");
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      sonnerToast.error("Failed to delete user", {
+        description: error.message
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getCurrentRole = (user: UserProfile) => {
+    const changes = pendingChanges[user.user_id];
+    if (changes) {
+      if (changes.is_active === false) return 'inactive';
+      if (changes.role !== undefined) return changes.role;
+    }
+    return user.is_active ? user.role : 'inactive';
   };
 
   const handleSort = (field: SortField) => {
@@ -207,58 +256,55 @@ export const RoleAssignment = () => {
 
   const saveRoleChanges = async () => {
     try {
-      // Handle role changes
-      const roleChangePromises = Object.entries(pendingChanges).map(async ([userId, newRole]) => {
-        // Validate role
-        const validRoles = ['admin', 'moderator', 'vendor', 'field_rep'];
-        if (!validRoles.includes(newRole)) {
-          throw new Error(`Invalid role: ${newRole}`);
-        }
-
-        // Prevent non-admin from assigning admin role
-        if (newRole === 'admin') {
-          toast({
-            title: "Warning",
-            description: "Admin role assignment requires special permissions",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        const { data, error } = await supabase.rpc('admin_update_user_role', {
-          target_user_id: userId,
-          new_role: newRole as any
-        });
-
-        if (error) throw error;
-
-        // Log the change to audit log
-        await supabase.from('audit_log').insert({
-          user_id: userId,
-          action: 'role_change',
-          target_table: 'users',
-          target_id: userId,
-          metadata: {
-            new_role: newRole,
-            changed_by: 'admin'
+      for (const [userId, changes] of Object.entries(pendingChanges)) {
+        // Update role if changed
+        if (changes.role !== undefined) {
+          // Validate role
+          const validRoles = ['admin', 'moderator', 'vendor', 'field_rep'];
+          if (!validRoles.includes(changes.role)) {
+            throw new Error(`Invalid role: ${changes.role}`);
           }
-        });
 
-        return data;
-      });
+          // Prevent non-admin from assigning admin role
+          if (changes.role === 'admin') {
+            toast({
+              title: "Warning",
+              description: "Admin role assignment requires special permissions",
+              variant: "destructive"
+            });
+            continue;
+          }
 
-      // Handle status changes
-      const statusChangePromises = Object.entries(statusChanges).map(async ([userId, newStatus]) => {
-        const { error } = await supabase.rpc('toggle_user_activation', {
-          target_user_id: userId,
-          is_active_param: newStatus
-        });
+          const { error: roleError } = await supabase.rpc('admin_update_user_role', {
+            target_user_id: userId,
+            new_role: changes.role as any
+          });
 
-        if (error) throw error;
-        return true;
-      });
+          if (roleError) throw roleError;
 
-      await Promise.all([...roleChangePromises, ...statusChangePromises]);
+          // Log the change to audit log
+          await supabase.from('audit_log').insert({
+            user_id: userId,
+            action: 'role_change',
+            target_table: 'users',
+            target_id: userId,
+            metadata: {
+              new_role: changes.role,
+              changed_by: 'admin'
+            }
+          });
+        }
+
+        // Update is_active if changed
+        if (changes.is_active !== undefined) {
+          const { error: statusError } = await supabase.rpc('toggle_user_activation', {
+            target_user_id: userId,
+            is_active_param: changes.is_active
+          });
+
+          if (statusError) throw statusError;
+        }
+      }
 
       toast({
         title: "Success",
@@ -266,8 +312,7 @@ export const RoleAssignment = () => {
       });
 
       setPendingChanges({});
-      setStatusChanges({});
-      fetchUsers(); // Refresh the list
+      fetchUsers();
     } catch (error: any) {
       console.error('Error saving changes:', error);
       toast({
@@ -374,9 +419,10 @@ export const RoleAssignment = () => {
 
     // Prepare CSV rows
     const rows = filteredAndSortedUsers.map(user => {
-      const currentRole = pendingChanges[user.user_id] || user.role;
-      const currentStatus = statusChanges[user.user_id] !== undefined 
-        ? statusChanges[user.user_id] 
+      const currentRole = getCurrentRole(user);
+      const changes = pendingChanges[user.user_id];
+      const currentStatus = changes?.is_active !== undefined 
+        ? changes.is_active 
         : user.is_active;
 
       const rowData: Record<string, string> = {
@@ -393,7 +439,6 @@ export const RoleAssignment = () => {
         join_date: user.join_date ? format(new Date(user.join_date), 'MMM dd, yyyy') : 'Not set',
         last_active: user.last_active ? format(new Date(user.last_active), 'MMM dd, yyyy') : 'Never',
         status: currentStatus ? 'Active' : 'Deactivated',
-        active_toggle: currentStatus ? 'Yes' : 'No',
         actions: 'N/A',
       };
 
@@ -436,9 +481,10 @@ export const RoleAssignment = () => {
         user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Status filter
-      const currentStatus = statusChanges[user.user_id] !== undefined 
-        ? statusChanges[user.user_id] 
+      // Status filter - check pending changes first
+      const changes = pendingChanges[user.user_id];
+      const currentStatus = changes?.is_active !== undefined 
+        ? changes.is_active 
         : user.is_active;
       
       const statusMatch = statusFilter === 'all' ||
@@ -528,7 +574,7 @@ export const RoleAssignment = () => {
     </TableHead>
   );
 
-  const hasChanges = Object.keys(pendingChanges).length > 0 || Object.keys(statusChanges).length > 0;
+  const hasChanges = Object.keys(pendingChanges).length > 0;
 
   if (loading) {
     return (
@@ -645,21 +691,22 @@ export const RoleAssignment = () => {
                     {isColumnVisible('company_name') && <TableHead>Company Name</TableHead>}
                     {isColumnVisible('background_check') && <TableHead>Background Check</TableHead>}
                     {isColumnVisible('current_role') && <SortableHeader field="role">Current Role</SortableHeader>}
-                    {isColumnVisible('new_role') && <TableHead>New Role</TableHead>}
+                    {isColumnVisible('new_role') && <TableHead>Role / Status</TableHead>}
                     {isColumnVisible('trust_score') && <SortableHeader field="trust_score">Trust Score</SortableHeader>}
                     {isColumnVisible('pulse_score') && <SortableHeader field="community_score">Pulse Score</SortableHeader>}
                     {isColumnVisible('join_date') && <SortableHeader field="join_date">Join Date</SortableHeader>}
                     {isColumnVisible('last_active') && <SortableHeader field="last_active">Last Active</SortableHeader>}
                     {isColumnVisible('status') && <TableHead>Status</TableHead>}
-                    {isColumnVisible('active_toggle') && <TableHead>Active</TableHead>}
                     {isColumnVisible('actions') && <TableHead>Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAndSortedUsers.map((user) => {
-                    const currentRole = pendingChanges[user.user_id] || user.role;
-                    const currentStatus = statusChanges[user.user_id] !== undefined 
-                      ? statusChanges[user.user_id] 
+                    const currentRole = getCurrentRole(user);
+                    const userName = `${user.first_name} ${user.last_name}`;
+                    const changes = pendingChanges[user.user_id];
+                    const currentStatus = changes?.is_active !== undefined 
+                      ? changes.is_active 
                       : user.is_active;
                     
                     return (
@@ -701,9 +748,9 @@ export const RoleAssignment = () => {
                           <TableCell>
                             <Select
                               value={currentRole}
-                              onValueChange={(value) => handleRoleChange(user.user_id, value)}
+                              onValueChange={(value) => handleRoleChange(user.user_id, value, userName)}
                             >
-                              <SelectTrigger className="w-32">
+                              <SelectTrigger className="w-[140px]">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -711,6 +758,10 @@ export const RoleAssignment = () => {
                                 <SelectItem value="vendor">Vendor</SelectItem>
                                 <SelectItem value="moderator">Moderator</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                                <SelectItem value="DELETE" className="text-destructive font-semibold">
+                                  DELETE
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </TableCell>
@@ -744,14 +795,6 @@ export const RoleAssignment = () => {
                           </TableCell>
                         )}
                         {isColumnVisible('status') && <TableCell>{getStatusBadge(currentStatus)}</TableCell>}
-                        {isColumnVisible('active_toggle') && (
-                          <TableCell>
-                            <Switch
-                              checked={currentStatus}
-                              onCheckedChange={() => handleStatusChange(user.user_id, user.is_active)}
-                            />
-                          </TableCell>
-                        )}
                         {isColumnVisible('actions') && (
                           <TableCell>
                             <div className="flex gap-2">
@@ -832,6 +875,60 @@ export const RoleAssignment = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Delete User Permanently</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="font-semibold">
+                You are about to permanently delete: {userToDelete?.name}
+              </p>
+              <p className="text-sm">
+                This will immediately and permanently remove:
+              </p>
+              <ul className="list-disc list-inside text-sm space-y-1 ml-2">
+                <li>User account and authentication</li>
+                <li>Profile information</li>
+                <li>All messages and communications</li>
+                <li>Network connections</li>
+                <li>All activity history</li>
+              </ul>
+              <p className="font-semibold text-destructive mt-4">
+                ⚠️ THIS ACTION CANNOT BE UNDONE
+              </p>
+              <p className="text-sm mt-4">
+                Type <span className="font-mono font-bold">DELETE</span> to confirm:
+              </p>
+              <Input
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="font-mono"
+              />
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setDeleteConfirmText("");
+                setUserToDelete(null);
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              disabled={deleteConfirmText !== "DELETE" || isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete Permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
