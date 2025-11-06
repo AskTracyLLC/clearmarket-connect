@@ -26,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending deletion confirmation email to:", toEmail);
 
     const emailOptions: any = {
-      from: "ClearMarket <onboarding@resend.dev>",
+      from: "ClearMarket <noreply@useclearmarket.io>",
       to: [toEmail],
       subject,
       text: body,
