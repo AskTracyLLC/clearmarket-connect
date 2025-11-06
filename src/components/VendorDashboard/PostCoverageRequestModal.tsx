@@ -169,7 +169,7 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         .filter(Boolean);
 
       const requestData = {
-        vendor_id: user.id,
+        vendor_user_id: user.id,
         title: form.title,
         description: form.description,
         estimated_monthly_volume: form.estimatedMonthlyVolume,
