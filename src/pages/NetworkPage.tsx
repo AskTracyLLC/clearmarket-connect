@@ -132,9 +132,9 @@ const NetworkPage = () => {
 
   const handleViewProfile = (connection: any) => {
     if (connection.role === 'field_rep') {
-      navigate(`/field-rep/${connection.user_id}`);
+      navigate(`/fieldrep/public/${connection.user_id}`);
     } else {
-      navigate(`/vendor/${connection.user_id}`);
+      navigate(`/vendor/public/${connection.user_id}`);
     }
   };
 
