@@ -4502,6 +4502,10 @@ export type Database = {
         Returns: boolean
       }
       add_new_role_type: { Args: { new_role_name: string }; Returns: boolean }
+      admin_delete_user_completely: {
+        Args: { target_user_id: string }
+        Returns: Json
+      }
       admin_set_connection_request_limit: {
         Args: { new_limit: number; target_user_id: string }
         Returns: boolean

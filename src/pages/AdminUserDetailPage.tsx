@@ -22,8 +22,22 @@ import {
   TrendingUp,
   Activity,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast as sonnerToast } from "sonner";
 import { UserActivityLog } from "@/components/admin/UserActivityLog";
 import { ConnectionLimitManager } from "@/components/admin/UserManagement/ConnectionLimitManager";
 import { useImpersonation } from "@/hooks/useImpersonation";
@@ -59,8 +73,31 @@ const AdminUserDetailPage = () => {
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const [impersonationReason, setImpersonationReason] = useState("");
   const [isImpersonating, setIsImpersonating] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>("");
   
   const { startImpersonation } = useImpersonation();
+
+  // Get current user email for Admin#1 check
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (userData?.email) {
+          setCurrentUserEmail(userData.email);
+        }
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   const fetchUser = async () => {
     if (!userId) return;
@@ -184,42 +221,97 @@ const AdminUserDetailPage = () => {
     }
   };
 
-  const handleImpersonate = async () => {
-    if (!user || !impersonationReason.trim() || impersonationReason.length < 10) {
-      toast({
-        title: "Error",
-        description: "Please provide a reason (minimum 10 characters)",
-        variant: "destructive"
-      });
+  const handleDeleteUser = async () => {
+    if (deleteConfirmText !== "DELETE") {
+      sonnerToast.error("Please type DELETE to confirm");
       return;
     }
 
-    try {
-      setIsImpersonating(true);
-      const result = await startImpersonation(
-        user.user_id,
-        impersonationReason,
-        true, // read-only mode
-        []
-      );
+    if (!user?.email) {
+      sonnerToast.error("User email not found");
+      return;
+    }
 
-      if (result.success) {
-        setShowImpersonateModal(false);
-        setImpersonationReason("");
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_delete_user_completely', {
+        target_user_id: userId
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        sonnerToast.success(`User ${user.email} and all data deleted successfully`);
         
-        // Navigate to appropriate dashboard based on role
-        setTimeout(() => {
-          if (user.role === 'vendor') {
-            navigate('/vendor/dashboard');
-          } else if (user.role === 'field_rep') {
-            navigate('/fieldrep/dashboard');
-          } else {
-            navigate('/');
-          }
-        }, 1000);
+        // Log the action
+        await supabase.from('audit_log').insert({
+          user_id: null,
+          action: 'admin_delete_user_completely',
+          target_table: 'users',
+          target_id: userId,
+          metadata: {
+            deleted_user_email: user.email,
+            deleted_by: currentUserEmail
+          },
+          performed_by_admin: true
+        });
+        
+        // Navigate back to user directory
+        navigate('/admin/users');
+      } else {
+        sonnerToast.error(result?.error || "Failed to delete user");
+      }
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      sonnerToast.error(error.message || "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeleteConfirmText("");
+    }
+  };
+
+  const handleImpersonate = async () => {
+    if (!impersonationReason.trim()) {
+      sonnerToast.error("Please provide a reason for impersonation");
+      return;
+    }
+
+    setIsImpersonating(true);
+    try {
+      const result = await startImpersonation(userId || '', impersonationReason);
+      
+      if (result.success) {
+        // Log the impersonation
+        await supabase.from('audit_log').insert({
+          user_id: user?.id,
+          action: 'admin_impersonation_start',
+          target_table: 'users',
+          target_id: userId,
+          metadata: {
+            reason: impersonationReason,
+            session_id: result.sessionId
+          },
+          performed_by_admin: true
+        });
+
+        sonnerToast.success("Impersonation started successfully");
+        
+        // Redirect based on role
+        if (user?.role === 'field_rep') {
+          navigate('/fieldrep/profile');
+        } else if (user?.role === 'vendor') {
+          navigate('/vendor/profile');
+        } else {
+          navigate('/');
+        }
+      } else {
+        sonnerToast.error(result.error || "Failed to start impersonation");
       }
     } catch (error: any) {
       console.error('Impersonation error:', error);
+      sonnerToast.error(error.message || "Failed to start impersonation");
     } finally {
       setIsImpersonating(false);
     }
@@ -474,6 +566,15 @@ const AdminUserDetailPage = () => {
                     <Eye className="h-4 w-4 mr-2" />
                     Mimic User
                   </Button>
+                  {currentUserEmail === 'admin@clearmarket.com' && (
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete User Completely
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -588,6 +689,59 @@ const AdminUserDetailPage = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete User Dialog - Admin#1 Only */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-destructive">⚠️ PERMANENT DELETION WARNING</AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3 text-left">
+                <p className="font-semibold text-foreground">
+                  This action CANNOT be undone and will:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Delete user account permanently</li>
+                  <li>Remove ALL user data from the database</li>
+                  <li>Delete ALL coverage areas</li>
+                  <li>Remove ALL messages and connections</li>
+                  <li>Delete ALL reviews and ratings</li>
+                  <li>Clear ALL credit transactions</li>
+                  <li>Remove ALL calendar events</li>
+                  <li>Delete ALL documents</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Deleting: <span className="font-mono font-semibold text-foreground">{user?.email}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Only Admin#1 can perform this operation.
+                </p>
+                <div className="mt-4">
+                  <Label htmlFor="delete-confirm" className="text-sm font-medium">
+                    Type <span className="font-mono font-bold">DELETE</span> to confirm
+                  </Label>
+                  <Input
+                    id="delete-confirm"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="Type DELETE here"
+                    className="mt-2"
+                    autoComplete="off"
+                  />
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteUser}
+                disabled={deleteConfirmText !== "DELETE" || isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? "Deleting..." : "Delete Permanently"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
