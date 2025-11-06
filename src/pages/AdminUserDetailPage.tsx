@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +66,6 @@ const AdminUserDetailPage = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingRole, setPendingRole] = useState<string>("");
-  const [pendingStatus, setPendingStatus] = useState<boolean | null>(null);
   const [showLimitManager, setShowLimitManager] = useState(false);
   const [resetLinkUser, setResetLinkUser] = useState<UserProfile | null>(null);
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
@@ -137,8 +135,7 @@ const AdminUserDetailPage = () => {
       };
 
       setUser(combinedData);
-      setPendingRole(combinedData.role);
-      setPendingStatus(null);
+      setPendingRole(!combinedData.is_active ? 'inactive' : combinedData.role);
     } catch (error: any) {
       console.error('Error fetching user:', error);
       toast({
@@ -155,12 +152,40 @@ const AdminUserDetailPage = () => {
     fetchUser();
   }, [userId]);
 
+  const handleRoleChange = (value: string) => {
+    if (value === 'DELETE') {
+      setDeleteDialogOpen(true);
+      return;
+    }
+    setPendingRole(value);
+  };
+
   const handleSaveChanges = async () => {
     if (!user) return;
 
     try {
+      // Handle inactive status change
+      if (pendingRole === 'inactive') {
+        const { error } = await supabase.rpc('toggle_user_activation', {
+          target_user_id: user.user_id,
+          is_active_param: false
+        });
+
+        if (error) throw error;
+
+        await supabase.from('audit_log').insert({
+          user_id: user.user_id,
+          action: 'status_change',
+          target_table: 'user_profiles',
+          target_id: user.user_id,
+          metadata: {
+            new_status: 'inactive',
+            changed_by: 'admin'
+          }
+        });
+      } 
       // Handle role change
-      if (pendingRole && pendingRole !== user.role) {
+      else if (pendingRole && pendingRole !== user.role) {
         const validRoles = ['admin', 'moderator', 'vendor', 'field_rep'];
         if (!validRoles.includes(pendingRole)) {
           throw new Error(`Invalid role: ${pendingRole}`);
@@ -174,6 +199,12 @@ const AdminUserDetailPage = () => {
           });
           return;
         }
+
+        // Set user to active when assigning a role
+        await supabase.rpc('toggle_user_activation', {
+          target_user_id: user.user_id,
+          is_active_param: true
+        });
 
         const { error } = await supabase.rpc('admin_update_user_role', {
           target_user_id: user.user_id,
@@ -193,16 +224,6 @@ const AdminUserDetailPage = () => {
             changed_by: 'admin'
           }
         });
-      }
-
-      // Handle status change
-      if (pendingStatus !== null && pendingStatus !== user.is_active) {
-        const { error } = await supabase.rpc('toggle_user_activation', {
-          target_user_id: user.user_id,
-          is_active_param: pendingStatus
-        });
-
-        if (error) throw error;
       }
 
       toast({
@@ -380,8 +401,15 @@ const AdminUserDetailPage = () => {
     );
   };
 
-  const currentStatus = pendingStatus !== null ? pendingStatus : user?.is_active ?? true;
-  const hasChanges = (pendingRole && pendingRole !== user?.role) || (pendingStatus !== null && pendingStatus !== user?.is_active);
+  const currentStatus = user?.is_active ?? true;
+  const hasChanges = pendingRole && (
+    // If selecting inactive and user is currently active
+    (pendingRole === 'inactive' && user?.is_active) ||
+    // If selecting a role and user is currently inactive
+    (pendingRole !== 'inactive' && !user?.is_active) ||
+    // If selecting a different role than current
+    (pendingRole !== 'inactive' && pendingRole !== user?.role)
+  );
 
   if (loading) {
     return (
@@ -512,36 +540,32 @@ const AdminUserDetailPage = () => {
               {/* Role Management */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Current Role</label>
-                <div className="mb-2">{getRoleBadge(user.role)}</div>
+                <div className="mb-2 flex gap-2">
+                  {getRoleBadge(user.role)}
+                  {!user.is_active && <Badge variant="secondary">Inactive</Badge>}
+                </div>
                 <label className="text-sm font-medium">Change Role</label>
-                <Select value={pendingRole} onValueChange={setPendingRole}>
-                  <SelectTrigger>
+                <Select value={pendingRole} onValueChange={handleRoleChange}>
+                  <SelectTrigger className="bg-card">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-card z-50">
                     <SelectItem value="field_rep">Field Rep</SelectItem>
                     <SelectItem value="vendor">Vendor</SelectItem>
                     <SelectItem value="moderator">Moderator</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    {currentUserEmail === 'admin@clearmarket.com' && (
+                      <SelectItem value="DELETE" className="text-destructive font-semibold focus:text-destructive focus:bg-destructive/10">
+                        DELETE
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Status Management */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Account Status</label>
-                <div className="mb-2">{getStatusBadge(currentStatus)}</div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={currentStatus}
-                    onCheckedChange={(checked) => setPendingStatus(checked)}
-                  />
-                  <label className="text-sm">{currentStatus ? 'Active' : 'Deactivated'}</label>
-                </div>
-              </div>
-
               {/* Action Buttons */}
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Quick Actions</label>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -566,15 +590,6 @@ const AdminUserDetailPage = () => {
                     <Eye className="h-4 w-4 mr-2" />
                     Mimic User
                   </Button>
-                  {currentUserEmail === 'admin@clearmarket.com' && (
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete User Completely
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>
