@@ -57,7 +57,7 @@ const VendorCoverageRequestsPage: React.FC = () => {
         const { data, error } = await supabase
           .from('coverage_requests')
           .select('*')
-          .eq('vendor_id', vendorId)
+          .eq('vendor_user_id', vendorId)
           .eq('status', 'active')
           .order('created_at', { ascending: false });
 

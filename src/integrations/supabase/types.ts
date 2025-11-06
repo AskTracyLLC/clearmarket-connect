@@ -789,8 +789,10 @@ export type Database = {
         Row: {
           abc_required: boolean | null
           budget_range: string
+          county: string | null
           created_at: string
           description: string
+          details: string | null
           estimated_monthly_volume: string
           expires_at: string
           hide_from_all_network: boolean
@@ -802,17 +804,20 @@ export type Database = {
           selected_inspection_types: string[] | null
           selected_platforms: string[] | null
           selected_state: string
+          state: string | null
           status: string
           title: string
           updated_at: string
-          vendor_id: string
+          vendor_user_id: string | null
           years_experience_required: string | null
         }
         Insert: {
           abc_required?: boolean | null
           budget_range: string
+          county?: string | null
           created_at?: string
           description: string
+          details?: string | null
           estimated_monthly_volume: string
           expires_at?: string
           hide_from_all_network?: boolean
@@ -824,17 +829,20 @@ export type Database = {
           selected_inspection_types?: string[] | null
           selected_platforms?: string[] | null
           selected_state: string
+          state?: string | null
           status?: string
           title: string
           updated_at?: string
-          vendor_id: string
+          vendor_user_id?: string | null
           years_experience_required?: string | null
         }
         Update: {
           abc_required?: boolean | null
           budget_range?: string
+          county?: string | null
           created_at?: string
           description?: string
+          details?: string | null
           estimated_monthly_volume?: string
           expires_at?: string
           hide_from_all_network?: boolean
@@ -846,10 +854,11 @@ export type Database = {
           selected_inspection_types?: string[] | null
           selected_platforms?: string[] | null
           selected_state?: string
+          state?: string | null
           status?: string
           title?: string
           updated_at?: string
-          vendor_id?: string
+          vendor_user_id?: string | null
           years_experience_required?: string | null
         }
         Relationships: []
@@ -989,6 +998,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      credit_usage: {
+        Row: {
+          action_type: string
+          county: string | null
+          created_at: string | null
+          credits_used: number
+          id: string
+          meta: Json | null
+          state: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          county?: string | null
+          created_at?: string | null
+          credits_used: number
+          id?: string
+          meta?: Json | null
+          state?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          county?: string | null
+          created_at?: string | null
+          credits_used?: number
+          id?: string
+          meta?: Json | null
+          state?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       credits: {
         Row: {
@@ -2651,6 +2693,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          anonymous_username: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          anonymous_username?: string | null
+          created_at?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          anonymous_username?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string | null
@@ -3503,6 +3566,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_credits: {
+        Row: {
+          balance: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_documents: {
         Row: {
@@ -4611,6 +4692,20 @@ export type Database = {
       complete_beta_registration: {
         Args: { registration_token: string; user_password: string }
         Returns: Json
+      }
+      create_coverage_request_with_credit: {
+        Args: {
+          p_county: string
+          p_credits_required?: number
+          p_details: string
+          p_state: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: {
+          coverage_request_id: string
+          new_balance: number
+        }[]
       }
       decline_connection_request: {
         Args: { request_id_param: string }
