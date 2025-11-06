@@ -17,6 +17,7 @@ import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { format } from "date-fns";
 import { ConnectionLimitManager } from "./ConnectionLimitManager";
+import { DeletionConfirmationEmailModal } from "@/components/admin/DeletionConfirmationEmailModal";
 
 interface UserProfile {
   id: string;
@@ -85,6 +86,11 @@ export const RoleAssignment = () => {
   const [userToDelete, setUserToDelete] = useState<{ userId: string; name: string } | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeletionEmailModal, setShowDeletionEmailModal] = useState(false);
+  const [deletedUserInfo, setDeletedUserInfo] = useState<{
+    email: string;
+    username: string;
+  } | null>(null);
   
   // Column visibility management - merge saved with defaults to include new columns
   const [visibleColumns, setVisibleColumns] = useState<ColumnConfig[]>(() => {
@@ -210,6 +216,8 @@ export const RoleAssignment = () => {
   const handleDeleteUser = async () => {
     if (deleteConfirmText !== "DELETE" || !userToDelete) return;
 
+    const userToDeleteDetails = users.find(u => u.id === userToDelete.userId);
+
     setIsDeleting(true);
     try {
       const { data, error } = await supabase.rpc('admin_delete_user_completely', {
@@ -229,6 +237,15 @@ export const RoleAssignment = () => {
       sonnerToast.success("User deleted completely", {
         description: `${userToDelete.name} has been permanently removed from the system.`
       });
+
+      // Store deleted user info and show email modal
+      if (userToDeleteDetails) {
+        setDeletedUserInfo({
+          email: userToDeleteDetails.email,
+          username: userToDeleteDetails.display_name || userToDeleteDetails.username || "Unknown User",
+        });
+        setShowDeletionEmailModal(true);
+      }
 
       setDeleteDialogOpen(false);
       setUserToDelete(null);
@@ -938,6 +955,15 @@ export const RoleAssignment = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {deletedUserInfo && (
+        <DeletionConfirmationEmailModal
+          open={showDeletionEmailModal}
+          onOpenChange={setShowDeletionEmailModal}
+          deletedUserEmail={deletedUserInfo.email}
+          deletedUserUsername={deletedUserInfo.username}
+        />
+      )}
     </Card>
   );
 };

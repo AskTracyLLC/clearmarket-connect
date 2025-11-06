@@ -42,6 +42,7 @@ import { ConnectionLimitManager } from "@/components/admin/UserManagement/Connec
 import { useImpersonation } from "@/hooks/useImpersonation";
 import Header from "@/components/Header";
 import { Textarea } from "@/components/ui/textarea";
+import { DeletionConfirmationEmailModal } from "@/components/admin/DeletionConfirmationEmailModal";
 
 interface UserProfile {
   id: string;
@@ -75,6 +76,11 @@ const AdminUserDetailPage = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState<string>("");
+  const [showDeletionEmailModal, setShowDeletionEmailModal] = useState(false);
+  const [deletedUserInfo, setDeletedUserInfo] = useState<{
+    email: string;
+    username: string;
+  } | null>(null);
   
   const { startImpersonation } = useImpersonation();
 
@@ -285,8 +291,14 @@ const AdminUserDetailPage = () => {
             performed_by_admin: true
           });
           
-          // Navigate back to user directory
-          navigate('/admin/users');
+          // Store deleted user info and show email modal
+          setDeletedUserInfo({
+            email: user.email,
+            username: user.display_name || user.username || "Unknown User",
+          });
+          setDeleteDialogOpen(false);
+          setDeleteConfirmText("");
+          setShowDeletionEmailModal(true);
         }
       }
     } catch (error: any) {
@@ -294,8 +306,9 @@ const AdminUserDetailPage = () => {
       sonnerToast.error(error.message || "Failed to delete user");
     } finally {
       setIsDeleting(false);
-      setDeleteDialogOpen(false);
-      setDeleteConfirmText("");
+      if (!deletedUserInfo) {
+        setDeleteConfirmText("");
+      }
     }
   };
 
@@ -763,6 +776,20 @@ const AdminUserDetailPage = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {deletedUserInfo && (
+          <DeletionConfirmationEmailModal
+            open={showDeletionEmailModal}
+            onOpenChange={(open) => {
+              setShowDeletionEmailModal(open);
+              if (!open) {
+                navigate('/admin/users');
+              }
+            }}
+            deletedUserEmail={deletedUserInfo.email}
+            deletedUserUsername={deletedUserInfo.username}
+          />
+        )}
       </div>
     </div>
   );
