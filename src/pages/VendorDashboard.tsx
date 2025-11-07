@@ -32,6 +32,7 @@ import AccountBilling from '@/components/VendorDashboard/AccountBilling';
 import NetworkAlertsTab from '@/components/VendorDashboard/NetworkAlertsTab';
 import { SentConnectionRequests } from '@/components/VendorDashboard/SentConnectionRequests';
 import { ConnectionLimitStatus } from '@/components/ConnectionLimitStatus';
+import { BetaCreditWelcome } from '@/components/VendorDashboard/BetaCreditWelcome';
 
 const VendorDashboard = () => {
   const navigate = useNavigate();
@@ -78,6 +79,11 @@ const VendorDashboard = () => {
               </Button>
               <ConnectionLimitStatus />
             </div>
+          </div>
+
+          {/* Beta Credit Welcome Banner */}
+          <div className="mb-6">
+            <BetaCreditWelcome />
           </div>
 
           {/* Quick Stats */}
