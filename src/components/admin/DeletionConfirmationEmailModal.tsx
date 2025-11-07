@@ -33,7 +33,7 @@ export const DeletionConfirmationEmailModal = ({
 
 This is confirmation that the following data and details associated with your ClearMarket account have been permanently deleted:
 
-- Anonymous Username: ${deletedUserUsername}
+- Username: ${deletedUserUsername}
 - Email Address: ${deletedUserEmail}
 
 All associated records have been removed in accordance with ClearMarket's data policy.
