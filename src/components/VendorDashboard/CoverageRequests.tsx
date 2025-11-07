@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Megaphone, Calendar, MapPin, Eye, Users, Edit, Pause, Play, Trash2, Loader2 } from 'lucide-react';
+import { Megaphone, Calendar, MapPin, Eye, Users, Edit, Pause, Play, Trash2, Loader2, TrendingUp } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import PostCoverageRequestModal from './PostCoverageRequestModal';
 import CoverageRequestDetailModal from './CoverageRequestDetailModal';
@@ -236,6 +236,14 @@ const CoverageRequests = () => {
                           <Calendar className="h-3 w-3" />
                           Posted: {new Date(request.created_at).toLocaleDateString()}
                         </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {request.view_count || 0} views
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3" />
+                          {request.response_count || 0} responses
+                        </div>
                       </div>
                       
                       <Button 
@@ -244,7 +252,7 @@ const CoverageRequests = () => {
                         onClick={() => handleViewResponses(request)}
                       >
                         <Users className="h-3 w-3 mr-1" />
-                        View Responses
+                        View Responses ({request.response_count || 0})
                       </Button>
                     </div>
                   </div>

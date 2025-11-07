@@ -785,6 +785,35 @@ export type Database = {
         }
         Relationships: []
       }
+      coverage_request_views: {
+        Row: {
+          id: string
+          request_id: string
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          request_id: string
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          request_id?: string
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coverage_request_views_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "coverage_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coverage_requests: {
         Row: {
           abc_required: boolean | null
@@ -799,6 +828,7 @@ export type Database = {
           hide_from_current_network: boolean
           hud_key_required: boolean | null
           id: string
+          response_count: number
           selected_cities: string[] | null
           selected_counties: string[] | null
           selected_inspection_types: string[] | null
@@ -809,6 +839,7 @@ export type Database = {
           title: string
           updated_at: string
           vendor_user_id: string | null
+          view_count: number
           years_experience_required: string | null
         }
         Insert: {
@@ -824,6 +855,7 @@ export type Database = {
           hide_from_current_network?: boolean
           hud_key_required?: boolean | null
           id?: string
+          response_count?: number
           selected_cities?: string[] | null
           selected_counties?: string[] | null
           selected_inspection_types?: string[] | null
@@ -834,6 +866,7 @@ export type Database = {
           title: string
           updated_at?: string
           vendor_user_id?: string | null
+          view_count?: number
           years_experience_required?: string | null
         }
         Update: {
@@ -849,6 +882,7 @@ export type Database = {
           hide_from_current_network?: boolean
           hud_key_required?: boolean | null
           id?: string
+          response_count?: number
           selected_cities?: string[] | null
           selected_counties?: string[] | null
           selected_inspection_types?: string[] | null
@@ -859,6 +893,7 @@ export type Database = {
           title?: string
           updated_at?: string
           vendor_user_id?: string | null
+          view_count?: number
           years_experience_required?: string | null
         }
         Relationships: []
