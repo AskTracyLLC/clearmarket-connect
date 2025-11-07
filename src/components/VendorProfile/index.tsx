@@ -126,6 +126,64 @@ const VendorProfile = () => {
     }
   };
 
+  const saveCompanyInfo = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      const values = form.getValues();
+      await saveProfile({
+        company_name: values.companyName,
+        company_abbreviation: values.companyAbbreviation,
+        phone: values.phone,
+        email: values.email,
+        website: values.website,
+        company_bio: values.companyBio,
+      });
+      
+      toast({
+        title: "Company Information Saved",
+        description: "Your company information has been updated successfully!",
+      });
+    } catch (error: any) {
+      console.error('Save company info error:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save company information. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const saveAdditionalInfo = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
+    try {
+      const values = form.getValues();
+      await saveProfile({
+        avg_jobs_per_month: values.avgJobs,
+        payment_terms: values.paymentTerms,
+      });
+      
+      toast({
+        title: "Additional Information Saved",
+        description: "Your additional information has been updated successfully!",
+      });
+    } catch (error: any) {
+      console.error('Save additional info error:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save additional information. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const profileSteps = getVendorProfileSteps({
     serviceAreas: coverageAreas,
     platforms: form.watch("platforms"),
@@ -201,12 +259,23 @@ const VendorProfile = () => {
             
             <TabsContent value="profile" className="mt-6">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="space-y-8">
                   {/* Section 1: Company Information */}
                   <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Company Information</h2>
-                      <p className="text-sm text-muted-foreground">Basic details about your company</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold text-foreground">Company Information</h2>
+                        <p className="text-sm text-muted-foreground">Basic details about your company</p>
+                      </div>
+                      {canEdit && (
+                        <Button 
+                          onClick={saveCompanyInfo} 
+                          disabled={isSaving}
+                          className="ml-4"
+                        >
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </Button>
+                      )}
                     </div>
                     <Separator />
                     <VendorBasicInfo form={form} />
@@ -215,23 +284,25 @@ const VendorProfile = () => {
 
                   {/* Section 2: Additional Information */}
                   <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Additional Information</h2>
-                      <p className="text-sm text-muted-foreground">Job volume and payment details</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-semibold text-foreground">Additional Information</h2>
+                        <p className="text-sm text-muted-foreground">Job volume and payment details</p>
+                      </div>
+                      {canEdit && (
+                        <Button 
+                          onClick={saveAdditionalInfo} 
+                          disabled={isSaving}
+                          className="ml-4"
+                        >
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </Button>
+                      )}
                     </div>
                     <Separator />
                     <VendorAdditionalInfo form={form} />
                   </div>
-
-                  {/* Submit Button - Only for admins */}
-                  {canEdit && (
-                    <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                      <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isSaving}>
-                        {isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE'}
-                      </Button>
-                    </div>
-                  )}
-                </form>
+                </div>
               </Form>
             </TabsContent>
 
