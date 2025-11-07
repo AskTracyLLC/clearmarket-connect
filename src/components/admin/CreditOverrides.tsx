@@ -20,7 +20,10 @@ interface UserCredit {
   user?: {
     display_name: string;
     role: string;
+    trust_score?: number;
   };
+  field_rep_name?: string;
+  vendor_company?: string;
 }
 
 interface TrustScoreUpdate {
@@ -51,28 +54,56 @@ export const CreditOverrides = () => {
       // Get user data separately
       const userIds = creditsData?.map(credit => credit.user_id) || [];
       let usersData = [];
+      let fieldRepData: any[] = [];
+      let vendorData: any[] = [];
       
       if (userIds.length > 0) {
         const { data: userData } = await supabase
           .from('users')
-          .select('id, display_name, anonymous_username, role')
+          .select('id, display_name, anonymous_username, role, trust_score')
           .in('id', userIds);
         usersData = userData || [];
+
+        // Get field rep profiles
+        const { data: fieldReps } = await supabase
+          .from('field_rep_profiles')
+          .select('user_id, first_name, last_name')
+          .in('user_id', userIds);
+        fieldRepData = fieldReps || [];
+
+        // Get vendor profiles
+        const { data: vendors } = await supabase
+          .from('vendor_profiles')
+          .select('user_id, company_name')
+          .in('user_id', userIds);
+        vendorData = vendors || [];
       }
       
-      const formattedData = creditsData?.map(credit => ({
-        ...credit,
-        user: {
-          display_name: (() => {
-            const user = usersData.find(u => u.id === credit.user_id);
-            return user?.display_name || user?.anonymous_username || "Anonymous User";
-          })(),
-          role: (() => {
-            const user = usersData.find(u => u.id === credit.user_id);
-            return user?.role || "field_rep";
-          })()
+      const formattedData = creditsData?.map(credit => {
+        const user = usersData.find(u => u.id === credit.user_id);
+        const fieldRep = fieldRepData.find(fr => fr.user_id === credit.user_id);
+        const vendor = vendorData.find(v => v.user_id === credit.user_id);
+        
+        let displayName = user?.display_name || user?.anonymous_username || "Anonymous User";
+        
+        // Override with specific profile data
+        if (user?.role === 'field_rep' && fieldRep) {
+          displayName = `${fieldRep.first_name} ${fieldRep.last_name}`.trim() || displayName;
+        } else if (user?.role === 'vendor' && vendor) {
+          displayName = vendor.company_name || displayName;
         }
-      })) || [];
+        
+        return {
+          ...credit,
+          user: {
+            display_name: displayName,
+            role: user?.role || "field_rep",
+            trust_score: user?.trust_score
+          },
+          field_rep_name: fieldRep ? `${fieldRep.first_name} ${fieldRep.last_name}`.trim() : undefined,
+          vendor_company: vendor?.company_name
+        };
+      }) || [];
       
       setUsers(formattedData);
     } catch (error: any) {
@@ -252,7 +283,10 @@ export const CreditOverrides = () => {
                       <TableCell className="font-medium">
                         <div>
                           <div>{userCredit.user?.display_name || "Unknown User"}</div>
-                          <div className="text-sm text-muted-foreground">{userCredit.user_id}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {userCredit.user?.role === 'field_rep' ? 'Field Rep' : 
+                             userCredit.user?.role === 'vendor' ? 'Company' : 'User'}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>{getRoleBadge(userCredit.user?.role || "field_rep")}</TableCell>
