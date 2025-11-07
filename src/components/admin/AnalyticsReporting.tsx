@@ -16,10 +16,11 @@ import {
   Award
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { format, subDays, startOfDay, endOfDay, parseISO, startOfWeek, startOfMonth } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface CurrencyTransaction {
   id: string;
@@ -140,6 +141,70 @@ export const AnalyticsReporting = () => {
   const repPointsUsed = currencyTransactions
     .filter(t => t.currency_type === 'rep_points' && t.amount < 0)
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+  // Prepare chart data - Daily trends
+  const getDailyTrends = () => {
+    const dailyMap = new Map<string, { date: string; clearCredits: number; repPoints: number }>();
+    
+    currencyTransactions
+      .filter(t => t.amount < 0) // Only usage (negative amounts)
+      .forEach(t => {
+        const dateKey = format(parseISO(t.created_at), 'MMM dd');
+        const existing = dailyMap.get(dateKey) || { date: dateKey, clearCredits: 0, repPoints: 0 };
+        
+        if (t.currency_type === 'clear_credits') {
+          existing.clearCredits += Math.abs(t.amount);
+        } else if (t.currency_type === 'rep_points') {
+          existing.repPoints += Math.abs(t.amount);
+        }
+        
+        dailyMap.set(dateKey, existing);
+      });
+    
+    return Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  // Transaction type breakdown
+  const getTransactionTypeBreakdown = () => {
+    const typeMap = new Map<string, number>();
+    
+    currencyTransactions
+      .filter(t => t.amount < 0)
+      .forEach(t => {
+        const type = t.transaction_type.replace(/_/g, ' ');
+        typeMap.set(type, (typeMap.get(type) || 0) + Math.abs(t.amount));
+      });
+    
+    return Array.from(typeMap.entries()).map(([name, value]) => ({ name, value }));
+  };
+
+  // User role breakdown
+  const getRoleBreakdown = () => {
+    const roleMap = new Map<string, { clearCredits: number; repPoints: number }>();
+    
+    currencyTransactions
+      .filter(t => t.amount < 0)
+      .forEach(t => {
+        const role = t.user_role || 'unknown';
+        const existing = roleMap.get(role) || { clearCredits: 0, repPoints: 0 };
+        
+        if (t.currency_type === 'clear_credits') {
+          existing.clearCredits += Math.abs(t.amount);
+        } else if (t.currency_type === 'rep_points') {
+          existing.repPoints += Math.abs(t.amount);
+        }
+        
+        roleMap.set(role, existing);
+      });
+    
+    return Array.from(roleMap.entries()).map(([name, data]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      clearCredits: data.clearCredits,
+      repPoints: data.repPoints
+    }));
+  };
+
+  const CHART_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 
   return (
     <Card>
@@ -320,6 +385,110 @@ export const AnalyticsReporting = () => {
                   </div>
                 </Card>
               </div>
+
+              {/* Charts Section */}
+              {!loading && currencyTransactions.length > 0 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Usage Trends Over Time</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={getDailyTrends()}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" className="text-xs" />
+                          <YAxis className="text-xs" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '0.5rem'
+                            }}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="clearCredits" 
+                            stroke="#3b82f6" 
+                            strokeWidth={2}
+                            name="ClearCredits"
+                            dot={{ fill: '#3b82f6' }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="repPoints" 
+                            stroke="#8b5cf6" 
+                            strokeWidth={2}
+                            name="RepPoints"
+                            dot={{ fill: '#8b5cf6' }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Usage by User Role</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={getRoleBreakdown()}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="name" className="text-xs" />
+                          <YAxis className="text-xs" />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))',
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '0.5rem'
+                            }}
+                          />
+                          <Legend />
+                          <Bar dataKey="clearCredits" fill="#3b82f6" name="ClearCredits" />
+                          <Bar dataKey="repPoints" fill="#8b5cf6" name="RepPoints" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Usage by Transaction Type</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height={350}>
+                          <PieChart>
+                            <Pie
+                              data={getTransactionTypeBreakdown()}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={120}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {getTransactionTypeBreakdown().map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))',
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '0.5rem'
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               <Card>
                 <CardHeader>
