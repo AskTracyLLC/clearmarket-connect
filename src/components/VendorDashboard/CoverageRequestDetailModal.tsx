@@ -17,25 +17,35 @@ import {
   MessageCircle,
   X,
   CheckCheck,
-  NotebookPen
+  NotebookPen,
+  BarChart3
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import UserCommentModal from "@/components/ui/UserCommentModal";
+import CoverageRequestAnalytics from "./CoverageRequestAnalytics";
 
 interface CoverageRequest {
   id: string;
   title: string;
-  description: string;
-  location: string;
-  budget: string;
+  details?: string;
+  description?: string;
+  location?: string;
+  selected_state?: string;
+  selected_county?: string;
+  budget?: string;
+  budget_range?: string;
   status: string;
-  postedDate: string;
-  expiresDate: string;
-  views: number;
-  responses: number;
-  inspectionTypes: string[];
-  platforms: string[];
+  postedDate?: string;
+  created_at?: string;
+  expiresDate?: string;
+  expires_at?: string;
+  views?: number;
+  view_count?: number;
+  responses?: number;
+  response_count?: number;
+  inspectionTypes?: string[];
+  platforms?: string[];
 }
 
 interface InterestedRep {
@@ -280,11 +290,12 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
-              {request.location}
+              {request.location || request.selected_state}
+              {request.selected_county && ` - ${request.selected_county}`}
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              Posted: {new Date(request.postedDate).toLocaleDateString()}
+              Posted: {new Date(request.postedDate || request.created_at || '').toLocaleDateString()}
             </div>
             <Badge variant={request.status === 'active' ? 'default' : 'secondary'}>
               {request.status}
@@ -292,8 +303,12 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="interested" className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="analytics" className="mt-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="interested" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Interested ({mockInterestedReps.length})
@@ -307,6 +322,10 @@ const CoverageRequestDetailModal = ({ open, onOpenChange, request }: CoverageReq
               Messages
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <CoverageRequestAnalytics requestId={request.id} />
+          </TabsContent>
 
           <TabsContent value="interested" className="space-y-6">
             {/* Bulk Actions */}
