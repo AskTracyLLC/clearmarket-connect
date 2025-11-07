@@ -21,6 +21,7 @@ interface UserCredit {
   updated_at: string;
   user?: {
     display_name: string;
+    anonymous_username?: string;
     role: string;
     trust_score?: number;
   };
@@ -88,9 +89,10 @@ export const CreditOverrides = () => {
         
         let displayName = user?.display_name || user?.anonymous_username || "Anonymous User";
         
-        // Override with specific profile data
+        // Override with specific profile data (actual names)
         if (user?.role === 'field_rep' && fieldRep) {
-          displayName = `${fieldRep.first_name} ${fieldRep.last_name}`.trim() || displayName;
+          const fullName = `${fieldRep.first_name} ${fieldRep.last_name}`.trim();
+          displayName = fullName || displayName;
         } else if (user?.role === 'vendor' && vendor) {
           displayName = vendor.company_name || displayName;
         }
@@ -99,6 +101,7 @@ export const CreditOverrides = () => {
           ...credit,
           user: {
             display_name: displayName,
+            anonymous_username: user?.anonymous_username,
             role: user?.role || "field_rep",
             trust_score: user?.trust_score
           },
@@ -281,10 +284,9 @@ export const CreditOverrides = () => {
                     <TableRow key={userCredit.user_id}>
             <TableCell className="font-medium">
               <div>
-                <div>{userCredit.user?.display_name || "Unknown User"}</div>
+                <div className="font-semibold">{userCredit.user?.display_name || "Unknown User"}</div>
                 <div className="text-xs text-muted-foreground">
-                  {userCredit.user?.role === 'field_rep' ? 'Field Rep' : 
-                   userCredit.user?.role === 'vendor' ? 'Company' : 'User'}
+                  {userCredit.user?.anonymous_username || 'N/A'}
                 </div>
               </div>
             </TableCell>
