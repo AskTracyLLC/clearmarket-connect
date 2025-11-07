@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -34,13 +35,15 @@ import { ConnectionLimitStatus } from '@/components/ConnectionLimitStatus';
 
 const VendorDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('coverage');
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   const [creditPurchaseOpen, setCreditPurchaseOpen] = useState(false);
 
   const handlePreviewProfile = () => {
-    // For demo purposes, using a mock ID. In production, use the actual user ID
-    navigate('/vendor/public/demo');
+    if (user?.id) {
+      navigate(`/vendor/public/${user.id}`);
+    }
   };
 
   const dashboardStats = {
