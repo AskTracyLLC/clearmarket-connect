@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { FieldRepFormData } from "./types";
 import { usePlatforms } from "@/hooks/usePlatforms";
-import { Save } from "lucide-react";
 import { useState } from "react";
 import { useFieldRepProfile } from "@/hooks/useFieldRepProfile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,28 +48,12 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Platforms Used</h3>
-        <div className="text-sm text-muted-foreground">Loading platforms...</div>
-      </div>
+      <div className="text-sm text-muted-foreground">Loading platforms...</div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Platforms Used</h3>
-        <Button
-          onClick={handleSavePlatforms}
-          size="sm"
-          variant="outline"
-          disabled={isSaving}
-          className="gap-2"
-        >
-          <Save className="h-4 w-4" />
-          {isSaving ? "Saving..." : "Save"}
-        </Button>
-      </div>
       <FormField
         control={form.control}
         name="platforms"
@@ -141,6 +124,17 @@ export const PlatformsUsed = ({ form }: PlatformsUsedProps) => {
           </FormItem>
         )}
       />
+      <div className="pt-4 flex justify-end">
+        <Button
+          onClick={handleSavePlatforms}
+          size="sm"
+          variant="outline"
+          disabled={isSaving}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+      </div>
     </div>
   );
 };

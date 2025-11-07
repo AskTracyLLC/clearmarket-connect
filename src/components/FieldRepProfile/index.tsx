@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -223,15 +222,10 @@ const FieldRepProfile = () => {
   }, [user?.id, profile?.anonymous_username]);
 
 
-  // Save profile data only (excluding coverage areas)
-  const handleSaveProfile = async () => {
-    console.log('🔵 handleSaveProfile called, isSaving:', isSaving);
-    if (isSaving) {
-      console.log('⚠️ Already saving, ignoring duplicate call');
-      return;
-    }
+  // Save personal info section
+  const handleSavePersonalInfo = async () => {
+    if (isSaving) return;
     
-    // Validate all required personal info fields
     const requiredFields: (keyof FieldRepFormData)[] = [
       'firstName','lastName','email','city','state','zipCode','bio'
     ];
@@ -247,89 +241,82 @@ const FieldRepProfile = () => {
         description: `Please complete all required fields: ${invalid.join(', ')}`,
         variant: 'destructive',
       });
-      console.log('❌ Validation failed:', invalid);
       return;
     }
 
     const values = form.getValues();
-    console.log('✅ Validation passed, starting save...');
     setIsSaving(true);
     
-    // Real timeout using Promise.race so the UI never hangs
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Save operation timed out. Please check your internet connection and try again.')), 25000);
-    });
-    
     try {
-      console.log('📤 Calling saveProfileToDb with user_id:', user?.id);
-      await Promise.race([
-        saveProfileToDb({
-          first_name: values.firstName,
-          last_name: values.lastName,
-          phone: values.phone,
-          city: values.city,
-          state: values.state,
-          zip_code: values.zipCode,
-          bio: values.bio,
-          hasAspenGrove: values.hasAspenGrove,
-          aspen_grove_id: values.aspenGroveId,
-          aspen_grove_expiration: values.aspenGroveExpiration,
-          aspen_grove_image: values.aspenGroveImage,
-          hasHudKeys: values.hasHudKeys,
-          hud_keys: values.hudKeys,
-          other_hud_key: values.otherHudKey,
-          platforms: values.platforms,
-          other_platform: values.otherPlatform,
-          inspection_types: values.inspectionTypes,
-          interested_in_beta: values.interestedInBeta,
-        }),
-        timeoutPromise
-      ]);
+      await saveProfileToDb({
+        first_name: values.firstName,
+        last_name: values.lastName,
+        phone: values.phone,
+        city: values.city,
+        state: values.state,
+        zip_code: values.zipCode,
+        bio: values.bio,
+        interested_in_beta: values.interestedInBeta,
+      });
 
-      console.log('✅ Save successful');
-
-      // Clear localStorage draft after successful save
       if (user?.id) {
         localStorage.removeItem(`fieldrep_draft_${user.id}`);
       }
 
-      // Update personal info and verification completion
       setProfileCompletionStatus(prev => ({
         ...prev,
         personalInfoComplete: true,
-        verificationComplete: true,
       }));
       
-      // Mark form as pristine after successful save
-      form.reset(form.getValues());
-      
       toast({
-        title: 'Profile Saved',
-        description: 'Your personal information has been saved successfully!',
+        title: 'Saved',
+        description: 'Personal information saved successfully',
       });
     } catch (error: any) {
-      console.error('❌ Save profile error:', error);
-      console.error('Error details:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        name: error?.name,
-      });
-      
-      let msg = 'Failed to save profile. Please try again.';
-      if (error?.message?.includes('timed out')) msg = 'Save timed out. Please check your internet connection and try again.';
-      else if (error?.message?.toLowerCase?.().includes('fetch')) msg = 'Network error. Please check your connection and try again.';
-      else if (error?.code === 'PGRST116') msg = 'Permission denied. Please contact support.';
-      else if (error?.message) msg = error.message;
-      
       toast({
         title: 'Save Failed',
-        description: msg,
+        description: error?.message || 'Failed to save. Please try again.',
         variant: 'destructive',
       });
     } finally {
-      console.log('🔄 Resetting isSaving to false');
+      setIsSaving(false);
+    }
+  };
+
+  // Save verification section
+  const handleSaveVerification = async () => {
+    if (isSaving) return;
+
+    const values = form.getValues();
+    setIsSaving(true);
+    
+    try {
+      await saveProfileToDb({
+        hasAspenGrove: values.hasAspenGrove,
+        aspen_grove_id: values.aspenGroveId,
+        aspen_grove_expiration: values.aspenGroveExpiration,
+        aspen_grove_image: values.aspenGroveImage,
+        hasHudKeys: values.hasHudKeys,
+        hud_keys: values.hudKeys,
+        other_hud_key: values.otherHudKey,
+      });
+
+      setProfileCompletionStatus(prev => ({
+        ...prev,
+        verificationComplete: true,
+      }));
+      
+      toast({
+        title: 'Saved',
+        description: 'Verification credentials saved successfully',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Save Failed',
+        description: error?.message || 'Failed to save. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsSaving(false);
     }
   };
@@ -424,41 +411,52 @@ const FieldRepProfile = () => {
               <Form {...form}>
                 <div className="space-y-8">
                   {/* Section 1: Personal Information */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Personal Information</h2>
-                      <p className="text-sm text-muted-foreground">Basic information about yourself</p>
-                    </div>
-                    <Separator />
-                    <PersonalInfo form={form} />
-                    <ContactVerification form={form} />
-                    <ProfessionalBio form={form} />
-                    <LocationInfo form={form} />
-                  </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                      <div>
+                        <CardTitle className="text-xl">Personal Information</CardTitle>
+                        <CardDescription>Basic information about yourself</CardDescription>
+                      </div>
+                      <Button 
+                        onClick={handleSavePersonalInfo} 
+                        variant="outline"
+                        size="sm"
+                        disabled={isSaving}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        {isSaving ? 'Saving...' : 'Save'}
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <PersonalInfo form={form} />
+                      <ContactVerification form={form} />
+                      <ProfessionalBio form={form} />
+                      <LocationInfo form={form} />
+                    </CardContent>
+                  </Card>
 
                   {/* Section 2: Verification & Credentials */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Verification & Credentials</h2>
-                      <p className="text-sm text-muted-foreground">Optional credentials that can help you stand out</p>
-                    </div>
-                    <Separator />
-                    <AspenGroveVerification form={form} />
-                    <HudKeys form={form} />
-                  </div>
-
-                  {/* Profile Save Button */}
-                  <div className="pt-6 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-6 px-6 py-4">
-                    <Button 
-                      onClick={handleSaveProfile} 
-                      variant="hero" 
-                      size="lg" 
-                      className="w-full"
-                      disabled={isSaving}
-                    >
-                      {isSaving ? 'Saving Profile...' : 'SAVE PROFILE'}
-                    </Button>
-                  </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                      <div>
+                        <CardTitle className="text-xl">Verification & Credentials</CardTitle>
+                        <CardDescription>Optional credentials that can help you stand out</CardDescription>
+                      </div>
+                      <Button 
+                        onClick={handleSaveVerification} 
+                        variant="outline"
+                        size="sm"
+                        disabled={isSaving}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        {isSaving ? 'Saving...' : 'Save'}
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <AspenGroveVerification form={form} />
+                      <HudKeys form={form} />
+                    </CardContent>
+                  </Card>
                 </div>
               </Form>
             </TabsContent>
@@ -467,42 +465,49 @@ const FieldRepProfile = () => {
               <Form {...form}>
                 <div className="space-y-8">
                   {/* Platforms */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Platforms Used</h2>
-                      <p className="text-sm text-muted-foreground">Software platforms you're experienced with</p>
-                    </div>
-                    <Separator />
-                    <PlatformsUsed form={form} />
-                  </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                      <div>
+                        <CardTitle className="text-xl">Platforms Used</CardTitle>
+                        <CardDescription>Software platforms you're experienced with</CardDescription>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <PlatformsUsed form={form} />
+                    </CardContent>
+                  </Card>
 
                   {/* Inspection Types */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Inspection Types</h2>
-                      <p className="text-sm text-muted-foreground">Types of inspections you perform</p>
-                    </div>
-                    <Separator />
-                    <InspectionTypes form={form} />
-                  </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                      <div>
+                        <CardTitle className="text-xl">Inspection Types</CardTitle>
+                        <CardDescription>Types of inspections you perform</CardDescription>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <InspectionTypes form={form} />
+                    </CardContent>
+                  </Card>
 
                   {/* Coverage Areas & Pricing */}
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold text-foreground">Coverage Areas & Pricing</h2>
-                      <p className="text-sm text-muted-foreground">Where you work and your pricing for each area</p>
-                    </div>
-                    <Separator />
-                    <CoverageAreas 
-                      coverageAreas={coverageAreas}
-                      setCoverageAreas={setCoverageAreas}
-                      selectedInspectionTypes={form.watch("inspectionTypes")}
-                      fieldRepName={`${form.watch("firstName")} ${form.watch("lastName")}`.trim() || profile?.display_name || profile?.anonymous_username}
-                      onSaveCoverageAreas={async (areas) => {
-                        await saveCoverageAreas(areas);
-                      }}
-                    />
-                  </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-xl">Coverage Areas & Pricing</CardTitle>
+                      <CardDescription>Where you work and your pricing for each area</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <CoverageAreas 
+                        coverageAreas={coverageAreas}
+                        setCoverageAreas={setCoverageAreas}
+                        selectedInspectionTypes={form.watch("inspectionTypes")}
+                        fieldRepName={`${form.watch("firstName")} ${form.watch("lastName")}`.trim() || profile?.display_name || profile?.anonymous_username}
+                        onSaveCoverageAreas={async (areas) => {
+                          await saveCoverageAreas(areas);
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
                 </div>
               </Form>
             </TabsContent>
