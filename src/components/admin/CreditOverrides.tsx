@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Coins, Search, Save, Plus, Minus, TrendingUp, TrendingDown } from "lucide-react";
+import { Coins, Search, Save, Plus, Minus, TrendingUp, TrendingDown, Award, Building2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface UserCredit {
@@ -16,6 +17,7 @@ interface UserCredit {
   current_balance: number;
   earned_credits: number;
   paid_credits: number;
+  rep_points: number;
   updated_at: string;
   user?: {
     display_name: string;
@@ -130,6 +132,8 @@ export const CreditOverrides = () => {
       if (!user) throw new Error("Not authenticated");
 
       const finalAmount = type === 'deduct' ? -creditAmount : creditAmount;
+      const isFieldRep = selectedUser.user?.role === 'field_rep';
+      const currencyType = isFieldRep ? 'rep_points' : 'clear_credits';
 
       // Record the credit transaction
       const { error: transactionError } = await supabase
@@ -140,6 +144,7 @@ export const CreditOverrides = () => {
           transaction_type: type === 'grant' ? 'earned' : 'spent',
           reference_type: 'admin_override',
           reference_id: user.id,
+          currency_type: currencyType,
           metadata: {
             reason: creditReason,
             admin_id: user.id,
@@ -149,22 +154,35 @@ export const CreditOverrides = () => {
 
       if (transactionError) throw transactionError;
 
-      // Update user's credit balance
-      const newBalance = selectedUser.current_balance + finalAmount;
-      const { error: updateError } = await supabase
-        .from('credits')
-        .update({
-          current_balance: newBalance,
-          ...(type === 'grant' && { earned_credits: selectedUser.earned_credits + creditAmount }),
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', selectedUser.user_id);
+      // Update user's balance (either rep_points or clear credits)
+      if (isFieldRep) {
+        const newRepPoints = (selectedUser.rep_points || 0) + finalAmount;
+        const { error: updateError } = await supabase
+          .from('credits')
+          .update({
+            rep_points: newRepPoints,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', selectedUser.user_id);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
+      } else {
+        const newBalance = selectedUser.current_balance + finalAmount;
+        const { error: updateError } = await supabase
+          .from('credits')
+          .update({
+            current_balance: newBalance,
+            ...(type === 'grant' && { earned_credits: selectedUser.earned_credits + creditAmount }),
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', selectedUser.user_id);
+
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: "Success",
-        description: `${type === 'grant' ? 'Granted' : 'Deducted'} ${creditAmount} credits`,
+        description: `${type === 'grant' ? 'Granted' : 'Deducted'} ${creditAmount} ${isFieldRep ? 'rep points' : 'credits'}`,
       });
 
       // Reset form
@@ -230,6 +248,9 @@ export const CreditOverrides = () => {
     user.user_id.includes(searchTerm)
   );
 
+  const fieldReps = filteredUsers.filter(user => user.user?.role === 'field_rep');
+  const vendors = filteredUsers.filter(user => user.user?.role === 'vendor');
+
   const getRoleBadge = (role: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       admin: "destructive",
@@ -239,6 +260,152 @@ export const CreditOverrides = () => {
     };
     return <Badge variant={variants[role] || "outline"}>{role?.replace('_', ' ').toUpperCase()}</Badge>;
   };
+
+  const renderUserTable = (usersList: UserCredit[], currencyLabel: string, currencyIcon: React.ReactNode) => (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>{currencyLabel}</TableHead>
+            <TableHead>Trust Score</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {usersList.map((userCredit) => {
+                  const pendingTrustScore = trustScoreUpdates[userCredit.user_id];
+                  const currentTrustScore = (userCredit.user as any)?.trust_score || 0;
+                  
+                  return (
+                    <TableRow key={userCredit.user_id}>
+            <TableCell className="font-medium">
+              <div>
+                <div>{userCredit.user?.display_name || "Unknown User"}</div>
+                <div className="text-xs text-muted-foreground">
+                  {userCredit.user?.role === 'field_rep' ? 'Field Rep' : 
+                   userCredit.user?.role === 'vendor' ? 'Company' : 'User'}
+                </div>
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                {currencyIcon}
+                <span className="font-medium">
+                  {userCredit.user?.role === 'field_rep' 
+                    ? userCredit.rep_points || 0
+                    : userCredit.current_balance || 0}
+                </span>
+                {userCredit.user?.role === 'vendor' && (
+                  <span className="text-sm text-muted-foreground">
+                    (E: {userCredit.earned_credits}, P: {userCredit.paid_credits})
+                  </span>
+                )}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={pendingTrustScore !== undefined ? pendingTrustScore : currentTrustScore}
+                  onChange={(e) => handleTrustScoreChange(userCredit.user_id, Number(e.target.value))}
+                  className="w-20"
+                />
+                {pendingTrustScore !== undefined && pendingTrustScore !== currentTrustScore && (
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleTrustScoreUpdate(userCredit.user_id)}
+                  >
+                    <Save className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </TableCell>
+            <TableCell>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setSelectedUser(userCredit)}
+                  >
+                    {userCredit.user?.role === 'field_rep' ? (
+                      <><Award className="h-3 w-3 mr-1" />Adjust Points</>
+                    ) : (
+                      <><Coins className="h-3 w-3 mr-1" />Adjust Credits</>
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {selectedUser?.user?.role === 'field_rep' ? 'Rep Points Adjustment' : 'Credit Adjustment'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  {selectedUser && (
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-semibold">{selectedUser.user?.display_name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Current {selectedUser.user?.role === 'field_rep' ? 'Rep Points' : 'Balance'}: {' '}
+                          {selectedUser.user?.role === 'field_rep' 
+                            ? selectedUser.rep_points || 0
+                            : selectedUser.current_balance || 0}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Amount</label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={creditAmount}
+                          onChange={(e) => setCreditAmount(Number(e.target.value))}
+                          placeholder={`Enter ${selectedUser.user?.role === 'field_rep' ? 'points' : 'credit'} amount`}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Reason</label>
+                        <Textarea
+                          value={creditReason}
+                          onChange={(e) => setCreditReason(e.target.value)}
+                          placeholder="Explain the reason for this adjustment..."
+                        />
+                      </div>
+
+                      <div className="flex gap-2 pt-4">
+                        <Button 
+                          variant="default" 
+                          onClick={() => handleCreditAdjustment('grant')}
+                          disabled={!creditAmount || !creditReason}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Grant {selectedUser.user?.role === 'field_rep' ? 'Points' : 'Credits'}
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          onClick={() => handleCreditAdjustment('deduct')}
+                          disabled={!creditAmount || !creditReason}
+                        >
+                          <Minus className="h-4 w-4 mr-2" />
+                          Deduct {selectedUser.user?.role === 'field_rep' ? 'Points' : 'Credits'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </TableCell>
+          </TableRow>
+        );
+      })}
+    </TableBody>
+  </Table>
+</div>
+  );
 
   return (
     <div className="space-y-6">
@@ -254,151 +421,46 @@ export const CreditOverrides = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users by name or ID..."
+              placeholder="Search users by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
 
-          {/* Users Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Credits</TableHead>
-                  <TableHead>Trust Score</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((userCredit) => {
-                  const pendingTrustScore = trustScoreUpdates[userCredit.user_id];
-                  const currentTrustScore = (userCredit.user as any)?.trust_score || 0;
-                  
-                  return (
-                    <TableRow key={userCredit.user_id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div>{userCredit.user?.display_name || "Unknown User"}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {userCredit.user?.role === 'field_rep' ? 'Field Rep' : 
-                             userCredit.user?.role === 'vendor' ? 'Company' : 'User'}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getRoleBadge(userCredit.user?.role || "field_rep")}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Coins className="h-4 w-4 text-yellow-500" />
-                          <span className="font-medium">{userCredit.current_balance}</span>
-                          <span className="text-sm text-muted-foreground">
-                            (E: {userCredit.earned_credits}, P: {userCredit.paid_credits})
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={pendingTrustScore !== undefined ? pendingTrustScore : currentTrustScore}
-                            onChange={(e) => handleTrustScoreChange(userCredit.user_id, Number(e.target.value))}
-                            className="w-20"
-                          />
-                          {pendingTrustScore !== undefined && pendingTrustScore !== currentTrustScore && (
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleTrustScoreUpdate(userCredit.user_id)}
-                            >
-                              <Save className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setSelectedUser(userCredit)}
-                            >
-                              <Coins className="h-3 w-3 mr-1" />
-                              Adjust Credits
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Credit Adjustment</DialogTitle>
-                            </DialogHeader>
-                            {selectedUser && (
-                              <div className="space-y-4">
-                                <div className="p-4 border rounded-lg">
-                                  <h4 className="font-semibold">{selectedUser.user?.display_name}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    Current Balance: {selectedUser.current_balance} credits
-                                  </p>
-                                </div>
+          {/* Tabs for Vendors vs Field Reps */}
+          <Tabs defaultValue="vendors" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="vendors" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Vendors ({vendors.length})
+              </TabsTrigger>
+              <TabsTrigger value="field-reps" className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                Field Reps ({fieldReps.length})
+              </TabsTrigger>
+            </TabsList>
 
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Amount</label>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    value={creditAmount}
-                                    onChange={(e) => setCreditAmount(Number(e.target.value))}
-                                    placeholder="Enter credit amount"
-                                  />
-                                </div>
+            <TabsContent value="vendors" className="mt-4">
+              {vendors.length === 0 && !loading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No vendors found matching your search
+                </div>
+              ) : (
+                renderUserTable(vendors, "Clear Credits", <Coins className="h-4 w-4 text-primary" />)
+              )}
+            </TabsContent>
 
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium">Reason</label>
-                                  <Textarea
-                                    value={creditReason}
-                                    onChange={(e) => setCreditReason(e.target.value)}
-                                    placeholder="Explain the reason for this adjustment..."
-                                  />
-                                </div>
-
-                                <div className="flex gap-2 pt-4">
-                                  <Button 
-                                    variant="default" 
-                                    onClick={() => handleCreditAdjustment('grant')}
-                                    disabled={!creditAmount || !creditReason}
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Grant Credits
-                                  </Button>
-                                  <Button 
-                                    variant="destructive" 
-                                    onClick={() => handleCreditAdjustment('deduct')}
-                                    disabled={!creditAmount || !creditReason}
-                                  >
-                                    <Minus className="h-4 w-4 mr-2" />
-                                    Deduct Credits
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredUsers.length === 0 && !loading && (
-            <div className="text-center py-8 text-muted-foreground">
-              No users found matching your search
-            </div>
-          )}
+            <TabsContent value="field-reps" className="mt-4">
+              {fieldReps.length === 0 && !loading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No field reps found matching your search
+                </div>
+              ) : (
+                renderUserTable(fieldReps, "Rep Points", <Award className="h-4 w-4 text-accent" />)
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
