@@ -77,31 +77,16 @@ serve(async (req) => {
       );
     }
 
-    // Get field rep profiles to check availability status
-    const { data: profiles, error: profileError } = await supabaseClient
-      .from('field_rep_profiles')
-      .select('user_id, availability_status')
-      .in('user_id', Array.from(matchingUserIds));
+    // All matching field reps will be notified
+    const availableFieldReps = Array.from(matchingUserIds);
 
-    if (profileError) {
-      console.error('Error fetching field rep profiles:', profileError);
-      throw profileError;
-    }
-
-    console.log(`Found ${profiles?.length || 0} field rep profiles`);
-
-    // Filter to only "Available" field reps
-    const availableFieldReps = (profiles || [])
-      .filter(profile => profile.availability_status === 'Available')
-      .map(profile => profile.user_id);
-
-    console.log(`Found ${availableFieldReps.length} available field reps`);
+    console.log(`Notifying ${availableFieldReps.length} field reps`);
 
     if (availableFieldReps.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'No available field reps found in matching areas',
+          message: 'No matching field reps found in coverage areas',
           notified: 0 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

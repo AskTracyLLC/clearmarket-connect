@@ -1,86 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Megaphone, Calendar, MapPin, Eye, Users, Edit, Pause, Play, Trash2 } from 'lucide-react';
+import { Megaphone, Calendar, MapPin, Eye, Users, Edit, Pause, Play, Trash2, Loader2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import PostCoverageRequestModal from './PostCoverageRequestModal';
 import CoverageRequestDetailModal from './CoverageRequestDetailModal';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const CoverageRequests = () => {
   const [postRequestModalOpen, setPostRequestModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [coverageRequests, setCoverageRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const handleModalClose = (open: boolean) => {
     setPostRequestModalOpen(open);
     if (!open) {
-      // Refresh the coverage requests list when modal closes
       setRefreshTrigger(prev => prev + 1);
     }
   };
-  
-  // Mock coverage requests data
-  const coverageRequests = [
-    {
-      id: 1,
-      title: "Urgent BPO Coverage Needed - Downtown LA",
-      location: "Los Angeles, CA 90013",
-      inspectionTypes: ["Exterior", "Interior"],
-      platforms: ["CoreLogic", "Clear Capital"],
-      description: "Need reliable Field Rep for ongoing BPO work in downtown LA area. Volume expected 10-15 per week.",
-      budget: "$75-85 per inspection",
-      status: "active",
-      postedDate: "2024-03-08",
-      expiresDate: "2024-04-08",
-      views: 24,
-      responses: 5,
-      requirements: {
-        abcRequired: true,
-        hudKeyRequired: false,
-        yearsExperience: "2+"
+
+  useEffect(() => {
+    fetchCoverageRequests();
+  }, [refreshTrigger]);
+
+  const fetchCoverageRequests = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to view coverage requests",
+          variant: "destructive",
+        });
+        return;
       }
-    },
-    {
-      id: 2,
-      title: "REO Inspection Coverage - Dallas Metro",
-      location: "Dallas, TX 75201",
-      inspectionTypes: ["Interior", "Occupancy"],
-      platforms: ["ServiceLink", "AMC"],
-      description: "Seeking experienced Field Rep for REO inspections across Dallas metro area.",
-      budget: "$95-110 per inspection",
-      status: "paused",
-      postedDate: "2024-02-28",
-      expiresDate: "2024-03-28",
-      views: 18,
-      responses: 3,
-      requirements: {
-        abcRequired: false,
-        hudKeyRequired: true,
-        yearsExperience: "3+"
-      }
-    },
-    {
-      id: 3,
-      title: "High Volume Exterior Coverage - Phoenix",
-      location: "Phoenix, AZ 85001",
-      inspectionTypes: ["Exterior"],
-      platforms: ["CoreLogic"],
-      description: "High volume exterior inspection opportunity. Must be able to handle 20+ inspections per week.",
-      budget: "$45-55 per inspection",
-      status: "completed",
-      postedDate: "2024-01-15",
-      expiresDate: "2024-02-15",
-      views: 42,
-      responses: 12,
-      requirements: {
-        abcRequired: true,
-        hudKeyRequired: false,
-        yearsExperience: "1+"
-      }
+
+      const { data, error } = await supabase
+        .from('coverage_requests')
+        .select('*')
+        .eq('vendor_user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCoverageRequests(data || []);
+    } catch (error: any) {
+      console.error('Error fetching coverage requests:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load coverage requests",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -97,16 +79,63 @@ const CoverageRequests = () => {
     }
   };
 
-  const handleEditRequest = (requestId: number) => {
+  const handleEditRequest = (requestId: string) => {
     console.log('Editing request:', requestId);
+    toast({
+      title: "Coming Soon",
+      description: "Edit functionality will be available soon",
+    });
   };
 
-  const handlePauseResume = (requestId: number, currentStatus: string) => {
-    console.log(`${currentStatus === 'active' ? 'Pausing' : 'Resuming'} request:`, requestId);
+  const handlePauseResume = async (requestId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+      const { error } = await supabase
+        .from('coverage_requests')
+        .update({ status: newStatus })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Request ${newStatus === 'active' ? 'resumed' : 'paused'} successfully`,
+      });
+      
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update request status",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteRequest = (requestId: number) => {
-    console.log('Deleting request:', requestId);
+  const handleDeleteRequest = async (requestId: string) => {
+    if (!confirm('Are you sure you want to delete this coverage request?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('coverage_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Coverage request deleted successfully",
+      });
+      
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete coverage request",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleViewResponses = (request: any) => {
@@ -135,8 +164,13 @@ const CoverageRequests = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {coverageRequests.map((request) => (
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {coverageRequests.map((request: any) => (
               <Card key={request.id} className="border border-muted">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -147,7 +181,7 @@ const CoverageRequests = () => {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-3 w-3" />
-                        {request.location}
+                        {request.selected_state} {request.selected_county && `- ${request.selected_county}`}
                       </div>
                     </div>
                     
@@ -185,65 +219,22 @@ const CoverageRequests = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    <p className="text-muted-foreground">{request.description}</p>
+                    <p className="text-muted-foreground">{request.details}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Inspection Types:</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {request.inspectionTypes.map((type) => (
-                            <Badge key={type} variant="secondary" className="text-xs">
-                              {type}
-                            </Badge>
-                          ))}
+                      {request.budget_range && (
+                        <div>
+                          <span className="text-sm font-medium text-muted-foreground">Budget:</span>
+                          <div className="text-sm font-semibold text-foreground">{request.budget_range}</div>
                         </div>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Platforms:</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {request.platforms.map((platform) => (
-                            <Badge key={platform} variant="outline" className="text-xs">
-                              {platform}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Budget:</span>
-                        <div className="text-sm font-semibold text-foreground">{request.budget}</div>
-                      </div>
-                      
-                      <div>
-                        <span className="text-sm font-medium text-muted-foreground">Requirements:</span>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {request.requirements.abcRequired && (
-                            <Badge variant="default" className="text-xs">ABC# Required</Badge>
-                          )}
-                          {request.requirements.hudKeyRequired && (
-                            <Badge variant="default" className="text-xs">HUD Key Required</Badge>
-                          )}
-                          <Badge variant="outline" className="text-xs">
-                            {request.requirements.yearsExperience} Experience
-                          </Badge>
-                        </div>
-                      </div>
+                      )}
                     </div>
                     
                     <div className="flex items-center justify-between pt-4 border-t border-muted">
                       <div className="flex items-center gap-6 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          Posted: {new Date(request.postedDate).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Expires: {new Date(request.expiresDate).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {request.views} views
+                          Posted: {new Date(request.created_at).toLocaleDateString()}
                         </div>
                       </div>
                       
@@ -253,16 +244,17 @@ const CoverageRequests = () => {
                         onClick={() => handleViewResponses(request)}
                       >
                         <Users className="h-3 w-3 mr-1" />
-                        {request.responses} Responses
+                        View Responses
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           
-          {coverageRequests.length === 0 && (
+          {!loading && coverageRequests.length === 0 && (
             <div className="text-center py-12">
               <Megaphone className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No Coverage Requests</h3>
