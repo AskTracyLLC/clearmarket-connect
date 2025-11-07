@@ -65,12 +65,20 @@ export const logUserActivity = {
       metadata: { oldRole, newRole }
     }),
 
-  trustScoreUpdate: (targetUserId: string, newScore: number, oldScore?: number) =>
+  trustScoreUpdate: (targetUserId: string, metadata: Record<string, any>) =>
     logActivity({
       action: 'trust_score_update',
       targetTable: 'users',
       targetId: targetUserId,
-      metadata: { newScore, oldScore }
+      metadata
+    }),
+
+  creditAdjustment: (targetUserId: string, metadata: Record<string, any>) =>
+    logActivity({
+      action: 'credit_adjustment',
+      targetTable: 'credits',
+      targetId: targetUserId,
+      metadata
     }),
 
   coverageUpdate: (targetUserId: string, newCoverage: any) =>

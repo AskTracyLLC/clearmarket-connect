@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Coins, Search, Save, Plus, Minus, TrendingUp, TrendingDown, Award, Building2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { logUserActivity } from "@/utils/activityLogger";
 
 interface UserCredit {
   user_id: string;
@@ -43,6 +44,8 @@ export const CreditOverrides = () => {
   const [creditAmount, setCreditAmount] = useState<number>(0);
   const [creditReason, setCreditReason] = useState("");
   const [trustScoreUpdates, setTrustScoreUpdates] = useState<Record<string, number>>({});
+  const [trustScoreReasons, setTrustScoreReasons] = useState<Record<string, string>>({});
+  const [showTrustScoreDialog, setShowTrustScoreDialog] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -183,6 +186,16 @@ export const CreditOverrides = () => {
         if (updateError) throw updateError;
       }
 
+      // Log the adjustment
+      await logUserActivity.creditAdjustment(selectedUser.user_id, {
+        type,
+        amount: creditAmount,
+        currency_type: currencyType,
+        reason: creditReason,
+        previous_balance: isFieldRep ? selectedUser.rep_points : selectedUser.current_balance,
+        new_balance: isFieldRep ? (selectedUser.rep_points || 0) + finalAmount : selectedUser.current_balance + finalAmount
+      });
+
       toast({
         title: "Success",
         description: `${type === 'grant' ? 'Granted' : 'Deducted'} ${creditAmount} ${isFieldRep ? 'rep points' : 'credits'}`,
@@ -206,15 +219,35 @@ export const CreditOverrides = () => {
 
   const handleTrustScoreUpdate = async (userId: string) => {
     const newScore = trustScoreUpdates[userId];
+    const reason = trustScoreReasons[userId];
+    
     if (newScore === undefined || newScore < 0 || newScore > 100) return;
+    if (!reason || reason.trim() === "") {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for the trust score change",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
+      const user = users.find(u => u.user_id === userId);
+      const previousScore = user?.user?.trust_score || 0;
+
       const { error } = await supabase
         .from('users')
         .update({ trust_score: newScore })
         .eq('id', userId);
 
       if (error) throw error;
+
+      // Log the trust score update
+      await logUserActivity.trustScoreUpdate(userId, {
+        previous_score: previousScore,
+        new_score: newScore,
+        reason: reason
+      });
 
       toast({
         title: "Success",
@@ -227,6 +260,12 @@ export const CreditOverrides = () => {
         delete updated[userId];
         return updated;
       });
+      setTrustScoreReasons(prev => {
+        const updated = { ...prev };
+        delete updated[userId];
+        return updated;
+      });
+      setShowTrustScoreDialog(null);
 
       fetchUsers();
     } catch (error: any) {
@@ -316,12 +355,45 @@ export const CreditOverrides = () => {
                   className="w-20"
                 />
                 {pendingTrustScore !== undefined && pendingTrustScore !== currentTrustScore && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleTrustScoreUpdate(userCredit.user_id)}
-                  >
-                    <Save className="h-3 w-3" />
-                  </Button>
+                  <Dialog open={showTrustScoreDialog === userCredit.user_id} onOpenChange={(open) => setShowTrustScoreDialog(open ? userCredit.user_id : null)}>
+                    <DialogTrigger asChild>
+                      <Button size="sm">
+                        <Save className="h-3 w-3" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Update Trust Score</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                          <h4 className="font-semibold">{userCredit.user?.display_name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Current Trust Score: {currentTrustScore} → New Score: {pendingTrustScore}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Reason (Required)</label>
+                          <Textarea
+                            value={trustScoreReasons[userCredit.user_id] || ""}
+                            onChange={(e) => setTrustScoreReasons(prev => ({
+                              ...prev,
+                              [userCredit.user_id]: e.target.value
+                            }))}
+                            placeholder="Explain the reason for this trust score change..."
+                            required
+                          />
+                        </div>
+                        <Button 
+                          onClick={() => handleTrustScoreUpdate(userCredit.user_id)}
+                          disabled={!trustScoreReasons[userCredit.user_id]?.trim()}
+                          className="w-full"
+                        >
+                          Confirm Update
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
             </TableCell>
