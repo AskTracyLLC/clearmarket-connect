@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,34 @@ import {
   DollarSign,
   Download,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  Coins,
+  Award
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+
+interface CurrencyTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  currency_type: string;
+  transaction_type: string;
+  reference_type: string | null;
+  created_at: string;
+  metadata: any;
+  user_name: string;
+  anonymous_username: string;
+  user_role: string;
+}
 
 export const AnalyticsReporting = () => {
+  const [currencyTransactions, setCurrencyTransactions] = useState<CurrencyTransaction[]>([]);
+  const [dateFilter, setDateFilter] = useState("7");
+  const [loading, setLoading] = useState(false);
   const platformMetrics = [
     { label: "Active Users", value: "2,847", change: "+12%", icon: Users },
     { label: "Monthly Revenue", value: "$45,230", change: "+8%", icon: DollarSign },
@@ -36,6 +61,86 @@ export const AnalyticsReporting = () => {
     { name: "Vendor Performance Report", generated: "2024-01-05", size: "2.7 MB", type: "PDF" }
   ];
 
+  const fetchCurrencyTransactions = async () => {
+    setLoading(true);
+    try {
+      let startDate = new Date();
+      
+      switch (dateFilter) {
+        case "1":
+          startDate = startOfDay(new Date());
+          break;
+        case "7":
+          startDate = startOfDay(subDays(new Date(), 7));
+          break;
+        case "30":
+          startDate = startOfDay(subDays(new Date(), 30));
+          break;
+        case "all":
+          startDate = new Date(0);
+          break;
+      }
+
+      const { data, error } = await supabase
+        .from('credit_transactions')
+        .select(`
+          id,
+          user_id,
+          amount,
+          currency_type,
+          transaction_type,
+          reference_type,
+          created_at,
+          metadata
+        `)
+        .gte('created_at', startDate.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+
+      // Fetch user details
+      const userIds = [...new Set(data?.map(t => t.user_id) || [])];
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, display_name, anonymous_username, role')
+        .in('id', userIds);
+
+      if (userError) throw userError;
+
+      const userMap = new Map(userData?.map(u => [u.id, u]) || []);
+
+      const transactions: CurrencyTransaction[] = (data || []).map(t => {
+        const user = userMap.get(t.user_id);
+        return {
+          ...t,
+          user_name: user?.display_name || 'Unknown',
+          anonymous_username: user?.anonymous_username || '',
+          user_role: user?.role || ''
+        };
+      });
+
+      setCurrencyTransactions(transactions);
+    } catch (error) {
+      console.error('Error fetching currency transactions:', error);
+      toast.error('Failed to fetch currency transactions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrencyTransactions();
+  }, [dateFilter]);
+
+  const clearCreditsUsed = currencyTransactions
+    .filter(t => t.currency_type === 'clear_credits' && t.amount < 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+  const repPointsUsed = currencyTransactions
+    .filter(t => t.currency_type === 'rep_points' && t.amount < 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
   return (
     <Card>
       <CardHeader>
@@ -46,9 +151,10 @@ export const AnalyticsReporting = () => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">User Analytics</TabsTrigger>
+            <TabsTrigger value="currency">Currency Usage</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
@@ -162,6 +268,128 @@ export const AnalyticsReporting = () => {
                       <p className="text-muted-foreground">Interactive charts would be displayed here</p>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="currency" className="mt-6">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Currency Usage Analytics</h3>
+                <div className="flex items-center gap-3">
+                  <Select value={dateFilter} onValueChange={setDateFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Today</SelectItem>
+                      <SelectItem value="7">Last 7 Days</SelectItem>
+                      <SelectItem value="30">Last 30 Days</SelectItem>
+                      <SelectItem value="all">All Time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" onClick={fetchCurrencyTransactions}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Coins className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{clearCreditsUsed.toFixed(0)}</p>
+                      <p className="text-sm text-muted-foreground">ClearCredits Used</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Award className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{repPointsUsed.toFixed(0)}</p>
+                      <p className="text-sm text-muted-foreground">RepPoints Used</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Transaction History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="text-center py-8">Loading...</div>
+                  ) : currencyTransactions.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">No transactions found</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>User</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Currency</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Used For</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currencyTransactions.map((transaction) => (
+                            <TableRow key={transaction.id}>
+                              <TableCell className="text-sm">
+                                {format(new Date(transaction.created_at), 'MMM dd, yyyy HH:mm')}
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">{transaction.user_name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {transaction.anonymous_username}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="capitalize">
+                                  {transaction.user_role}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge 
+                                  variant={transaction.currency_type === 'clear_credits' ? 'default' : 'secondary'}
+                                  className="capitalize"
+                                >
+                                  {transaction.currency_type === 'clear_credits' ? (
+                                    <><Coins className="h-3 w-3 mr-1" />ClearCredits</>
+                                  ) : (
+                                    <><Award className="h-3 w-3 mr-1" />RepPoints</>
+                                  )}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {transaction.transaction_type.replace(/_/g, ' ')}
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {transaction.reference_type?.replace(/_/g, ' ') || 'N/A'}
+                              </TableCell>
+                              <TableCell className={`text-right font-medium ${transaction.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
