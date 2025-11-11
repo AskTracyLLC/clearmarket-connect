@@ -15,9 +15,12 @@ import {
   Settings,
   Receipt
 } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { SubscriptionPlans } from './SubscriptionPlans';
 
 const AccountBilling = () => {
   const [selectedPlan, setSelectedPlan] = useState('standard');
+  const { status, currentTier, refetch } = useSubscription();
 
   // Mock billing data
   const creditBalance = 15;
@@ -162,12 +165,53 @@ const AccountBilling = () => {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="purchase" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="purchase">Purchase Credits</TabsTrigger>
+      <Tabs defaultValue="subscription" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="subscription">Membership Plans</TabsTrigger>
+          <TabsTrigger value="purchase">Buy Extra Credits</TabsTrigger>
           <TabsTrigger value="transactions">Transaction History</TabsTrigger>
           <TabsTrigger value="settings">Billing Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="subscription">
+          <div className="space-y-6">
+            <SubscriptionPlans 
+              currentPriceId={status?.price_id}
+              onSuccess={refetch}
+            />
+            
+            {currentTier && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Subscription</CardTitle>
+                  <CardDescription>Your active membership details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Plan:</span>
+                    <Badge variant="secondary" className="text-lg">{currentTier.name}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Monthly Credits:</span>
+                    <span className="font-medium">{currentTier.credits} ClearCredits</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Monthly Cost:</span>
+                    <span className="font-medium">${currentTier.price.toFixed(2)}</span>
+                  </div>
+                  {status?.subscription_end && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Renews:</span>
+                      <span className="font-medium">
+                        {new Date(status.subscription_end).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="purchase">
           <Card>
