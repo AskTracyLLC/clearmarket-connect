@@ -34,7 +34,19 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
 
       if (countiesError) throw countiesError;
 
-      const countyNames = countiesData.map(county => county.name);
+      // Deduplicate counties - prefer shorter names without "County" suffix
+      const countyMap = new Map();
+      countiesData.forEach(county => {
+        const baseName = county.name.replace(/\s+County$/i, '').trim();
+        const existing = countyMap.get(baseName);
+        
+        if (!existing || county.name.length < existing.name.length) {
+          countyMap.set(baseName, county);
+        }
+      });
+
+      const uniqueCounties = Array.from(countyMap.values());
+      const countyNames = uniqueCounties.map(county => county.name);
       setCounties(countyNames);
 
       // Fetch zip codes with city and county information
@@ -51,9 +63,9 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
 
       setZipCodes(zipData || []);
 
-      // Generate mock coverage data for each county
+      // Generate mock coverage data for each unique county
       const mockData = {};
-      countiesData.forEach(county => {
+      uniqueCounties.forEach(county => {
         mockData[county.name] = {
           reps: Math.floor(Math.random() * 3),
           active: Math.random() > 0.6,
