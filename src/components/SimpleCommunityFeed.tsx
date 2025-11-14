@@ -31,14 +31,12 @@ const SimpleCommunityFeed = ({
   const { posts: allPosts, loading: allLoading, handleVote, handleFlag, handleFunnyVote, handleCreatePost } = useCommunityPosts();
   const { posts: fieldRepPosts, loading: fieldRepLoading } = useCommunityPosts('field-rep-forum');
   const { posts: vendorPosts, loading: vendorLoading } = useCommunityPosts('vendor-bulletin');
-  const { posts: betaTestersPost, loading: betaTestersLoading } = useCommunityPosts('beta-testers');
 
   const handleCreatePostSubmit = async (title: string, content: string) => {
     // Map UI views to valid database sections
     const sectionMap: Record<string, string> = {
       'vendor': 'vendor-bulletin',
       'field-rep': 'field-rep-forum', 
-      'beta-testers': 'beta-testers',
       'all': 'field-rep-forum', // Default for "all" view
       'community': 'field-rep-forum', // Default for "community" view
       'user': 'field-rep-forum', // Default for user posts
@@ -69,8 +67,6 @@ const SimpleCommunityFeed = ({
         return vendorPosts;
       case "field-rep":
         return fieldRepPosts;
-      case "beta-testers":
-        return betaTestersPost;
       case "local-news":
         return [];
       case "user":
@@ -145,7 +141,7 @@ const SimpleCommunityFeed = ({
     );
   }
 
-  const loading = allLoading || fieldRepLoading || vendorLoading || betaTestersLoading;
+  const loading = allLoading || fieldRepLoading || vendorLoading;
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -157,7 +153,6 @@ const SimpleCommunityFeed = ({
              primaryView === "saved" ? "Saved Posts" :
              primaryView === "vendor" ? "Vendor Posts" :
              primaryView === "field-rep" ? "Field Rep Posts" :
-             primaryView === "beta-testers" ? "Beta Testers" :
              "Community Posts"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">

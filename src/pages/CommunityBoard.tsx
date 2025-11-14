@@ -99,7 +99,6 @@ const CommunityBoard = () => {
                     <SelectItem value="all">All categories</SelectItem>
                     <SelectItem value="vendor">Vendor Posts</SelectItem>
                     <SelectItem value="field-rep">Field Rep Posts</SelectItem>
-                    <SelectItem value="beta-testers">Beta Testers</SelectItem>
                     <SelectItem value="local-news">Local News</SelectItem>
                   </SelectContent>
                 </Select>

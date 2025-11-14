@@ -269,7 +269,7 @@ export const useCommunityPosts = (section?: string) => {
       // Provide specific error message based on error type
       let errorMessage = "Failed to create post";
       if (err.message?.includes('violates check constraint "check_section"')) {
-        errorMessage = "Invalid section. Please select: field-rep-forum, vendor-bulletin, or beta-testers";
+        errorMessage = "Invalid section. Please select: field-rep-forum or vendor-bulletin";
       } else if (err.message?.includes('permission denied')) {
         errorMessage = "You don't have permission to post in this section";
       } else if (err.message) {
