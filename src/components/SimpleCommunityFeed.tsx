@@ -16,6 +16,7 @@ interface SimpleCommunityFeedProps {
   secondaryFilter?: string;
   searchTerm?: string;
   jobTypeFilter?: string;
+  stateFilter?: string;
 }
 
 const SimpleCommunityFeed = ({ 
@@ -23,7 +24,8 @@ const SimpleCommunityFeed = ({
   primaryView = "all", 
   secondaryFilter = "recent",
   searchTerm = "",
-  jobTypeFilter = "all"
+  jobTypeFilter = "all",
+  stateFilter = "all"
 }: SimpleCommunityFeedProps) => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   
@@ -137,6 +139,20 @@ const SimpleCommunityFeed = ({
       ) || 
       post.system_tags?.some(tag => 
         tag.toLowerCase().includes(jobTypeFilter.replace('-', ' '))
+      )
+    );
+  }
+
+  // Apply state filter
+  if (stateFilter && stateFilter !== "all") {
+    filteredPosts = filteredPosts.filter(post => 
+      post.user_tags?.some(tag => 
+        tag.toUpperCase() === stateFilter || 
+        tag.toLowerCase().includes(stateFilter.toLowerCase())
+      ) || 
+      post.system_tags?.some(tag => 
+        tag.toUpperCase() === stateFilter || 
+        tag.toLowerCase().includes(stateFilter.toLowerCase())
       )
     );
   }

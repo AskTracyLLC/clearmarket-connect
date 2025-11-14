@@ -12,6 +12,7 @@ import SimpleCommunityFeed from "@/components/SimpleCommunityFeed";
 import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
 import LocalNewsSearch from "@/components/LocalNewsSearch";
 import { useWorkTypes } from "@/hooks/useWorkTypes";
+import { statesAndCounties } from "@/data/statesAndCounties";
 
 const CommunityBoard = () => {
   const location = useLocation();
@@ -25,6 +26,7 @@ const CommunityBoard = () => {
   }, [location.state]);
   const [category, setCategory] = useState("all");
   const [jobType, setJobType] = useState("all");
+  const [state, setState] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -99,6 +101,24 @@ const CommunityBoard = () => {
                 </Select>
               </div>
 
+              {/* State Filter */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">State:</span>
+                <Select value={state} onValueChange={setState}>
+                  <SelectTrigger className="w-40 h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All states</SelectItem>
+                    {statesAndCounties.map((state) => (
+                      <SelectItem key={state.code} value={state.code}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Job Type Tags */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-medium">Job Type:</span>
@@ -148,6 +168,7 @@ const CommunityBoard = () => {
                   secondaryFilter={sortBy}
                   searchTerm={searchTerm}
                   jobTypeFilter={jobType}
+                  stateFilter={state}
                 />
               )}
             </TabsContent>
@@ -159,6 +180,7 @@ const CommunityBoard = () => {
                 secondaryFilter={sortBy}
                 searchTerm={searchTerm}
                 jobTypeFilter={jobType}
+                stateFilter={state}
               />
             </TabsContent>
 
@@ -169,6 +191,7 @@ const CommunityBoard = () => {
                 secondaryFilter={sortBy}
                 searchTerm={searchTerm}
                 jobTypeFilter={jobType}
+                stateFilter={state}
               />
             </TabsContent>
 
