@@ -11,7 +11,6 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
   const [zipCodes, setZipCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [countySearch, setCountySearch] = useState('');
-  const [citySearch, setCitySearch] = useState('');
   const [zipSearch, setZipSearch] = useState('');
 
   useEffect(() => {
@@ -49,13 +48,14 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       const countyNames = uniqueCounties.map(county => county.name);
       setCounties(countyNames);
 
-      // Fetch zip codes with city and county information
+      // Fetch zip codes with county information
+      // Note: city field not available in current schema
       const { data: zipData, error: zipError } = await supabase
         .from('zip_codes')
         .select(`
           zip_code,
-          city,
-          counties!inner(name, states!inner(code))
+          county_id,
+          counties!inner(id, name, state_id, states!inner(code))
         `)
         .eq('counties.states.code', stateCode);
 
@@ -96,7 +96,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
 
   // Filter counties based on separate search fields
   const filteredCounties = useMemo(() => {
-    const hasSearch = countySearch || citySearch || zipSearch;
+    const hasSearch = countySearch || zipSearch;
     if (!hasSearch) return counties;
     
     let matches = new Set();
@@ -111,17 +111,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       });
     }
     
-    // City search
-    if (citySearch) {
-      const cityLower = citySearch.toLowerCase();
-      zipCodes.forEach(zip => {
-        if (zip.city?.toLowerCase().includes(cityLower) && zip.counties?.name) {
-          matches.add(zip.counties.name);
-        }
-      });
-    }
-    
-    // Zip code search
+    // Zip code search - match zip code to county
     if (zipSearch) {
       zipCodes.forEach(zip => {
         if (zip.zip_code?.includes(zipSearch) && zip.counties?.name) {
@@ -131,14 +121,14 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
     }
     
     return Array.from(matches);
-  }, [counties, zipCodes, countySearch, citySearch, zipSearch]);
+  }, [counties, zipCodes, countySearch, zipSearch]);
 
   // Highlight matching counties
   const highlightedCounties = useMemo(() => {
-    const hasSearch = countySearch || citySearch || zipSearch;
+    const hasSearch = countySearch || zipSearch;
     if (!hasSearch) return new Set();
     return new Set(filteredCounties);
-  }, [filteredCounties, countySearch, citySearch, zipSearch]);
+  }, [filteredCounties, countySearch, zipSearch]);
 
   if (loading) {
     return <Skeleton className="w-full h-96" />;
@@ -153,12 +143,12 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
             {stateCode} Counties ({counties.length} total)
           </h4>
           <Badge variant="outline" className="text-sm">
-            {filteredCounties.length} {countySearch || citySearch || zipSearch ? 'matching' : 'total'}
+            {filteredCounties.length} {countySearch || zipSearch ? 'matching' : 'total'}
           </Badge>
         </div>
         
-        {/* Three Search Bars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Two Search Bars (City search unavailable - no city data in database) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* County Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -166,17 +156,6 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
               placeholder="Search counties..."
               value={countySearch}
               onChange={(e) => setCountySearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* City Search */}
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search cities..."
-              value={citySearch}
-              onChange={(e) => setCitySearch(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -193,13 +172,18 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
           </div>
         </div>
         
+        {/* Info note about city search */}
+        <p className="text-xs text-muted-foreground mt-2">
+          Note: City search is not yet available. Use county or zip code search instead.
+        </p>
+        
         {/* Search Results Summary */}
-        {(countySearch || citySearch || zipSearch) && (
+        {(countySearch || zipSearch) && (
           <div className="mt-2 text-sm text-muted-foreground">
             {filteredCounties.length > 0 ? (
               <>Found {filteredCounties.length} matching counties</>
             ) : (
-              <>No counties found matching your search</>
+              <>No counties found matching your search. Try a different county name or zip code.</>
             )}
           </div>
         )}
@@ -225,7 +209,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-96 overflow-y-auto">
         {counties.map((countyName) => {
           const isHighlighted = highlightedCounties.has(countyName);
-          const isFiltered = (countySearch || citySearch || zipSearch) && !filteredCounties.includes(countyName);
+          const isFiltered = (countySearch || zipSearch) && !filteredCounties.includes(countyName);
           
           return (
             <div
@@ -262,7 +246,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       </div>
       
       {/* Search Results List (when searching) */}
-      {(countySearch || citySearch || zipSearch) && filteredCounties.length > 0 && (
+      {(countySearch || zipSearch) && filteredCounties.length > 0 && (
         <div className="mt-6 pt-4 border-t">
           <h5 className="font-semibold mb-3">Search Results:</h5>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -294,7 +278,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       )}
       
       <p className="text-center text-sm text-muted-foreground mt-4">
-        {(countySearch || citySearch || zipSearch)
+        {(countySearch || zipSearch)
           ? "Click on highlighted counties or search results for details" 
           : "Click on counties for detailed information"
         }
