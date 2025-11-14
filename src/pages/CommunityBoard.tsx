@@ -11,10 +11,12 @@ import { Search, Wrench } from "lucide-react";
 import SimpleCommunityFeed from "@/components/SimpleCommunityFeed";
 import { FeedbackBoardNew } from "@/components/FeedbackBoardNew";
 import LocalNewsSearch from "@/components/LocalNewsSearch";
+import { useWorkTypes } from "@/hooks/useWorkTypes";
 
 const CommunityBoard = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("community");
+  const { workTypes, loading: workTypesLoading } = useWorkTypes();
 
   useEffect(() => {
     if (location.state?.activeTab) {
@@ -26,14 +28,7 @@ const CommunityBoard = () => {
   const [sortBy, setSortBy] = useState("recent");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const jobTypes = [
-    "Occupancy Checks",
-    "Disaster",
-    "Pre-Listing",
-    "Maintenance",
-    "Compliance",
-    "Emergency"
-  ];
+  const jobTypes = workTypes.map(wt => wt.name);
 
   return (
     <div className="min-h-screen bg-background">
