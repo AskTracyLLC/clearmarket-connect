@@ -5122,6 +5122,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_email_by_username: {
+        Args: { username_input: string }
+        Returns: string
+      }
       mark_message_responded: {
         Args: { message_id: string; responder_user_id: string }
         Returns: boolean

@@ -145,22 +145,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isEmail = input.includes('@');
     let email = input;
 
-    // If it's a username, look up the email (case-insensitive)
+    // If it's a username, look up the email using secure function
     if (!isEmail) {
-      const { data: userData, error: lookupError } = await supabase
-        .from('users')
-        .select('email')
-        .ilike('anonymous_username', input)
-        .limit(1)
-        .maybeSingle();
+      const { data: lookupEmail, error: lookupError } = await supabase
+        .rpc('lookup_email_by_username', { username_input: input });
 
       if (lookupError) {
+        console.error('Username lookup error:', lookupError);
         return { error: { message: 'Unable to verify username. Please try again.' } };
       }
-      if (!userData) {
+      if (!lookupEmail) {
         return { error: { message: 'Username not found' } };
       }
-      email = userData.email;
+      email = lookupEmail;
     }
 
     const { error } = await supabase.auth.signInWithPassword({
