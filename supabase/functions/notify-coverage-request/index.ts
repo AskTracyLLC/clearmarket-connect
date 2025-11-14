@@ -108,7 +108,7 @@ serve(async (req) => {
     // Create notifications for all available field reps
     const notifications = availableFieldReps.map(userId => ({
       user_id: userId,
-      type: 'coverage_request',
+      type: 'message',
       title: 'New Coverage Request in Your Area',
       message: `A vendor needs coverage in ${coverageRequest.selected_state}. ${coverageRequest.budget_range ? `Budget: ${coverageRequest.budget_range}` : ''}`,
       read: false,
