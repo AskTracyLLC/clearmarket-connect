@@ -8,19 +8,20 @@ import { supabase } from '@/integrations/supabase/client';
 const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
   const [counties, setCounties] = useState([]);
   const [countyData, setCountyData] = useState({});
+  const [zipCodes, setZipCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchCountiesForState();
+    fetchCountiesAndZipCodes();
   }, [stateCode]);
 
-  const fetchCountiesForState = async () => {
+  const fetchCountiesAndZipCodes = async () => {
     try {
       setLoading(true);
       
-      // Fetch real counties from your database
-      const { data, error } = await supabase
+      // Fetch counties
+      const { data: countiesData, error: countiesError } = await supabase
         .from('counties')
         .select(`
           id,
@@ -29,14 +30,28 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
         `)
         .eq('states.code', stateCode);
 
-      if (error) throw error;
+      if (countiesError) throw countiesError;
 
-      const countyNames = data.map(county => county.name);
+      const countyNames = countiesData.map(county => county.name);
       setCounties(countyNames);
+
+      // Fetch zip codes with city and county information
+      const { data: zipData, error: zipError } = await supabase
+        .from('zip_codes')
+        .select(`
+          zip_code,
+          city,
+          counties!inner(name, states!inner(code))
+        `)
+        .eq('counties.states.code', stateCode);
+
+      if (zipError) throw zipError;
+
+      setZipCodes(zipData || []);
 
       // Generate mock coverage data for each county
       const mockData = {};
-      data.forEach(county => {
+      countiesData.forEach(county => {
         mockData[county.name] = {
           reps: Math.floor(Math.random() * 3),
           active: Math.random() > 0.6,
@@ -46,7 +61,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
       setCountyData(mockData);
 
     } catch (err) {
-      console.error('Error fetching counties:', err);
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
@@ -65,25 +80,36 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
     return countyName.replace(/\s+County$/i, '');
   };
 
-  // Filter counties based on search term
+  // Filter counties based on search term (county name, city, or zip code)
   const filteredCounties = useMemo(() => {
     if (!searchTerm) return counties;
     
-    return counties.filter(county =>
-      county.toLowerCase().includes(searchTerm.toLowerCase())
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Find counties that match directly
+    const directMatches = counties.filter(county =>
+      county.toLowerCase().includes(searchLower)
     );
-  }, [counties, searchTerm]);
+    
+    // Find counties through zip code or city matches
+    const zipMatches = zipCodes
+      .filter(zip => 
+        zip.zip_code?.includes(searchTerm) ||
+        zip.city?.toLowerCase().includes(searchLower)
+      )
+      .map(zip => zip.counties?.name)
+      .filter(Boolean);
+    
+    // Combine and deduplicate
+    const allMatches = new Set([...directMatches, ...zipMatches]);
+    return Array.from(allMatches);
+  }, [counties, zipCodes, searchTerm]);
 
   // Highlight matching counties
   const highlightedCounties = useMemo(() => {
     if (!searchTerm) return new Set();
-    
-    return new Set(
-      counties.filter(county =>
-        county.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [counties, searchTerm]);
+    return new Set(filteredCounties);
+  }, [filteredCounties]);
 
   if (loading) {
     return <Skeleton className="w-full h-96" />;
@@ -106,7 +132,7 @@ const DatabaseStateCountyMap = ({ stateCode, onCountyClick }) => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search counties or zip codes..."
+            placeholder="Search counties, cities, or zip codes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
