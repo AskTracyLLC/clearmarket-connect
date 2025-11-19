@@ -203,7 +203,15 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
       });
 
       // Call edge function to notify matching field reps
-      const { error: notifyError } = await supabase.functions.invoke('notify-coverage-request', {
+      console.log('Calling notify-coverage-request with:', {
+        requestId: insertedRequest.id,
+        state: form.selectedState,
+        counties: countyNames,
+        inspectionTypes: form.selectedInspectionTypes,
+        platforms: form.selectedPlatforms
+      });
+
+      const { data: notifyResult, error: notifyError } = await supabase.functions.invoke('notify-coverage-request', {
         body: {
           requestId: insertedRequest.id,
           state: form.selectedState,
@@ -213,14 +221,25 @@ const PostCoverageRequestModal = ({ open, onOpenChange }: PostCoverageRequestMod
         }
       });
 
+      console.log('notify-coverage-request response:', { notifyResult, notifyError });
+
       if (notifyError) {
         console.error("Error sending notifications:", notifyError);
-        // Don't fail the whole operation if notifications fail
+        toast({
+          variant: "destructive",
+          title: "Notification Error",
+          description: `Request posted but failed to notify field reps: ${notifyError.message}`,
+        });
+      } else {
+        console.log(`Successfully notified ${notifyResult?.notified || 0} field reps`);
       }
 
+      const notifiedCount = notifyResult?.notified || 0;
       toast({
         title: "Coverage Request Posted",
-        description: "Field reps in your area have been notified.",
+        description: notifiedCount > 0 
+          ? `Successfully notified ${notifiedCount} field reps in your area.`
+          : "Request posted. Matching field reps will be notified.",
       });
       
       onOpenChange(false);
