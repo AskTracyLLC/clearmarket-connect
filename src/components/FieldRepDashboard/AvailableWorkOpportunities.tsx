@@ -71,15 +71,29 @@ export const AvailableWorkOpportunities = () => {
       // Get all coverage requests that match field rep's coverage
       const { data: coverageRequests, error: requestsError } = await supabase
         .from('coverage_requests')
-        .select(`
-          *,
-          vendor_profiles!inner(company_name, anonymous_username)
-        `)
+        .select('*')
         .eq('status', 'active')
         .gte('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
+
+      // Get vendor information from users and vendor_profile tables
+      const vendorIds = [...new Set(coverageRequests?.map(r => r.vendor_user_id).filter(Boolean) || [])];
+      
+      let vendorProfiles: Record<string, any> = {};
+      if (vendorIds.length > 0) {
+        const { data: vendors } = await supabase
+          .from('users')
+          .select('id, display_name, anonymous_username')
+          .in('id', vendorIds);
+        
+        if (vendors) {
+          vendorProfiles = Object.fromEntries(
+            vendors.map(v => [v.id, { company_name: v.display_name, anonymous_username: v.anonymous_username }])
+          );
+        }
+      }
 
       // Filter requests that match field rep's coverage areas
       const matchingRequests = (coverageRequests || []).filter((request: any) => {
@@ -100,7 +114,7 @@ export const AvailableWorkOpportunities = () => {
 
       setRequests(matchingRequests.map((req: any) => ({
         ...req,
-        vendor_profile: req.vendor_profiles
+        vendor_profile: vendorProfiles[req.vendor_user_id]
       })));
 
     } catch (error) {
