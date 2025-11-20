@@ -24,6 +24,7 @@ import {
 import { useDualBalance } from "@/hooks/dual_balance_hook";
 import Header from "@/components/Header";
 import { ConnectionRequestsList } from "@/components/FieldRepDashboard/ConnectionRequestsList";
+import { AvailableWorkOpportunities } from "@/components/FieldRepDashboard/AvailableWorkOpportunities";
 
 interface DashboardStats {
   trustScore: number;
@@ -125,6 +126,9 @@ const FieldRepDashboard = () => {
         
         {/* Performance Scores */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Available Work Opportunities */}
+          <AvailableWorkOpportunities />
+          
           {/* Connection Requests */}
           <ConnectionRequestsList />
           

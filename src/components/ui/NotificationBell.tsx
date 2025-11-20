@@ -21,17 +21,15 @@ export const NotificationBell = () => {
 
     // Navigate based on notification context
     if (notification.target_type === 'coverage_request') {
-      // Field reps see matching coverage requests on their dashboard
+      // Field reps see available work opportunities on their dashboard
       navigate('/fieldrep/dashboard');
     } else if (notification.type === 'connection_request') {
       navigate('/fieldrep/dashboard');
     } else if (notification.type === 'connection_accepted' || notification.type === 'connection_rejected') {
       navigate('/vendor/dashboard');
     } else if (notification.type === 'message') {
-      // Direct messages and system messages go to inbox
       navigate('/messages');
     } else {
-      // Safe fallback to a valid dashboard route instead of a non-existent deep link
       navigate('/fieldrep/dashboard');
     }
   };
