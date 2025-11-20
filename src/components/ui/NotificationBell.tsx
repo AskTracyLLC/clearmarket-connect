@@ -19,17 +19,20 @@ export const NotificationBell = () => {
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
 
-    // Navigate based on notification target_type
+    // Navigate based on notification context
     if (notification.target_type === 'coverage_request') {
-      // For coverage requests, navigate to field rep dashboard where they can see available work
+      // Field reps see matching coverage requests on their dashboard
       navigate('/fieldrep/dashboard');
     } else if (notification.type === 'connection_request') {
       navigate('/fieldrep/dashboard');
     } else if (notification.type === 'connection_accepted' || notification.type === 'connection_rejected') {
       navigate('/vendor/dashboard');
-    } else if (notification.target_type && notification.target_id) {
-      // Handle other notification types as needed
-      navigate(`/${notification.target_type}/${notification.target_id}`);
+    } else if (notification.type === 'message') {
+      // Direct messages and system messages go to inbox
+      navigate('/messages');
+    } else {
+      // Safe fallback to a valid dashboard route instead of a non-existent deep link
+      navigate('/fieldrep/dashboard');
     }
   };
 
