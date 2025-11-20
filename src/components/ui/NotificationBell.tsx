@@ -19,8 +19,11 @@ export const NotificationBell = () => {
   const handleNotificationClick = (notification: any) => {
     markAsRead(notification.id);
 
-    // Navigate based on notification type
-    if (notification.type === 'connection_request') {
+    // Navigate based on notification target_type
+    if (notification.target_type === 'coverage_request') {
+      // For coverage requests, navigate to field rep dashboard where they can see available work
+      navigate('/fieldrep/dashboard');
+    } else if (notification.type === 'connection_request') {
       navigate('/fieldrep/dashboard');
     } else if (notification.type === 'connection_accepted' || notification.type === 'connection_rejected') {
       navigate('/vendor/dashboard');
