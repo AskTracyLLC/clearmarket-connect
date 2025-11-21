@@ -19,7 +19,8 @@ import {
   MessageSquare,
   Calendar,
   Filter,
-  Eye
+  Eye,
+  DollarSign
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -30,16 +31,22 @@ import CoverageRequests from '@/components/VendorDashboard/CoverageRequests';
 import VendorReviews from '@/components/VendorDashboard/VendorReviews';
 import AccountBilling from '@/components/VendorDashboard/AccountBilling';
 import NetworkAlertsTab from '@/components/VendorDashboard/NetworkAlertsTab';
+import MarketPricingAnalytics from '@/components/VendorDashboard/MarketPricingAnalytics';
 import { SentConnectionRequests } from '@/components/VendorDashboard/SentConnectionRequests';
 import { ConnectionLimitStatus } from '@/components/ConnectionLimitStatus';
 import { BetaCreditWelcome } from '@/components/VendorDashboard/BetaCreditWelcome';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const VendorDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { currentTier } = useSubscription();
   const [activeTab, setActiveTab] = useState('coverage');
   const [creditExplainerOpen, setCreditExplainerOpen] = useState(false);
   const [creditPurchaseOpen, setCreditPurchaseOpen] = useState(false);
+
+  // Check if user has access to pricing analytics (Pro and Plus tiers)
+  const hasPricingAccess = currentTier && (currentTier.key === 'pro' || currentTier.key === 'plus');
 
   const handlePreviewProfile = () => {
     if (user?.id) {
@@ -152,7 +159,7 @@ const VendorDashboard = () => {
 
           {/* Main Dashboard Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
               <TabsTrigger value="coverage" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 <span className="hidden sm:inline">Coverage</span>
@@ -173,6 +180,12 @@ const VendorDashboard = () => {
                 <Megaphone className="h-4 w-4" />
                 <span className="hidden sm:inline">Requests</span>
               </TabsTrigger>
+              {hasPricingAccess && (
+                <TabsTrigger value="pricing" className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  <span className="hidden sm:inline">Market Pricing</span>
+                </TabsTrigger>
+              )}
               <TabsTrigger value="reviews" className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
                 <span className="hidden sm:inline">Reviews</span>
@@ -206,6 +219,12 @@ const VendorDashboard = () => {
             <TabsContent value="requests">
               <CoverageRequests />
             </TabsContent>
+
+            {hasPricingAccess && (
+              <TabsContent value="pricing">
+                <MarketPricingAnalytics />
+              </TabsContent>
+            )}
 
             <TabsContent value="reviews">
               <VendorReviews />
