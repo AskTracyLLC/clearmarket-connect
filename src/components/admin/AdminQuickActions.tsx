@@ -16,7 +16,8 @@ import {
   Network,
   Coins,
   Crown,
-  User
+  User,
+  DollarSign
 } from "lucide-react";
 
 interface AdminQuickActionsProps {
@@ -108,6 +109,15 @@ export const AdminQuickActions = ({ onTabChange }: AdminQuickActionsProps) => {
         {/* Quick Links */}
         <div className="space-y-2 pt-2">
           <p className="text-xs font-medium text-muted-foreground">Quick Links</p>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="w-full justify-start text-xs"
+            onClick={() => navigate('/admin/market-pricing')}
+          >
+            <DollarSign className="h-3 w-3 mr-2" />
+            Market Pricing Analytics
+          </Button>
           <Button 
             variant="ghost" 
             size="sm" 
