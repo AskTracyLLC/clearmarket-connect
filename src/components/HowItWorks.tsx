@@ -8,24 +8,24 @@ const HowItWorks = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            🛠️ How ClearMarket Works
+            How ClearMarket Works
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-            Smarter Connections. Stronger Reputation. More Work.
+            Smarter connections. Stronger reputation. More of the right work.
           </p>
           <p className="text-lg text-muted-foreground max-w-4xl mx-auto">
-            ClearMarket helps independent Field Reps and Property Inspection Vendors connect with confidence — with transparency, trust, and performance at the core.
+            ClearMarket helps independent Field Reps and Property Inspection Vendors connect with confidence — bringing transparency, trust, and performance to an industry that's often chaotic and underpaid.
           </p>
         </div>
 
         {/* For Field Reps */}
         <div className="mb-20">
           <h3 className="text-2xl font-bold text-center text-foreground mb-4">
-            👷 For Field Reps
+            For Field Reps
           </h3>
-          <p className="text-xl text-center text-accent font-semibold mb-12">Looking for Work?</p>
+          <p className="text-xl text-center text-accent font-semibold mb-12">Looking for work?</p>
           <p className="text-center text-muted-foreground mb-8 max-w-3xl mx-auto">
-            ClearMarket lets you showcase your experience, service area, and specialties — making it easier for the right vendors to find you.
+            Showcase your experience, coverage areas, and systems you use so vendors can finally see what you're really capable of — then choose the opportunities that fit you best.
           </p>
           
           <div className="grid md:grid-cols-4 gap-6">
@@ -35,7 +35,7 @@ const HowItWorks = () => {
               </div>
               <h4 className="text-lg font-semibold text-foreground mb-3">Create a profile (free)</h4>
               <p className="text-muted-foreground text-sm">
-                List your service areas, inspection types, platforms used, and pricing.
+                List your coverage by state and county, inspection types, systems used (EZ, IA, etc.), and your standard pricing.
               </p>
             </Card>
 
@@ -43,9 +43,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="h-8 w-8 text-accent" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Be seen by vendors</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Be seen by vetted vendors</h4>
               <p className="text-muted-foreground text-sm">
-                Vendors actively seeking coverage can find you through location-based searches.
+                Vendors searching or posting Seeking Coverage in your areas can discover you by location, platforms, and work type — not by who they already know.
               </p>
             </Card>
 
@@ -53,9 +53,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-trust/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="h-8 w-8 text-trust" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Build your reputation</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Message your network</h4>
               <p className="text-muted-foreground text-sm">
-                Build your visibility and reputation with verified feedback from real work.
+                Connect directly with vendors who unlock your profile or respond to your "Looking for Work" posts, all inside ClearMarket messaging.
               </p>
             </Card>
 
@@ -63,9 +63,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="h-8 w-8 text-primary" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Participate in community</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Build your reputation</h4>
               <p className="text-muted-foreground text-sm">
-                Participate in the community to earn credibility and unlock opportunities.
+                Earn verified reviews and trust signals based on real work completed, communication, and reliability — not public drama.
               </p>
             </Card>
           </div>
@@ -74,11 +74,11 @@ const HowItWorks = () => {
         {/* For Vendors */}
         <div className="mb-20">
           <h3 className="text-2xl font-bold text-center text-foreground mb-4">
-            🏢 For Vendors
+            For Vendors
           </h3>
-          <p className="text-xl text-center text-accent font-semibold mb-12">Need Reliable Coverage?</p>
+          <p className="text-xl text-center text-accent font-semibold mb-12">Need reliable coverage?</p>
           <p className="text-center text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Find Field Reps by location, service type, and platform experience — with built-in trust signals that help you choose wisely.
+            Find qualified field reps by coverage area, systems used, and inspection types — with built-in trust signals to help you choose wisely and avoid guesswork.
           </p>
           
           <div className="grid md:grid-cols-4 gap-6">
@@ -86,9 +86,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="h-8 w-8 text-accent" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Search for reps</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Post Seeking Coverage</h4>
               <p className="text-muted-foreground text-sm">
-                Search for reps in your target area by location and expertise.
+                Create posts for specific states/counties and inspection types. Set expectations upfront so reps know exactly what you need.
               </p>
             </Card>
 
@@ -96,9 +96,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Lock className="h-8 w-8 text-primary" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Unlock contact details</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Search & filter reps</h4>
               <p className="text-muted-foreground text-sm">
-                Unlock contact details to connect directly with qualified reps.
+                Use location, platforms, inspection type, and pricing alignment to see which reps actually fit your requirements before you unlock contact details.
               </p>
             </Card>
 
@@ -106,9 +106,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-trust/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="h-8 w-8 text-trust" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Share feedback</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Unlock and connect</h4>
               <p className="text-muted-foreground text-sm">
-                Share feedback after working with a rep to help the community.
+                Spend credits to unlock rep profiles, view full coverage, pricing, and contact details, then message or invite them into your vendor network.
               </p>
             </Card>
 
@@ -116,9 +116,9 @@ const HowItWorks = () => {
               <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="h-8 w-8 text-accent" />
               </div>
-              <h4 className="text-lg font-semibold text-foreground mb-3">Monitor performance</h4>
+              <h4 className="text-lg font-semibold text-foreground mb-3">Monitor performance over time</h4>
               <p className="text-muted-foreground text-sm">
-                Monitor rep performance over time to build lasting partnerships.
+                Use reviews and trust indicators to see who communicates well, completes work on time, and deserves more volume.
               </p>
             </Card>
           </div>
@@ -127,40 +127,43 @@ const HowItWorks = () => {
         {/* Trust Matters */}
         <div className="mb-20">
           <h3 className="text-2xl font-bold text-center text-foreground mb-8">
-            ✅ Trust Matters
+            Trust Matters
           </h3>
           <div className="max-w-4xl mx-auto">
             <Card className="p-8 bg-gradient-card shadow-card mb-8">
               <p className="text-lg text-muted-foreground text-center mb-6">
-                What sets ClearMarket apart is our focus on verified, reputation-based connections. Rather than letting anyone rate anyone, only confirmed connections can leave feedback — keeping things fair and credible.
+                What sets ClearMarket apart is our focus on verified, reputation-based connections. Instead of relying on rumor threads or unverified Facebook posts, ClearMarket keeps feedback tied to real work and confirmed relationships — so scores and reviews actually mean something.
               </p>
               
               <div className="text-center">
-                <h4 className="text-xl font-semibold text-foreground mb-4">Users can earn "Trusted" status by consistently demonstrating:</h4>
                 <div className="grid md:grid-cols-4 gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                       <Shield className="h-6 w-6 text-primary" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">Professionalism</span>
+                    <span className="text-sm font-medium text-foreground mb-1">Professionalism</span>
+                    <span className="text-xs text-muted-foreground text-center">Measured by communication, follow-through, and reliability.</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-2">
                       <Star className="h-6 w-6 text-accent" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">Reliability</span>
+                    <span className="text-sm font-medium text-foreground mb-1">Reliability</span>
+                    <span className="text-xs text-muted-foreground text-center">Track on-time performance and consistency across real jobs.</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 bg-trust/10 rounded-full flex items-center justify-center mb-2">
                       <MessageSquare className="h-6 w-6 text-trust" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">Positive verified reviews</span>
+                    <span className="text-sm font-medium text-foreground mb-1">Positive verified reviews</span>
+                    <span className="text-xs text-muted-foreground text-center">Reviews tied to confirmed work, with room for rebuttals and context.</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                       <Users className="h-6 w-6 text-primary" />
                     </div>
-                    <span className="text-sm font-medium text-foreground">Constructive community engagement</span>
+                    <span className="text-sm font-medium text-foreground mb-1">Community engagement</span>
+                    <span className="text-xs text-muted-foreground text-center">Helpful contributions in the ClearMarket community help build trust — not drama.</span>
                   </div>
                 </div>
               </div>
